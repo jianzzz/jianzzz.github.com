@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="在保护模式下线性地址 = GDT 表项中段基址 + 偏移地址，而实际上指针的值通常就是偏移地址。在 Boot Loader 完成了将内核可执行文件加载到内存中的工作后，将用 ((void (*)(void)) (ELFHDR-&amp;gt;e_entry))(); 这一句代码执行指令的跳转。内核程序在 kern/entry.S 中设置 CR0_PG 标识符，虚存硬件开始将线性地址映射为物理地址。在标识符">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记03.5 - Lab 1:Jos内核">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="在保护模式下线性地址 = GDT 表项中段基址 + 偏移地址，而实际上指针的值通常就是偏移地址。在 Boot Loader 完成了将内核可执行文件加载到内存中的工作后，将用 ((void (*)(void)) (ELFHDR-&amp;gt;e_entry))(); 这一句代码执行指令的跳转。内核程序在 kern/entry.S 中设置 CR0_PG 标识符，虚存硬件开始将线性地址映射为物理地址。在标识符">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/4.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.202Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记03.5 - Lab 1:Jos内核">
+<meta name="twitter:description" content="在保护模式下线性地址 = GDT 表项中段基址 + 偏移地址，而实际上指针的值通常就是偏移地址。在 Boot Loader 完成了将内核可执行文件加载到内存中的工作后，将用 ((void (*)(void)) (ELFHDR-&amp;gt;e_entry))(); 这一句代码执行指令的跳转。内核程序在 kern/entry.S 中设置 CR0_PG 标识符，虚存硬件开始将线性地址映射为物理地址。在标识符">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/">
+
+
+
+
+
+  <title>笔记03.5 - Lab 1:Jos内核 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记03-5-Lab-1-Jos内核/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记03.5 - Lab 1:Jos内核</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:06:51+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在保护模式下线性地址 = GDT 表项中段基址 + 偏移地址，而实际上指针的值通常就是偏移地址。在 Boot Loader 完成了将内核可执行文件加载到内存中的工作后，将用 ((void (*)(void)) (ELFHDR-&gt;e_entry))(); 这一句代码执行指令的跳转。内核程序在 kern/entry.S 中设置 CR0_PG 标识符，虚存硬件开始将线性地址映射为物理地址。在标识符设置之前，由于没有开启分页，逻辑地址通过段映射得到的线性地址都被当作物理地址。开启分页后，内核程序使用 [KERNBASE, KERNBASE+4MB) 的线性地址，该地址范围会被映射到物理地址 [0, 4MB)，线性地址 [0, 4MB) 也会映射到物理地址 [0, 4MB) ，其中 KERNBASE = 0xF0000000。</p>
+<p><strong>也就是说，boot/boot.S切换到保护模式之后，开始了逻辑地址到线性地址的转换，但是没有开启分页，线性地址被当为物理地址，所以一般使用的是低地址。kern/entry.S开启分页之后，开始在保护模式下使用高线性地址，因此需要加载页表。此时还没开始内存管理，因此页表是手工静态文件。</strong></p>
+<h1 id="部分内核代码解析"><a href="#部分内核代码解析" class="headerlink" title="部分内核代码解析"></a>部分内核代码解析</h1><p>首先来看看 kern/entry.S 文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line">/* See COPYRIGHT for copyright information. */</span><br><span class="line"></span><br><span class="line">#include &lt;inc/mmu.h&gt;</span><br><span class="line">#include &lt;inc/memlayout.h&gt;</span><br><span class="line"></span><br><span class="line"># Shift Right Logical </span><br><span class="line">#define SRL(val, shamt)		(((val) &gt;&gt; (shamt)) &amp; ~(-1 &lt;&lt; (32 - (shamt))))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">###################################################################</span><br><span class="line"># The kernel (this code) is linked at address ~(KERNBASE + 1 Meg), </span><br><span class="line"># but the bootloader loads it at address ~1 Meg.</span><br><span class="line">#	</span><br><span class="line"># RELOC(x) maps a symbol x from its link address to its actual</span><br><span class="line"># location in physical memory (its load address).	 </span><br><span class="line">###################################################################</span><br><span class="line"></span><br><span class="line">#define	RELOC(x) ((x) - KERNBASE)</span><br><span class="line"></span><br><span class="line">#define MULTIBOOT_HEADER_MAGIC (0x1BADB002)</span><br><span class="line">#define MULTIBOOT_HEADER_FLAGS (0)</span><br><span class="line">#define CHECKSUM (-(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS))</span><br><span class="line"></span><br><span class="line">###################################################################</span><br><span class="line"># entry point</span><br><span class="line">###################################################################</span><br><span class="line"></span><br><span class="line">.text</span><br><span class="line"></span><br><span class="line"># The Multiboot header</span><br><span class="line">.align 4</span><br><span class="line">.long MULTIBOOT_HEADER_MAGIC</span><br><span class="line">.long MULTIBOOT_HEADER_FLAGS</span><br><span class="line">.long CHECKSUM</span><br><span class="line"></span><br><span class="line"># &apos;_start&apos; specifies the ELF entry point.  Since we haven&apos;t set up</span><br><span class="line"># virtual memory when the bootloader enters this code, we need the</span><br><span class="line"># bootloader to jump to the *physical* address of the entry point.</span><br><span class="line">.globl		_start</span><br><span class="line">_start = RELOC(entry)</span><br><span class="line"></span><br><span class="line">.globl entry</span><br><span class="line">entry:</span><br><span class="line">	movw	$0x1234,0x472			# warm boot</span><br><span class="line"></span><br><span class="line">	# We haven&apos;t set up virtual memory yet, so we&apos;re running from</span><br><span class="line">	# the physical address the boot loader loaded the kernel at: 1MB</span><br><span class="line">	# (plus a few bytes).  However, the C code is linked to run at</span><br><span class="line">	# KERNBASE+1MB.  Hence, we set up a trivial page directory that</span><br><span class="line">	# translates virtual addresses [KERNBASE, KERNBASE+4MB) to</span><br><span class="line">	# physical addresses [0, 4MB).  This 4MB region will be</span><br><span class="line">	# sufficient until we set up our real page table in mem_init</span><br><span class="line">	# in lab 2.</span><br><span class="line"></span><br><span class="line">	# 注意到内核代码的执行是从KERNBASE+1MB开始的，而不是KERNBASE!!!</span><br><span class="line">	# 由于虚拟内存机制还没建立，所以在kern/entrypgdir.c里面手写了4MB的页表，</span><br><span class="line">	# 把[0,4MB)物理地址同时映射到线性地址[0, 4MB)和[KERNBASE, KERNBASE+4MB)中</span><br><span class="line">	</span><br><span class="line">	# Load the physical address of entry_pgdir into cr3.  entry_pgdir</span><br><span class="line">	# is defined in entrypgdir.c.</span><br><span class="line">	# 此时还没开启分页，需要RELOC将线性地址转化为物理地址</span><br><span class="line">	movl	$(RELOC(entry_pgdir)), %eax</span><br><span class="line">	movl	%eax, %cr3</span><br><span class="line">	# Turn on paging.</span><br><span class="line">	movl	%cr0, %eax</span><br><span class="line">	orl	$(CR0_PE|CR0_PG|CR0_WP), %eax</span><br><span class="line">	movl	%eax, %cr0</span><br><span class="line"></span><br><span class="line">	# Now paging is enabled, but we&apos;re still running at a low EIP</span><br><span class="line">	# (why is this okay?).  Jump up above KERNBASE before entering</span><br><span class="line">	# C code.</span><br><span class="line">	# 线性地址[0, 4MB)和[KERNBASE, KERNBASE+4MB)同时映射到[0,4MB)物理地址</span><br><span class="line">	# 如果不映射线性地址[0, 4MB)，则low eip的线性地址不在可访问线性地址范围内，将出现非法访问</span><br><span class="line">	mov	$relocated, %eax</span><br><span class="line">	jmp	*%eax # jmp 之后eip将会加上KERNBASE !!!</span><br><span class="line">relocated:</span><br><span class="line"></span><br><span class="line">	# Clear the frame pointer register (EBP)</span><br><span class="line">	# so that once we get into debugging C code,</span><br><span class="line">	# stack backtraces will be terminated properly.</span><br><span class="line">	movl	$0x0,%ebp			# nuke frame pointer</span><br><span class="line"></span><br><span class="line">	# 可以看到在这里定义了两个全局变量 bootstack 和 bootstacktop， bootstack 标识了内存中</span><br><span class="line">	# 的一个位置，表示从这里开始的 KSTKSIZE 个字节的区域都是属于这个临时堆栈的</span><br><span class="line">	# (KSTKSIZE 在 inc/memlayout.h 中定义为 32k)，而 bootstacktop 则指向的是这段区域后的第</span><br><span class="line">	# 一个字节，由于刚开始的时候堆栈是空的，所以栈顶便是 bootstacktop 所指向的位置，于是</span><br><span class="line">	# 程序便将 bootstacktop 的值赋给了 esp 寄存器。该位置位于.data节内。</span><br><span class="line"></span><br><span class="line">	# Set the stack pointer</span><br><span class="line">	movl	$(bootstacktop),%esp</span><br><span class="line"></span><br><span class="line">	# now to C code</span><br><span class="line">	call	i386_init</span><br><span class="line"></span><br><span class="line">	# Should never get here, but in case we do, just spin.</span><br><span class="line">spin:	jmp	spin</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">.data</span><br><span class="line">###################################################################</span><br><span class="line"># boot stack</span><br><span class="line">###################################################################</span><br><span class="line">	.p2align	PGSHIFT		# force page alignment</span><br><span class="line">	.globl		bootstack</span><br><span class="line">bootstack:</span><br><span class="line">	.space		KSTKSIZE</span><br><span class="line">	.globl		bootstacktop   </span><br><span class="line">bootstacktop:</span><br></pre></td></tr></table></figure></p>
+<p>在初始化堆栈指针后，程序调用了 i386_init 函数，这个函数是在 kern/init.c 中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">i386_init(void)</span><br><span class="line">&#123;</span><br><span class="line">	extern char edata[], end[];</span><br><span class="line"></span><br><span class="line">	// 在完成任何事之前，先完成 ELF 的加载过程。清除未初始化的全局数据 (BSS) 节，确保所有 static/global 变量置零。</span><br><span class="line">        // 可以看到两个外部字符数组变量 edata 和 end，其中 edata 表示的是 bss 节在内存中开始的位置，而 end 则是表示内核可执行程序在内存中结束的位置。由 2.1 节中对 ELF 文件的讲解我们可以知道 bss 节是文件在内存中的最后一部分，于是 edata 与 end 之间的部分便是 bss 节的部分，我们又知道 bss 节的内容是未初始化的变量，而这些变量是默认为零的，所以在一开始的时候程序要用 memset(edata, 0, end - edata)这句代码将这些变量都置为零。</span><br><span class="line">	memset(edata, 0, end - edata);</span><br><span class="line"></span><br><span class="line">	// 初始化控制台，有显存的初始化、键盘的初始化之类的</span><br><span class="line">	// Can&apos;t call cprintf until after we do this!</span><br><span class="line">	cons_init();       </span><br><span class="line">        // 测试输出</span><br><span class="line">	cprintf(&quot;6828 decimal is %o octal!\n&quot;, 6828);</span><br><span class="line">        // 通过堆栈来对函数调用进行回溯(lab 1 only) </span><br><span class="line">	test_backtrace(5);</span><br><span class="line"></span><br><span class="line">	// Drop into the kernel monitor.</span><br><span class="line">        // 无限循环的调用了 monitor 函数，这个函数的原型在 kern/monitor.c 中，它的功能是提示用户输入命令与操作系统进行交互。</span><br><span class="line">	while (1)</span><br><span class="line">		monitor(NULL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>定义在 kern/monitor.c 中的 runcmd 函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">static int</span><br><span class="line">runcmd(char *buf, struct Trapframe *tf)</span><br><span class="line">&#123;</span><br><span class="line">	int argc;</span><br><span class="line">	char *argv[MAXARGS];</span><br><span class="line">	int i;</span><br><span class="line"></span><br><span class="line">	// Parse the command buffer into whitespace-separated arguments</span><br><span class="line">	argc = 0;</span><br><span class="line">	argv[argc] = 0;</span><br><span class="line">	while (1) &#123;</span><br><span class="line">		// gobble whitespace</span><br><span class="line">		while (*buf &amp;&amp; strchr(WHITESPACE, *buf))</span><br><span class="line">			*buf++ = 0; //把所有空格字符都置为空字符</span><br><span class="line">		if (*buf == 0)</span><br><span class="line">			break;// 命令结束</span><br><span class="line"></span><br><span class="line">		// save and scan past next arg</span><br><span class="line">		if (argc == MAXARGS-1) &#123;</span><br><span class="line">			cprintf(&quot;Too many arguments (max %d)\n&quot;, MAXARGS);</span><br><span class="line">			return 0;// 参数个数超过最大个数的限制</span><br><span class="line">		&#125;</span><br><span class="line">		argv[argc++] = buf;// 指向相应的字符串</span><br><span class="line">		while (*buf &amp;&amp; !strchr(WHITESPACE, *buf))</span><br><span class="line">			buf++; // 跳过非空格的字符</span><br><span class="line">	&#125;</span><br><span class="line">	argv[argc] = 0;</span><br><span class="line"></span><br><span class="line">	// Lookup and invoke the command</span><br><span class="line">	if (argc == 0)</span><br><span class="line">		return 0;</span><br><span class="line">	for (i = 0; i &lt; NCOMMANDS; i++) &#123;</span><br><span class="line">		if (strcmp(argv[0], commands[i].name) == 0)</span><br><span class="line">			return commands[i].func(argc, argv, tf);</span><br><span class="line">	&#125;</span><br><span class="line">	cprintf(&quot;Unknown command &apos;%s&apos;\n&quot;, argv[0]);</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>程序让指针指向了每个子字符串并且把命令字符串中的空格都换成了空字符， 因为用户在输入命令的时候， 命令名和参数之间， 参数和参数之间都是由空格相隔开的，这样处理后每个子字符串的结尾便都是一个空字符，便可以方便之后读取这个字符串，就如下图所示：<br><img src="/2017/08/20/笔记03-5-Lab-1-Jos内核/1.PNG" title="命令字符串的读取"></p>
+<h1 id="堆栈分析"><a href="#堆栈分析" class="headerlink" title="堆栈分析"></a>堆栈分析</h1><p>先进后出是堆栈的特点，内存中栈顶在内存的低地址处，而栈底是在高地址处。栈底是固定的，栈顶是可以变化的。假设我们需要堆栈出栈一个字的数据，即 4 个字节，这个时候我们需要当前 esp 指向位置开始的 4 个字节读出来，并且在这之后把 esp 加 4。当需要进栈一个字的数据时，将 esp 减 4，并把这个字存放在 esp 指向位置开始的 4 个字节处。<br><img src="/2017/08/20/笔记03-5-Lab-1-Jos内核/2.PNG" title="堆栈出栈一个字的数据的状况"><br><img src="/2017/08/20/笔记03-5-Lab-1-Jos内核/3.PNG" title="堆栈进栈一个字的数据的状况"><br>关键的寄存器： eip 存储当前执行指令的下一条指令在内存中的偏移地址， esp 存储指向栈顶的指针，而 ebp 则是存储指向当前函数需要使用的参数的指针。在程序中，如果需要调用一个函数，首先（1）会将函数需要的参数进栈，然后（2）将 eip 中的一个字进栈，也就是下一条指令在内存中的位置，这样在函数调用结束后便可以通过堆栈中的 eip 值返回调用函数的程序（CALL将下一条指令的CS:EIP压入堆栈，但真实的情况是，下一条指令的地址压入堆栈，但EIP装入跳转函数的地址）。而在一进入调用函数的时候，第一件事便是（3）将 ebp 进栈（调用本函数的过程的栈指针），然后将当前的 esp 的值赋给 ebp。（4）ebp 以下部分一般作为临时数据区（esp 下调），包含本函数要调用的过程的参数的空间。<br>当前函数的 ebp 设置在 3 和 4 之间的地址，因此 0x0[%ebp] 可以读出上个函数的栈指针， 0x4[%ebp] 可以读出返回地址 %eip， 0x8[%ebp] 可以读出第一个参数……<br><img src="/2017/08/20/笔记03-5-Lab-1-Jos内核/4.PNG" title="调用函数时堆栈的变化"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-4-Lab-1-控制台输出函数/" rel="next" title="笔记03.4 - Lab 1:控制台输出函数">
+                <i class="fa fa-chevron-left"></i> 笔记03.4 - Lab 1:控制台输出函数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记04-HW02-boot-xv6/" rel="prev" title="笔记04 - HW02: boot xv6">
+                笔记04 - HW02: boot xv6 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#部分内核代码解析"><span class="nav-number">1.</span> <span class="nav-text">部分内核代码解析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#堆栈分析"><span class="nav-number">2.</span> <span class="nav-text">堆栈分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

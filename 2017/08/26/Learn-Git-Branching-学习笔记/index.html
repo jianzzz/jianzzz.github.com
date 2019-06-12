@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="git,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="Learn Git BranchingLearn Git Branching 基础123456789101112131415161718192021222324252627282930313233343536373839level intro1: git commitlevel intro2: git branch; git checkout -blevel intro3: git merge &amp;">
+<meta name="keywords" content="git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Learn Git Branching 学习笔记">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="Learn Git BranchingLearn Git Branching 基础123456789101112131415161718192021222324252627282930313233343536373839level intro1: git commitlevel intro2: git branch; git checkout -blevel intro3: git merge &amp;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/6.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/7.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/8.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/9.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/10.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/11.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/12.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/13.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/14.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/15.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:21:34.432Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Learn Git Branching 学习笔记">
+<meta name="twitter:description" content="Learn Git BranchingLearn Git Branching 基础123456789101112131415161718192021222324252627282930313233343536373839level intro1: git commitlevel intro2: git branch; git checkout -blevel intro3: git merge &amp;">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/">
+
+
+
+
+
+  <title>Learn Git Branching 学习笔记 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/Learn-Git-Branching-学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Learn Git Branching 学习笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T12:20:09+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Git/" itemprop="url" rel="index">
+                    <span itemprop="name">Git</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Learn-Git-Branching"><a href="#Learn-Git-Branching" class="headerlink" title="Learn Git Branching"></a>Learn Git Branching</h1><p><a href="http://learngitbranching.js.org/" target="_blank" rel="noopener">Learn Git Branching</a></p>
+<h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">level intro1: git commit</span><br><span class="line"></span><br><span class="line">level intro2: git branch; git checkout -b</span><br><span class="line"></span><br><span class="line">level intro3: git merge &lt;Commit&gt;; git merge &lt;Branch&gt;;</span><br><span class="line"></span><br><span class="line">level intro4: git rebase &lt;Commit&gt;; git rebase &lt;Branch&gt; </span><br><span class="line"></span><br><span class="line">level rampup1: HEAD; git checkout &lt;Branch&gt;; git checkout &lt;Commit&gt;; commit in detached head</span><br><span class="line"></span><br><span class="line">level rampup2: Relative Refs; git checkout &lt;Commit&gt;; git checkout HEAD^;</span><br><span class="line"></span><br><span class="line">level rampup3: Relative Refs; git checkout HEAD~4; git branch -f &lt;Branch&gt; HEAD~3; git branch -f &lt;Branch&gt; &lt;Commit&gt;; git branch -f &lt;Branch&gt; &lt;Branch&gt;; </span><br><span class="line"></span><br><span class="line">level rampup4: git reset; git revert &lt;Commit&gt;;</span><br><span class="line"></span><br><span class="line">level move1: git cherry-pick &lt;Commit1&gt; &lt;Commit2&gt; &lt;...&gt;</span><br><span class="line"></span><br><span class="line">level move2: git rebase -i &lt;Commit&gt;; git rebase -i &lt;Branch&gt; </span><br><span class="line"></span><br><span class="line">level mixed1: git cherry-pick; git rebase -i; </span><br><span class="line">用于：忽略debug/print的提交，只move最终的结果到主分支上</span><br><span class="line"></span><br><span class="line">level mixed2: git rebase -i;（调整需要修改的commit到最前） git commit --amend;（修补提交，抛弃原有的提交结果，替换为新的提交） git rebase -i;（调整回原来的commit顺序）</span><br><span class="line">用于：在更早之前的提交结果中做修改，并提交 </span><br><span class="line"></span><br><span class="line">level mixed3: git checkout;（跳到需要修改的提交结果C2的父节点C1） git cherry-pick;（move需要修改的提交结果C2） git commit --amend;（修补提交，抛弃原有的提交结果C2，替换为新的提交C2&apos;） git cherry-pick;（将原来C2之后的提交结果move到C2&apos;之后）</span><br><span class="line">用于：在更早之前的提交结果中做修改，并提交</span><br><span class="line"></span><br><span class="line">level mixed4: git tag &lt;Tag&gt; &lt;Commit&gt;; 直接在tag上commit或checkout，实际上不是针对tag，而是针对对应的commit</span><br><span class="line"></span><br><span class="line">level mixed5: git describe &lt;ref&gt;; 输出: &lt;tag&gt;_&lt;numCommits&gt;_g&lt;hash&gt; </span><br><span class="line">用于：查看目标分支/commit在历史上最近的祖先tag</span><br><span class="line"></span><br><span class="line">level advanced1: 将多个分支调整为顺序排列</span><br><span class="line"></span><br><span class="line">level advanced2: ~和^都可以填写数字，merge的结果C1&apos;是同时指向两个父节点C0和C1的，遇到C1&apos;的时候向上checkout默认是按着第一个父节点C1向上移动HEAD，git checkout &lt;branch&gt;^2 可以使其移动到第二个父节点C0。以下命令：git checkout HEAD~;git checkout HEAD^2;git checkout HEAD~2;可以合并为git checkout HEAD~^2~2</span><br><span class="line"></span><br><span class="line">level advanced3: 调整分支，使不同分支分别指向不同版本</span><br></pre></td></tr></table></figure>
+<p>1、<code>git merge &lt;Commit&gt;; git merge &lt;Branch&gt;</code>：指向分支1，将分支1和分支2的提交结果C1和C2合并为新的提交C3，该提交同时指向C1和C2，分支1指向C3，分支2仍指向C2。如果C1是C2的祖先，则结果为分支1指向C2（fast forwarding）。</p>
+<p>2、<code>git branch -f &lt;Branch&gt; &lt;Commit&gt;</code>：可以直接将某个分支（不能是当前分支）指向任意一个commit点，而不需要先跳到该分支。</p>
+<p>3、<code>git revert &lt;Commit&gt;</code>：生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留。<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/1.PNG" title="git revert 1"><br>假设C1添加了文件f1，C2在C1的基础上添加了文件f2，C3是在C2的基础上<code>git revert</code>生成的新提交：如果<code>git revert C2</code>，那么在C3可以看到f1；如果<code>git revert C1</code>，那么在C3可以看到f1和f2，这是因为C2是基于C1的，虽然在C3看来是撤销了C1的提交，但是C2中仍然有f1文件。<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/2.PNG" title="git revert 2"><br>假设C1添加了文件f1，C2添加了文件f2，C1’是在C1上执行<code>git rebase master</code>合并结果，C3是在C1’的基础上<code>git revert</code>生成的新提交：如果<code>git revert C1&#39;</code>，那么在C3可以看到f2；如果<code>git revert C2</code>，那么在C3可以看到f1。</p>
+<p>4、<code>git cherry-pick &lt;Commit1&gt; &lt;Commit2&gt; &lt;...&gt;</code>：指向某分支1，将其他选中的提交结果move到分支1下。如果选中目标有分支2，move的是分支2对应的提交结果，分支2的指向不会被改变。如果选中的提交结果中是分支1（HEAD）的祖先节点，则abort，所有结果都不会被move。</p>
+<p>5、<code>git rebase &lt;Commit&gt;; git rebase &lt;Branch&gt;</code>：指向某分支1，将分支1所有新工作move到分支2（或某个commit）下，如果目标是祖先节点，则不会move。</p>
+<p>6、<code>git rebase -i &lt;Commit&gt;; git rebase -i &lt;Branch&gt;</code>：指向某分支1，将【分支1】到【分支1和分支2（或某个commit）的共同祖先（分支2/commit的祖先可以是自己）】之间分支1上的所有工作（不包括共同祖先本身）move到分支2（或某个commit）下，如果目标是祖先节点，也会move，可以调整和选择分支1上要move的工作。</p>
+<p>如果涉及时间线合并，分支2（或某个commit）不是合并的时间线的一员，则将【分支1】到【分支1和分支2（或某个commit）的共同祖先（分支2/commit的祖先可以是自己）】之间【所有合并时间线的所有工作】（不包括共同祖先本身、合并节点）move到分支2（或某个commit）下，如果目标是祖先节点，也会move，可以调整和选择要move的工作。<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/3.PNG" title="时间线合并的rebase -i 1"><br>执行<code>git rebase -i b2</code>之后可move的节点如下：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/4.PNG" title="时间线合并的rebase -i 2">  </p>
+<p>如果涉及时间线合并，分支2（或某个commit）是合并的时间线的一员，则将【分支1】到【分支1和分支2（或某个commit）的共同祖先（分支2/commit的祖先可以是自己）】之间【分支2（或某个commit）时间线之后的工作和其他合并时间线的所有工作】（不包括共同祖先本身、合并节点）move到分支2（或某个commit）下，如果目标是祖先节点，也会move，可以调整和选择要move的工作。<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/5.PNG" title="时间线合并的rebase -i 3"><br>执行<code>git rebase -i C3</code>之后可move的节点如下：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/6.PNG" title="时间线合并的rebase -i 4"> </p>
+<p>7、<code>level mixed2</code>示意图：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/7.PNG" title="在更早之前的提交结果中做修改，并提交:修改前"><br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/8.PNG" title="在更早之前的提交结果中做修改，并提交:修改后"> </p>
+<p>8、<code>level mixed3</code>示意图：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/9.PNG" title="在更早之前的提交结果中做修改，并提交:修改前"><br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/10.PNG" title="在更早之前的提交结果中做修改，并提交:修改后"> </p>
+<h1 id="进阶"><a href="#进阶" class="headerlink" title="进阶"></a>进阶</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">level remote1: git clone; </span><br><span class="line"></span><br><span class="line">level remote2: git clone; git checkout origin/master </span><br><span class="line"></span><br><span class="line">level remote3: git fetch;</span><br><span class="line"></span><br><span class="line">level remote4: git pull;</span><br><span class="line"></span><br><span class="line">level remote5: git fakeTeamwork; git fakeTeamwork master 3; 伪装远程更新</span><br><span class="line"></span><br><span class="line">level remote6: git push; </span><br><span class="line"></span><br><span class="line">level remote7: </span><br><span class="line">1. git fetch; git rebase origin/master; git push;</span><br><span class="line">2. git fetch; git merge origin/master; git push; </span><br><span class="line">3. git pull --rebase; git push; </span><br><span class="line">4. git pull; git push; </span><br><span class="line">方法1等同于方法3；方法2等同于方法4，多了一个合并</span><br><span class="line"></span><br><span class="line">level remoteAdvanced1: git rebase 处理多分支合并</span><br><span class="line"></span><br><span class="line">level remoteAdvanced2: git merge 处理多分支合并</span><br><span class="line">more rebase, less merge;</span><br><span class="line">rebase: clean commit, but modify commit history;</span><br><span class="line"></span><br><span class="line">level remoteAdvanced3: </span><br><span class="line">1. git checkout -b newB origin/master; </span><br><span class="line">2. git branch -u origin/master newB;</span><br><span class="line">创新并新建分支newB，并设置其跟踪远端分支master</span><br><span class="line"></span><br><span class="line">level remoteAdvanced4: git push &lt;remote&gt; &lt;place&gt;</span><br><span class="line"></span><br><span class="line">level remoteAdvanced5: git push origin &lt;source&gt;:&lt;destination&gt;</span><br><span class="line"></span><br><span class="line">level remoteAdvanced6: git fetch &lt;remote&gt; &lt;place&gt;; git fetch origin &lt;source&gt;:&lt;destination&gt;</span><br><span class="line"></span><br><span class="line">level remoteAdvanced7: git push origin :&lt;destination&gt;; git fetch origin :&lt;destination&gt;</span><br><span class="line"></span><br><span class="line">level remoteAdvanced8: git pull &lt;remote&gt; &lt;place&gt;; git pull origin &lt;source&gt;:&lt;destination&gt;</span><br></pre></td></tr></table></figure>
+<p>1、<code>git clone</code>：本地仓库会出现两种分支，一种是本地分支，一种是远端分支，远端分支格式为<remote name>/<branch name>。为所有远端的分支创建对应的本地远端分支，为远端当前的活跃分支创建对应的本地分支（一般为master），所以clone之后一般只看到一个分支。</branch></remote></p>
+<p>2、<code>git clone; git checkout origin/master</code>：<code>git clone</code>之后执行<code>git checkout origin/master</code>会导致detached HEAD，因为远端分支只有在remote更新的时候才能更新。</p>
+<p>3、<code>git fetch</code>：下载远端所有分支的新提交到本地仓库，更新所有远端分支指向，本地分支指向不变。</p>
+<p>4、<code>git pull</code>：git fetch + git merge。指向分支1，下载分支1 track的远端分支（远端分支可同时被多个本地分支track，如果本地分支没有track远端分支，即使远端分支有同名的分支也不会被pull）的新提交到本地仓库，更新当前远端分支指向，merge当前分支和对应的远端分支为新提交结果。如果是detached HEAD，分开执行git fetch + git merge <commit>，最终结果是下载更新并将HEAD fast forward到merge的对象，没有真正merge；如果是直接执行git pull，则失败。</commit></p>
+<p>5、<code>git push</code>：将当前分支所有提交结果更新到远端，并且更新本地的远端分支指向到最新提交。如果当前分支已更新到远端，而本地分支的远端分支没有指向本地分支（如本地不存在bar分支，但存在本地的远端分支origin/bar，<code>git fetch origin bar:bar</code>的时候创建并更新了本地分支bar的指向，但没有更新本地分支的远端分支origin/bar指向，则会造成上述现象），执行git push并不会更新本地远端分支指向。</p>
+<p>6、<code>git push &lt;remote&gt; &lt;place&gt;</code>：<br>place指的是本地分支，如果该分支没有track远端分支，则会在远端创建对应的分支，并设置本地分支track到该远端分支。如果当前是detached HEAD，执行缺省的git push会失败，但可以执行不缺省的<code>git push &lt;remote&gt; &lt;place&gt;</code>。<br>由于远端分支可同时被本地多个分支track，如果本地分支place所track的远端分支版本更高，则push失败。</p>
+<p>7、<code>git push origin &lt;source&gt;:&lt;destination&gt;</code>：将本地某个任意的提交结果source（不一定是最新的）以及之前的工作更新到远端分支；甚至于如果destination是远端不存在的分支，将在远端创建对应分支，并将指定的提交结果source以及之前的工作更新到远端，在本地创建对应的远端分支，并指向source位置。<br>可用于将本地两个分支的工作交换更新到远端分支，但如果远端分支的版本已经新于本地提交结果source，则push失败。<code>git push origin &lt;source&gt;:&lt;destination&gt;</code>会更新destination对应的本地远端分支指向到source。<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/11.PNG" title="git push origin $source:$destination 1"><br>上图中，执行<code>git push origin b1:master</code>失败<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/12.PNG" title="git push origin $source:$destination 2"><br>上图中，执行<code>git push origin HEAD^1:foo</code>、<code>git push origin foo:master</code>成功，结果如下：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/13.PNG" title="git push origin $source:$destination 3"> </p>
+<p>8、<code>git fetch &lt;remote&gt; &lt;place&gt;; git fetch origin &lt;source&gt;:&lt;destination&gt;</code>：<code>git fetch &lt;remote&gt; &lt;place&gt;</code>只下载指定的远端分支工作，并更新本地的远端分支指向；<code>git fetch origin &lt;source&gt;:&lt;destination&gt;</code>不仅下载指定的远端分支工作，还更新对应的本地分支destination指向（指向fetch的最新结果），<strong>但不更新destination的远端分支指向</strong>，因此<code>git fetch origin &lt;source&gt;:&lt;destination&gt;</code>无法fetch到当前checkout的分支，这是为了不影响当前checkout分支的工作。<code>git fetch origin &lt;source&gt;:&lt;destination&gt;</code>中source是远端仓库某个提交结果，destination是本地分支，如果本地不存在destination分支，将创建该分支，但不会创建对应的远端分支，假如本地原来存在远端分支，该新建本地分支也没有track到远端分支。</p>
+<p>9、<code>git push origin :&lt;destination&gt;; git fetch origin :&lt;destination&gt;</code>：<code>git push origin :&lt;destination&gt;</code>表示将本地“nothing”更新到远端分支，其结果是删除了远端分支和本地的远端分支（不删除本地分支）。<code>git fetch origin :&lt;destination&gt;</code>表示下载“nothing”到本地，更新对应的本地分支destination指向，但不更新本地的远端分支指向，其结果是在本地创建本地分支destination（指向当前HEAD指向的位置），但不创建destination的远端分支，如果本地已存在本地分支destination，则执行失败。</p>
+<p>10、<code>git pull &lt;remote&gt; &lt;place&gt;; git pull origin &lt;source&gt;:&lt;destination&gt;</code>：<code>git pull origin foo</code>等同于<code>git fetch origin foo</code>+<code>git merge o/foo</code>，<code>git pull origin bar~1:bugFix</code>等同于<code>git fetch origin bar~1:bugFix</code>+<code>git merge bugFix</code>，注意前者将调整本地的远端分支到下载的最新提交结果，后者将调整本地分支到下载的最新提交结果，而merge的对象是最新的提交结果和当前checkout分支。<br>可用于解决以下情况：本地主分支和远端分支的工作完全不同，且远端有其他分支，该情况下在本地合并远端工作和本地工作。思路是：由于本地分支和远端分支的工作完全不同，将远端分支fetch到本地时使用新的分支指向它，就像是在本地把该分支当作完全崭新的分支来对待。如下：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/14.PNG" title="git pull $remote $place; git pull origin $source:$destination 1"><br>执行<code>git pull origin bar:foo</code>+<code>git pull origin master:side</code>之后：<br><img src="/2017/08/26/Learn-Git-Branching-学习笔记/15.PNG" title="git pull $remote $place; git pull origin $source:$destination 2"> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/git/" rel="tag"># git</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/docker使用/" rel="next" title="docker使用">
+                <i class="fa fa-chevron-left"></i> docker使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/Cmake/" rel="prev" title="Cmake">
+                Cmake <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Learn-Git-Branching"><span class="nav-number">1.</span> <span class="nav-text">Learn Git Branching</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基础"><span class="nav-number">2.</span> <span class="nav-text">基础</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进阶"><span class="nav-number">3.</span> <span class="nav-text">进阶</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

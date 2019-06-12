@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="Part One: System call tracing任务：修改syscall.c的syscall()函数，输出系统调用函数名和执行结果。解决方案如下：根据xv6源码分析，可以知道inidcode.S执行movl $SYS_exec, %eax把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&amp;">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记08 - HW3: xv6 system calls">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="Part One: System call tracing任务：修改syscall.c的syscall()函数，输出系统调用函数名和执行结果。解决方案如下：根据xv6源码分析，可以知道inidcode.S执行movl $SYS_exec, %eax把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&amp;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/2.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/3.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/4.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/5.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/6.jpg">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.244Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记08 - HW3: xv6 system calls">
+<meta name="twitter:description" content="Part One: System call tracing任务：修改syscall.c的syscall()函数，输出系统调用函数名和执行结果。解决方案如下：根据xv6源码分析，可以知道inidcode.S执行movl $SYS_exec, %eax把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&amp;">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/">
+
+
+
+
+
+  <title>笔记08 - HW3: xv6 system calls | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记08-HW3-xv6-system-calls/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记08 - HW3: xv6 system calls</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:09:35+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Part-One-System-call-tracing"><a href="#Part-One-System-call-tracing" class="headerlink" title="Part One: System call tracing"></a>Part One: System call tracing</h1><p>任务：修改syscall.c的syscall()函数，输出系统调用函数名和执行结果。<br>解决方案如下：<br>根据xv6源码分析，可以知道inidcode.S执行<code>movl $SYS_exec, %eax</code>把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&gt;tf），之后在syscall函数就可以通过proc-&gt;tf-&gt;eax获取trapno了。而系统调用的执行结果也放在了eax中。从proc-&gt;tf-&gt;eax中可以拿到syscall number，然后做个映射表输出就可以了。<br>另外，syscall.c提供argint、argptr和argstr等工具函数，用于在进程用户空间获得第 n 个系统调用参数。argint用于获取第n个整数，存储在int指针中（通过fetchint工具函数完成）。argptr用于获取第n个整数，将char<em>指针指向它。argstr用于获取第n个整数，该参数是字符串起始地址值，使用char</em>指针指向它，函数本身返回字符串长度（通过fetchstr工具函数完成）。argint利用用户空间的%esp寄存器定位第n个参数：%esp指向系统调用结束后的返回地址，参数就恰好在%esp之上（%esp+4），因此第n个参数就在%esp+4+4*n。<br>此处不对系统调用参数进行输出，因为每个系统调用所传递的参数个数和类型不同，而如果直接在工具函数中输出的话，则无法判断是地址值还是参数值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">const char* syscall_name[] = &#123; &quot;fork&quot;,&quot;exit&quot;,&quot;wait&quot;,&quot;pipe&quot;,&quot;read&quot;,&quot;kill&quot;,&quot;exec&quot;,&quot;fstat&quot;,&quot;chdir&quot;,&quot;dup&quot;,&quot;getpid&quot;,&quot;sbrk&quot;,&quot;sleep&quot;,&quot;uptime&quot;,&quot;open&quot;,&quot;write&quot;,&quot;mknod&quot;,&quot;unlink&quot;,&quot;link&quot;,&quot;mkdir&quot;,&quot;close&quot; &#125;;</span><br><span class="line"> </span><br><span class="line">void</span><br><span class="line">syscall(void)</span><br><span class="line">&#123;</span><br><span class="line">  int num; </span><br><span class="line">  num = proc-&gt;tf-&gt;eax;</span><br><span class="line">  if(num &gt; 0 &amp;&amp; num &lt; NELEM(syscalls) &amp;&amp; syscalls[num]) &#123;</span><br><span class="line">    proc-&gt;tf-&gt;eax = syscalls[num](); </span><br><span class="line">    //trapno放到%eax里面,系统调用的执行结果也放在了eax中</span><br><span class="line">    //打印系统调用名称和结果</span><br><span class="line">    //cprintf(&quot;\n%s -&gt; %d\n&quot;, syscall_name[num], proc-&gt;tf-&gt;eax);</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    cprintf(&quot;%d %s: unknown sys call %d\n&quot;,</span><br><span class="line">            proc-&gt;pid, proc-&gt;name, num);</span><br><span class="line">    proc-&gt;tf-&gt;eax = -1;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="Part-Two-Date-system-call"><a href="#Part-Two-Date-system-call" class="headerlink" title="Part Two: Date system call"></a>Part Two: Date system call</h1><p>系统调用实现思路如下：<br>有一个.h文件暴露接口，有一个.c文件来实现接口，在x86上实现方法是c语言层内联汇编int指令（或者直接汇编实现），把系统调用号放入eax，内核中有一个系统调用表，根据eax的值来索引这个表得到vectorXXX地址，vectorXXX jmp过去alltraps，进入内核模式，执行trap函数，trap函数将执行系统调用函数（如果系统调用叫xxx，内核对应的函数一般叫sys_xxx）。<br>在xv6中，想要添加新的系统调用并在shell中调用，需要了解五个文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">user.h 定义了可以通过shell调用的函数</span><br><span class="line">usys.S 使用宏定义将用户调用转换为系统调用</span><br><span class="line">syscall.h 定义系统调用的位置向量，从而可以连接到系统调用的实现</span><br><span class="line">syscall.c 根据syscall.h 定义的系统调用位置向量，调用系统调用的实现函数</span><br><span class="line">sysproc.c 增加了系统调用的真正实现</span><br></pre></td></tr></table></figure></p>
+<p>添加系统调用函数date()，返回当前UTC时间。参考cmostime()(defined in lapic.c)函数，其功能是读取实时时钟；参考date.h，该头文件定义了struct rtcdate，该结构体作为cmostime()的指针形参。<br>技巧：参考uptime的实现，执行<code>grep -n uptime *.[chS]</code>参考其在对应的文件中的定义。然后在Makefile中添加_date到UPROGS中。创建date.c，输入以下内容：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#include &quot;types.h&quot;</span><br><span class="line">#include &quot;user.h&quot;</span><br><span class="line">#include &quot;date.h&quot;</span><br><span class="line"></span><br><span class="line">int</span><br><span class="line">main(int argc, char *argv[])</span><br><span class="line">&#123;</span><br><span class="line">  struct rtcdate r;</span><br><span class="line"></span><br><span class="line">  if (date(&amp;r)) &#123;</span><br><span class="line">    printf(2, &quot;date failed\n&quot;);</span><br><span class="line">    exit();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // your code to print the time in any format you like...</span><br><span class="line">  printf(1, &quot;%d/%d/%d %d:%d:%d\n&quot;, r.year, r.month, r.day, r.hour, r.minute, r.second);</span><br><span class="line">  exit();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样之后编译执行后，在命令行输入date应该能输出时间。<br>其工作原理是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">//see in usys.S</span><br><span class="line">#define SYSCALL(name) .globl name; name: movl $SYS_ ## name, %eax; int $T_SYSCALL; ret</span><br><span class="line">## 操作符将会连接$SYS_和name。</span><br><span class="line">所以，声明SYSCALL(date)将被扩展为：</span><br><span class="line">.globl date; date: movl $SYS_date, %eax; int $T_SYSCALL; ret</span><br><span class="line"></span><br><span class="line">如果在控制台中（用户进程）执行date(&amp;r)，其中r的定义是struct rtcdate r，将会将r的地址进栈，eip进栈，然后寻找到 date: 标识位置，执行int系统调用。syscall.c根据SYS_date的值调用sys_date()函数。sys_date()函数的实现是：</span><br><span class="line"></span><br><span class="line">int</span><br><span class="line">sys_date(void)</span><br><span class="line">&#123;</span><br><span class="line">  struct rtcdate *pr;</span><br><span class="line">  if (argptr(0, (void*)&amp;pr, sizeof(struct rtcdate)) &lt; 0) &#123;</span><br><span class="line">    return -1;</span><br><span class="line">  &#125;</span><br><span class="line">  cmostime(pr);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">其将会定义struct rtcdate类型的pr指针，然后使用argptr函数获取proc-&gt;tf-&gt;esp（进程用户栈）指向的第一个32-bit参数（跳过esp指向的eip），将pr指针指向该值，由上述可知这是调用date函数的参数地址，所以存储到pr相当于存储到参数r中。</span><br></pre></td></tr></table></figure></p>
+<p>在Makefile中添加<code>_date</code>到UPROGS中后，将生成<code>_date</code>的可执行文件，其将作为内核的内置函数。</p>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>add a dup2() system call<br>实现的方法如上。区别是将<code>sys_dup2(void)</code>的实现放在<code>sysfile.c</code>中，与<code>sys_dup(void)</code>放在一起。<br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/1.PNG" title="dup2 system call"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">sys_dup2(void)</span><br><span class="line">&#123;</span><br><span class="line">    struct file *oldfile, *newfile;</span><br><span class="line">    int newfd;</span><br><span class="line">    //取出第一个参数fd，其应该对应到一个file对象</span><br><span class="line">    if (argfd(0, 0, &amp;oldfile) &lt; 0) &#123;</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    //取出第二个参数fd</span><br><span class="line">    if (argint(1, &amp;newfd) &lt; 0) &#123;</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    if(newfd &lt; 0 || newfd &gt;= NOFILE) &#123;</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //newfd文件描述符没有对应的file对象，可以安全使用，使新旧fd指向同一个file对象</span><br><span class="line">    if (proc-&gt;ofile[newfd] == 0) &#123; </span><br><span class="line">        goto final;</span><br><span class="line">    &#125; else if (argfd(1, &amp;newfd, &amp;newfile) &lt; 0) &#123; //newfd文件描述符有对应的file对象,取出file对象</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    //两个fd指向同个file对象，返回 </span><br><span class="line">    if (oldfile == newfile) &#123;</span><br><span class="line">        return newfd;</span><br><span class="line">    &#125;</span><br><span class="line">    //关闭文件</span><br><span class="line">    if (newfile-&gt;ref &gt; 0) &#123;</span><br><span class="line">        fileclose(newfile);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">final:</span><br><span class="line">    proc-&gt;ofile[newfd] = oldfile;</span><br><span class="line">    filedup(oldfile);</span><br><span class="line"></span><br><span class="line">    return newfd;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>dup2test.c比较疑惑的是创建的文件不知道在哪里，所以使用了read函数进行测试。（在xv6虚拟的文件系统中）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">//dup2test.c</span><br><span class="line">/*</span><br><span class="line"> * Tests the functionality of the `dup2` system call. The first argument is the</span><br><span class="line"> * original file the we are duplicating. If a second argument is passed in we</span><br><span class="line"> * open this file, write a string to it, then duplicate it. This tests that our</span><br><span class="line"> * kernel is properly closing and duplicating the file. In both cases the original </span><br><span class="line"> * file should have the string &quot;foobar\n&quot;. If not, then something went wrong </span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line">#include &quot;types.h&quot;</span><br><span class="line">#include &quot;stat.h&quot;</span><br><span class="line">#include &quot;user.h&quot;</span><br><span class="line">#include &quot;fcntl.h&quot;</span><br><span class="line"></span><br><span class="line">int</span><br><span class="line">main(int argc, char *argv[]) &#123;</span><br><span class="line">    int origfd, newfd = 0; </span><br><span class="line">    if (argc &lt; 2) &#123;</span><br><span class="line">      printf(1, &quot;%s: Not enough arguments\n&quot;, argv[0]);</span><br><span class="line">      printf(1, &quot;Usage: origfile [newfile]\n&quot;);</span><br><span class="line">      exit();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    unlink(argv[1]);</span><br><span class="line"></span><br><span class="line">    if ((origfd = open(argv[1], O_CREATE|O_RDWR)) &lt; 0) &#123;</span><br><span class="line">      printf(1, &quot;Cannot open &apos;%s&apos;\n&quot;, argv[1]);</span><br><span class="line">      exit();</span><br><span class="line">    &#125; </span><br><span class="line">    if (argc &gt; 2) &#123;</span><br><span class="line">      unlink(argv[2]);</span><br><span class="line">      if ((newfd = open(argv[2], O_CREATE|O_RDWR)) &lt; 0) &#123;</span><br><span class="line">          printf(1, &quot;Cannot open &apos;%s&apos;\n&quot;, argv[2]);</span><br><span class="line">          exit();</span><br><span class="line">      &#125; </span><br><span class="line">      write(newfd, &quot;ignored\n&quot;, 8);</span><br><span class="line">    &#125;  </span><br><span class="line"></span><br><span class="line">    write(origfd, &quot;foo&quot;, 3);</span><br><span class="line">    if (dup2(origfd, newfd) &lt; 0) &#123;</span><br><span class="line">        printf(1, &quot;dup2 error\n&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    write(newfd, &quot;bar\n&quot;, 4);</span><br><span class="line"></span><br><span class="line">    close(origfd);</span><br><span class="line">    close(newfd);</span><br><span class="line">    if ((newfd = open(argv[1], O_RDWR)) &lt; 0) &#123;</span><br><span class="line">      printf(1, &quot;Cannot open &apos;%s&apos;\n&quot;, argv[2]);</span><br><span class="line">      exit();</span><br><span class="line">    &#125; </span><br><span class="line">    char buf[256];</span><br><span class="line">    int n = read(newfd,buf,256);</span><br><span class="line">    printf(1, &quot;%d: %s\n&quot;, n,buf);</span><br><span class="line"></span><br><span class="line">    exit();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h1><p><strong>如何拿到系统调用的结果，比如dup(fd)？</strong><br>我们知道，系统调用的结果最终是放在进程tf结构的eax中，然后在trapret阶段弹出到寄存器中。而返回到用户空间后会往eax中拿取结果，这是一种默认约定。<br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/2.jpg" title="系统调用的结果1"><br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/3.jpg" title="系统调用的结果2"><br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/4.jpg" title="系统调用的结果3"><br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/5.jpg" title="系统调用的结果4"><br><img src="/2017/08/20/笔记08-HW3-xv6-system-calls/6.jpg" title="系统调用的结果5">  </p>
+<h1 id="遗留的问题"><a href="#遗留的问题" class="headerlink" title="遗留的问题"></a>遗留的问题</h1><p>为什么需要转换成系统调用？实质区别在哪里（关于硬件特权）？<br>为什么类似printf等不需要实现为系统调用？</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记07-xv6-启动到执行第一个进程/" rel="next" title="笔记07 - xv6 启动到执行第一个进程">
+                <i class="fa fa-chevron-left"></i> 笔记07 - xv6 启动到执行第一个进程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记09-xv6-部分系统调用的实现/" rel="prev" title="笔记09 - xv6 部分系统调用的实现">
+                笔记09 - xv6 部分系统调用的实现 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-One-System-call-tracing"><span class="nav-number">1.</span> <span class="nav-text">Part One: System call tracing</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-Two-Date-system-call"><span class="nav-number">2.</span> <span class="nav-text">Part Two: Date system call</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">2.1.</span> <span class="nav-text">Challenge</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他问题"><span class="nav-number">3.</span> <span class="nav-text">其他问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#遗留的问题"><span class="nav-number">4.</span> <span class="nav-text">遗留的问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

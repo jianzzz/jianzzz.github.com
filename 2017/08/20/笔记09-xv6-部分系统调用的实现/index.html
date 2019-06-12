@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="execexec指令用新程序替代当前进程的内存和寄存器，但保留文件描述符、进程id、父进程不变。12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记09 - xv6 部分系统调用的实现">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记09-xv6-部分系统调用的实现/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="execexec指令用新程序替代当前进程的内存和寄存器，但保留文件描述符、进程id、父进程不变。12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记09-xv6-部分系统调用的实现/1.JPG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.250Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记09 - xv6 部分系统调用的实现">
+<meta name="twitter:description" content="execexec指令用新程序替代当前进程的内存和寄存器，但保留文件描述符、进程id、父进程不变。12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记09-xv6-部分系统调用的实现/1.JPG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记09-xv6-部分系统调用的实现/">
+
+
+
+
+
+  <title>笔记09 - xv6 部分系统调用的实现 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记09-xv6-部分系统调用的实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记09 - xv6 部分系统调用的实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:11:53+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="exec"><a href="#exec" class="headerlink" title="exec"></a>exec</h1><p>exec指令用新程序替代当前进程的内存和寄存器，但保留文件描述符、进程id、父进程不变。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line">//exec.c</span><br><span class="line">int</span><br><span class="line">exec(char *path, char **argv)</span><br><span class="line">&#123;</span><br><span class="line">  char *s, *last;</span><br><span class="line">  int i, off;</span><br><span class="line">  uint argc, sz, sp, ustack[3+MAXARG+1];</span><br><span class="line">  struct elfhdr elf;</span><br><span class="line">  struct inode *ip;</span><br><span class="line">  struct proghdr ph;</span><br><span class="line">  pde_t *pgdir, *oldpgdir;</span><br><span class="line"></span><br><span class="line">  begin_op();</span><br><span class="line"></span><br><span class="line">  if((ip = namei(path)) == 0)&#123;//寻找name对应的inode</span><br><span class="line">    end_op();</span><br><span class="line">    return -1;</span><br><span class="line">  &#125;</span><br><span class="line">  ilock(ip);</span><br><span class="line">  pgdir = 0;</span><br><span class="line"></span><br><span class="line">  // Check ELF header</span><br><span class="line">  //读取程序的elf</span><br><span class="line">  if(readi(ip, (char*)&amp;elf, 0, sizeof(elf)) &lt; sizeof(elf))// Read data from inode.</span><br><span class="line">    goto bad;</span><br><span class="line">  if(elf.magic != ELF_MAGIC)</span><br><span class="line">    goto bad;</span><br><span class="line">  //创建内核页目录，映射内核空间。实际上是创建二级页表，并在二级页表项上存储物理地址。</span><br><span class="line">  //页目录项所存页表的权限是用户可读写,二级页表项所存物理页的权限按照kmap设定</span><br><span class="line">  if((pgdir = setupkvm()) == 0)</span><br><span class="line">    goto bad;</span><br><span class="line"></span><br><span class="line">  // Load program into memory.</span><br><span class="line">  //根据inode和elf程序头表偏移量, 按段读取程序</span><br><span class="line">  sz = 0;</span><br><span class="line">  for(i=0, off=elf.phoff; i&lt;elf.phnum; i++, off+=sizeof(ph))&#123;</span><br><span class="line">    //读取段的程序头表项</span><br><span class="line">    if(readi(ip, (char*)&amp;ph, off, sizeof(ph)) != sizeof(ph))</span><br><span class="line">      goto bad;</span><br><span class="line">    if(ph.type != ELF_PROG_LOAD)</span><br><span class="line">      continue;</span><br><span class="line">    if(ph.memsz &lt; ph.filesz)</span><br><span class="line">      goto bad;</span><br><span class="line">    if(ph.vaddr + ph.memsz &lt; ph.vaddr)</span><br><span class="line">      goto bad;</span><br><span class="line">    //根据段的虚拟地址及段占据的内存大小分配物理空间,该过程会将程序的虚拟地址映射到分配到的物理页地址上</span><br><span class="line">    //二级页表项所存物理页的权限是用户可读写</span><br><span class="line">    if((sz = allocuvm(pgdir, sz, ph.vaddr + ph.memsz)) == 0)</span><br><span class="line">      goto bad;</span><br><span class="line">    if(ph.vaddr % PGSIZE != 0)</span><br><span class="line">      goto bad;</span><br><span class="line">    //根据程序头表项信息读取段到内存中</span><br><span class="line">    if(loaduvm(pgdir, (char*)ph.vaddr, ip, ph.off, ph.filesz) &lt; 0)</span><br><span class="line">      goto bad;</span><br><span class="line">  &#125;</span><br><span class="line">  iunlockput(ip);</span><br><span class="line">  end_op();</span><br><span class="line">  ip = 0;</span><br><span class="line"></span><br><span class="line">  // Allocate two pages at the next page boundary.</span><br><span class="line">  // Make the first inaccessible.  Use the second as the user stack.</span><br><span class="line">  sz = PGROUNDUP(sz);</span><br><span class="line">  //继续为程序分配两页物理空间,二级页表项所存物理页的权限是用户可读写</span><br><span class="line">  //取消第一页用户可读写权限，第二页作为用户栈</span><br><span class="line">  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)</span><br><span class="line">    goto bad;</span><br><span class="line">  clearpteu(pgdir, (char*)(sz - 2*PGSIZE));</span><br><span class="line">  sp = sz;</span><br><span class="line"></span><br><span class="line">  // Push argument strings, prepare rest of stack in ustack.</span><br><span class="line">  for(argc = 0; argv[argc]; argc++) &#123;</span><br><span class="line">    if(argc &gt;= MAXARG)</span><br><span class="line">      goto bad;</span><br><span class="line">    sp = (sp - (strlen(argv[argc]) + 1)) &amp; ~3;</span><br><span class="line">    if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) &lt; 0)</span><br><span class="line">      goto bad;</span><br><span class="line">    ustack[3+argc] = sp;</span><br><span class="line">  &#125;</span><br><span class="line">  ustack[3+argc] = 0;</span><br><span class="line"></span><br><span class="line">  ustack[0] = 0xffffffff;  // fake return PC</span><br><span class="line">  ustack[1] = argc;</span><br><span class="line">  ustack[2] = sp - (argc+1)*4;  // argv pointer</span><br><span class="line"></span><br><span class="line">  sp -= (3+argc+1) * 4;</span><br><span class="line">  if(copyout(pgdir, sp, ustack, (3+argc+1)*4) &lt; 0)</span><br><span class="line">    goto bad;</span><br><span class="line"></span><br><span class="line">  // Save program name for debugging.</span><br><span class="line">  for(last=s=path; *s; s++)</span><br><span class="line">    if(*s == &apos;/&apos;)</span><br><span class="line">      last = s+1;</span><br><span class="line">  safestrcpy(proc-&gt;name, last, sizeof(proc-&gt;name));</span><br><span class="line"></span><br><span class="line">  // Commit to the user image.</span><br><span class="line">  oldpgdir = proc-&gt;pgdir;</span><br><span class="line">  proc-&gt;pgdir = pgdir;</span><br><span class="line">  proc-&gt;sz = sz;</span><br><span class="line">  proc-&gt;tf-&gt;eip = elf.entry;  // main</span><br><span class="line">  proc-&gt;tf-&gt;esp = sp;</span><br><span class="line">  switchuvm(proc);//设置cpu环境后，加载进程的页目录地址到cr3</span><br><span class="line">  freevm(oldpgdir);</span><br><span class="line">  return 0;</span><br><span class="line"></span><br><span class="line"> bad:</span><br><span class="line">  if(pgdir)</span><br><span class="line">    freevm(pgdir);</span><br><span class="line">  if(ip)&#123;</span><br><span class="line">    iunlockput(ip);</span><br><span class="line">    end_op();</span><br><span class="line">  &#125;</span><br><span class="line">  return -1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意到，exec改变的有<strong>进程的页目录、用户空间内容、用户空间size、进程的tf-&gt;eip、tf-&gt;esp、用户栈、进程名</strong>，没有改变的有<strong>进程文件描述符、进程pid、父进程、内核栈、进程状态、当前目录</strong>等。  </p>
+<p>exec的整体思路是：1、根据程序路径查找对应的inode；2、根据inode读取程序的elf信息；3、调用setupkvm()创建页目录，并映射内核空间（页目录项所存页表的权限是用户可读写，二级页表项所存物理页的权限按照kmap设定）；4、根据inode和elf程序头表偏移量，按段读取程序。每次循环时：4.1、先读取段的程序头表项，程序头表项包含段的虚拟地址及段占据的内存大小，4.2、根据信息调用allocuvm()分配出物理空间，分配过程会将程序的虚拟地址映射到分配到的物理页地址上，二级页表项所存物理页的权限是用户可读写，4.3、根据程序头表项信息（段偏移及段的文件大小）读取段到内存中；5、继续为程序分配两页物理空间，二级页表项所存物理页的权限是用户可读写，取消第一页用户可读写权限，第二页将作为用户栈。6、构建用户栈数据（参数等，见下）；7、更新进程的页目录、用户空间size、进程的tf-&gt;eip为elf.entry(main)、tf-&gt;esp为用户栈指针当前位置，然后调用switchuvm()函数设置cpu环境，加载进程的页目录地址到cr3，释放旧页目录空间；8、返回trapret处，切换为用户态，返回执行新程序代码，不返回执行旧程序代码。<br><img src="/2017/08/20/笔记09-xv6-部分系统调用的实现/1.JPG" title="构建用户栈数据"></p>
+<h1 id="fork"><a href="#fork" class="headerlink" title="fork"></a>fork</h1><p>fork用于创建新进程，并且复制当前进程的页目录、tramframe、内存空间大小、文件描述符、当前目录等。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">//proc.c</span><br><span class="line">int</span><br><span class="line">fork(void)</span><br><span class="line">&#123;</span><br><span class="line">  int i, pid;</span><br><span class="line">  struct proc *np;</span><br><span class="line"></span><br><span class="line">  // Allocate process.</span><br><span class="line">  //在进程表中寻找slot，成功的话更改进程状态和pid，并初始化进程的内核栈</span><br><span class="line">  //注意子进程使用的是新的内核栈</span><br><span class="line">  if((np = allocproc()) == 0)&#123;</span><br><span class="line">    return -1;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // Copy process state from p.</span><br><span class="line">  //copy一个进程的页目录对应的所有内容，思路是：首先创建新的页目录；</span><br><span class="line">  //在进程的用户空间虚拟地址范围内，由虚拟地址0x0开始，取得映射的物理页地址，然后申请新的物理页，将前者物理页的内容copy到后者；</span><br><span class="line">  //取出二级页表项的flag，当前虚拟地址映射到新物理页地址，其二级页表项权限设为flag。</span><br><span class="line">  if((np-&gt;pgdir = copyuvm(proc-&gt;pgdir, proc-&gt;sz)) == 0)&#123; //see in vm.c</span><br><span class="line">    kfree(np-&gt;kstack);</span><br><span class="line">    np-&gt;kstack = 0;</span><br><span class="line">    np-&gt;state = UNUSED;</span><br><span class="line">    return -1;</span><br><span class="line">  &#125;</span><br><span class="line">  np-&gt;sz = proc-&gt;sz; //设置进程的用户空间范围</span><br><span class="line">  np-&gt;parent = proc; //设置进程的父进程</span><br><span class="line">  *np-&gt;tf = *proc-&gt;tf; //设置进程的tramframe,这是结构体的值传递???</span><br><span class="line"></span><br><span class="line">  // Clear %eax so that fork returns 0 in the child.</span><br><span class="line">  np-&gt;tf-&gt;eax = 0;</span><br><span class="line">  //复制fd </span><br><span class="line">  for(i = 0; i &lt; NOFILE; i++)</span><br><span class="line">    if(proc-&gt;ofile[i])</span><br><span class="line">      np-&gt;ofile[i] = filedup(proc-&gt;ofile[i]);</span><br><span class="line">  np-&gt;cwd = idup(proc-&gt;cwd);//复制当前目录</span><br><span class="line"></span><br><span class="line">  safestrcpy(np-&gt;name, proc-&gt;name, sizeof(proc-&gt;name));</span><br><span class="line"></span><br><span class="line">  pid = np-&gt;pid;</span><br><span class="line"></span><br><span class="line">  acquire(&amp;ptable.lock);</span><br><span class="line"></span><br><span class="line">  np-&gt;state = RUNNABLE;//父进程必须在子进程的所有内容设置完毕后，才改为runnable，才能被cpu调度</span><br><span class="line"></span><br><span class="line">  release(&amp;ptable.lock);</span><br><span class="line"></span><br><span class="line">  return pid;</span><br><span class="line">  //对于父进程而言，其系统调用的结果（子进程的pid）将在syscall.c中赋值到tf-&gt;eax中，</span><br><span class="line">  //然后在trapasm.S中弹出到eax，最终被用户进程获取。</span><br><span class="line">  //对于子进程而言，其复制了父进程的用户空间内容（包括代码），并使用新的内核栈，</span><br><span class="line">  //内核栈中trapframe的内容复制于父进程（包括下一条指令的eip，这条指令往往是从eax获取系统调用结果），</span><br><span class="line">  //并将eax的值改为0，这样子当cpu调度到子进程的时候，内核会将子进程的trapframe弹出，子进程将执行eip指向的指令，即从eax获取系统调用结果，所以获取到的pid是0。</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>注意到，fork新建并复制的内容有<strong>进程的内核栈（copy了tramframe）、页目录、用户空间内容</strong>，改变的内容有<strong>进程的父进程、进程的tf-&gt;eax、进程状态</strong>，复制的有<strong>用户空间size、进程的tramframe、进程的文件描述符、当前目录、进程名</strong>等。  </p>
+<p>fork的过程是：1、在进程表中寻找slot，成功的话更改进程状态和pid，并初始化进程的内核栈。注意子进程使用的是新的内核栈。2、copy当前进程的页目录对应的所有内容，思路是：首先创建新的页目录；在进程的用户空间虚拟地址范围内，由虚拟地址0x0开始，取得映射的物理页地址，然后申请新的物理页，将前者内容copy到后者；取出二级页表项的flag，当前虚拟地址映射到新物理页地址，其二级页表项权限设为flag。3、设置进程的用户空间范围、进程的父进程、进程的tramframe（值传递）。4、清除新进程tf-&gt;eax为0，所以子进程的fork返回值为0。5、复制fd、当前目录、进程名。6、设置进程状态为RUNNABLE。7、父进程返回pid。</p>
+<h1 id="遗留的问题"><a href="#遗留的问题" class="headerlink" title="遗留的问题"></a>遗留的问题</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1、inode以及目录项的设计</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记08-HW3-xv6-system-calls/" rel="next" title="笔记08 - HW3: xv6 system calls">
+                <i class="fa fa-chevron-left"></i> 笔记08 - HW3: xv6 system calls
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记10-HW4-xv6-lazy-page-allocation/" rel="prev" title="笔记10 - HW4: xv6 lazy page allocation">
+                笔记10 - HW4: xv6 lazy page allocation <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#exec"><span class="nav-number">1.</span> <span class="nav-text">exec</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fork"><span class="nav-number">2.</span> <span class="nav-text">fork</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#遗留的问题"><span class="nav-number">3.</span> <span class="nav-text">遗留的问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Docker,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="Harbor是什么Harbor是由VMware中国研发团队负责开发的开源企业级Registry，可帮助用户迅速搭建企业级的Registry服务。Harbor在docker distribution的基础上增加了一些安全、访问控制、管理的功能以满足企业对于镜像仓库的需求。一些关于Harbor的介绍：用Harbor实现容器镜像仓库的管理和运维Harbor：开源企业级容器Registry架构简介用Swa">
+<meta name="keywords" content="Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="聊聊Harbor请求registry组件API的处理过程">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="Harbor是什么Harbor是由VMware中国研发团队负责开发的开源企业级Registry，可帮助用户迅速搭建企业级的Registry服务。Harbor在docker distribution的基础上增加了一些安全、访问控制、管理的功能以满足企业对于镜像仓库的需求。一些关于Harbor的介绍：用Harbor实现容器镜像仓库的管理和运维Harbor：开源企业级容器Registry架构简介用Swa">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/1.png">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/2.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.254Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="聊聊Harbor请求registry组件API的处理过程">
+<meta name="twitter:description" content="Harbor是什么Harbor是由VMware中国研发团队负责开发的开源企业级Registry，可帮助用户迅速搭建企业级的Registry服务。Harbor在docker distribution的基础上增加了一些安全、访问控制、管理的功能以满足企业对于镜像仓库的需求。一些关于Harbor的介绍：用Harbor实现容器镜像仓库的管理和运维Harbor：开源企业级容器Registry架构简介用Swa">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/">
+
+
+
+
+
+  <title>聊聊Harbor请求registry组件API的处理过程 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/聊聊Harbor请求registry组件API的处理过程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">聊聊Harbor请求registry组件API的处理过程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T12:48:10+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Harbor是什么"><a href="#Harbor是什么" class="headerlink" title="Harbor是什么"></a>Harbor是什么</h1><p>Harbor是由VMware中国研发团队负责开发的开源企业级Registry，可帮助用户迅速搭建企业级的Registry服务。Harbor在docker distribution的基础上增加了一些安全、访问控制、管理的功能以满足企业对于镜像仓库的需求。一些关于Harbor的介绍：<br><a href="http://dockone.io/article/1640" target="_blank" rel="noopener">用Harbor实现容器镜像仓库的管理和运维</a><br><a href="https://t.goodrain.com/t/harbor-registry/142" target="_blank" rel="noopener">Harbor：开源企业级容器Registry架构简介</a><br><a href="http://dockone.io/article/1236" target="_blank" rel="noopener">用Swagger调用Harbor Registry的REST API</a><br><a href="http://tonybai.com/2017/06/09/setup-a-high-availability-private-registry-based-on-harbor-and-cephfs/" target="_blank" rel="noopener">基于Harbor和CephFS搭建高可用Private Registry</a><br><a href="http://tonybai.com/2017/06/15/fix-auth-fail-when-login-harbor-registry/" target="_blank" rel="noopener">解决登录Harbor Registry时鉴权失败的问题</a><br>Harbor和reigstry组件之间的验证采用了docker registry v2的token方式，token的service服务集成在Harbor中。相关token验证出现于docker login、请求registry api等情况下。以下的讨论中，我们主要是通过请求Harbor API，触发Harbor请求registry API，以此来研究Harbor请求registry组件API的处理过程。因此，我们需要先解决调用Harbor API的身份验证问题，再进一步研究token验证原理。<br>注意：<strong>以下的讨论均以Harbor tags v1.1.2为准，查看源代码的时候请注意切换tags</strong>。</p>
+<h1 id="调用Harbor-API的身份验证"><a href="#调用Harbor-API的身份验证" class="headerlink" title="调用Harbor API的身份验证"></a>调用Harbor API的身份验证</h1><p>Harbor的API可以使用Swagger查看，具体请查看Harbor的github文档。当我们调用Harbor的API时，Harbor会从request中获取用户信息。以下以<code>https://your-harbor-domain/api/repositories/repo_name/tags</code>为例进行说明，该API是获取名为<code>repo_name</code>的镜像的所有tag。镜像的tag信息是没有存放在数据库中的，我们向Harbor服务发起该请求，Harbor需要向registry组件发送API请求。<br>该API会被<code>src/ui/api/repository.go</code>的<code>GetTags()</code>函数所处理，当名为<code>repo_name</code>的镜像所属的项目为私有项目时，会检查用户的身份：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if project.Public == 0 &#123;</span><br><span class="line">	userID := ra.ValidateUser()</span><br><span class="line">	if !checkProjectPermission(userID, project.ProjectID) &#123;</span><br><span class="line">		ra.CustomAbort(http.StatusForbidden, &quot;&quot;)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>ValidateUser()</code>函数定义于<code>src/common/api/base.go</code>，其调用<code>GetUserIDForRequest()</code>函数，最终从request中读取basic auth信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">func (b *BaseAPI) GetUserIDForRequest() (int, bool, bool) &#123;</span><br><span class="line">	username, password, ok := b.Ctx.Request.BasicAuth()</span><br></pre></td></tr></table></figure></p>
+<p>查看go源码，<code>go/src/net/http/request.go</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func (r *Request) BasicAuth() (username, password string, ok bool) &#123;</span><br><span class="line">	auth := r.Header.Get(&quot;Authorization&quot;)</span><br><span class="line">	if auth == &quot;&quot; &#123;</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	return parseBasicAuth(auth)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>因此，可以得知Harbor支持http的basic auth方式。要在发送请求的时候添加HTTP Basic Authentication认证信息到请求中，有两种方法：<br>一是在请求头中添加Authorization：<br><code>Authorization: &quot;Basic 用户名和密码的base64加密字符串&quot;</code><br>二是在url中添加用户名和密码：<br><code>http://userName:password@your-api-url</code><br>从上面的代码片段可以看到，第二种方式并不适用Harbor，这也是postman使用第二种方式访问API不成功的原因。</p>
+<h1 id="token验证原理"><a href="#token验证原理" class="headerlink" title="token验证原理"></a>token验证原理</h1><p>为了更好地研究Harbor在token验证做了哪些工作，我们先看一下docker login的过程，以下内容参考自<a href="http://www.skycloudsoftware.com/index.php/2016/06/13/docker-registry-v2-token.html" target="_blank" rel="noopener">从源码看Docker Registry v2中的Token认证实现机制</a></p>
+<h2 id="docker-login的过程"><a href="#docker-login的过程" class="headerlink" title="docker login的过程"></a>docker login的过程</h2><img src="/2017/08/26/聊聊Harbor请求registry组件API的处理过程/1.png" title="docker login的过程">
+<p>1、docker client接受用户的输入命令，将命令转化为调用engine-api的RegistryLogin方法；<br>2、在api的RegistryLogin方法中通过http调用registry中的auth方法；<br>3、在auth方法中由于是v2版本的，所以会调用loginV2方法；<br>4、在loginV2方法中会进行调用/v2/接口，该接口会对请求进行认证。此时的请求中并没有包含token信息，认证失败，会返回401错误，同时会在header中返回去哪里认证的服务器的地址；<br>5、registry client收到该返回结果后，便会去返回的认证服务器那里进去认证，向认证服务器发送的request的header中包含有加密的用户名和密码；<br>6、认证服务器从header中获取到加密的用户名和密码，这个时候就可以结合实际的认证系统进行认证；<br>7、认证成功后，需要生成一个token，并返回；<br>8、registry client会拿着返回的token再次尝试向registry server发生请求，这次由于带有token，请求验证成功，返回状态码为200；<br>9、docker client端接受到返回的状态码为200，说明操作成功，控制台会出现“Login Succeeded”。</p>
+<p>Harbor所使用的是原生的docker registry v2，当我们通过Harbor的api来间接访问registry v2 API时，需要先通过Harbor的basic auth验证，之后Harbor会构造一个新请求来访问registry v2 API。Harbor构造新请求访问registry v2 API过程中涉及到的验证类似于docker login，但又有所不同，下面我们将通过追踪源码实现来阐述这一过程。</p>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>url：<code>https://your-harbor-domain/api/repositories/repo_name/tags</code><br>说明：获取名为repo_name的镜像的所有tag。镜像的tag信息是没有存放在数据库中的，我们向Harbor服务发起该请求，Harbor需要向registry组件发送API请求：<code>your-registry-host:port/v2/library/alpine/tags/list</code>。</p>
+<h2 id="Harbor实现概述"><a href="#Harbor实现概述" class="headerlink" title="Harbor实现概述"></a>Harbor实现概述</h2><p>Harbor的实现流程大概是：向registry组件发送<code>your-registry-host:port/v2/</code>请求，registry组件配置了token验证，因此会返回401错误，并将token service相关信息附带在header中返回。Harbor解析出token service相关信息之后，将其与token验证的相关Authorizer数据结构一起封装到AuthorizerStore中，AuthorizerStore会被封装到Transport中，Transport最终作为http.Client的transport成员实例。transport是golang http请求的承载者，可参考<a href="https://segmentfault.com/a/1190000003735562" target="_blank" rel="noopener">Go 标准库剖析 1（transport http 请求的承载者）</a>。自定义实现的transport需要实现RoundTrip方法，Harbor封装的Transport实现了该接口，因此向registry组件发送http请求时，会调用到自定义的RoundTrip方法，进而先调用Authorizer来生成满足条件的token，追加到request header中，然后才是真正地向registry组件发送请求。<br>接下来我们将分为几部分进行讲述：Harbor对数据结构的封装、Harbor向registry发送ping请求、Harbor生成token。</p>
+<h2 id="Harbor对数据结构的封装"><a href="#Harbor对数据结构的封装" class="headerlink" title="Harbor对数据结构的封装"></a>Harbor对数据结构的封装</h2><p>以下是请求<code>https://your-harbor-domain/api/repositories/repo_name/tags</code>的函数调用过程：<br>先创建repository client，然后通过repository client访问registry：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//src/ui/api/repository.go</span><br><span class="line">func (ra *RepositoryAPI) GetTags() &#123;</span><br><span class="line">        client, err := ra.initRepositoryClient(repoName)</span><br><span class="line">        tags, err := listTag(client)</span><br><span class="line"></span><br><span class="line">//src/ui/api/repository.go</span><br><span class="line">func (ra *RepositoryAPI) initRepositoryClient(repoName string) (r *registry.Repository, err error) &#123;</span><br><span class="line">        username, password, ok := ra.Ctx.Request.BasicAuth()</span><br><span class="line">        if ok &#123;</span><br><span class="line">                return newRepositoryClient(endpoint, !verify, username, password,</span><br><span class="line">                        repoName, &quot;repository&quot;, repoName, &quot;pull&quot;, &quot;push&quot;, &quot;*&quot;)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">//src/ui/api/repository.go</span><br><span class="line">func listTag(client *registry.Repository) ([]string, error) &#123;</span><br><span class="line">        ts, err := client.ListTag()</span><br></pre></td></tr></table></figure></p>
+<p>创建repository client的过程包括创建TokenAuthorizer、AuthorizerStore、RepositoryClient：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">//src/ui/api/repository.go</span><br><span class="line">func newRepositoryClient(endpoint string, insecure bool, username, password, repository, scopeType, scopeName string, scopeActions ...string) (*registry.Repository, error) &#123;</span><br><span class="line">        credential := auth.NewBasicAuthCredential(username, password)</span><br><span class="line">        authorizer := auth.NewStandardTokenAuthorizer(credential, insecure, config.InternalTokenServiceEndpoint(), scopeType, scopeName, scopeActions...)</span><br><span class="line">        store, err := auth.NewAuthorizerStore(endpoint, insecure, authorizer)</span><br><span class="line">        client, err := registry.NewRepositoryWithModifiers(repository, endpoint, insecure, store)</span><br></pre></td></tr></table></figure></p>
+<p>创建的TokenAuthorizer数据结构包括：标准go http transport、basic auth数据结构、token service服务url、scope、token生成包装函数。其中，scope是生成token所需要的数据结构之一，scope的type为”repository”，name为url的镜像名，actions为pull/push/*。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/tokenauthorizer.go</span><br><span class="line">func NewStandardTokenAuthorizer(credential Credential, insecure bool, tokenServiceEndpoint string, scopeType, scopeName string, scopeActions ...string) Authorizer &#123;</span><br><span class="line">	authorizer := &amp;standardTokenAuthorizer&#123;</span><br><span class="line">		client: &amp;http.Client&#123;</span><br><span class="line">			Transport: registry.GetHTTPTransport(insecure),</span><br><span class="line">			Timeout:   30 * time.Second,</span><br><span class="line">		&#125;,</span><br><span class="line">		credential:           credential,</span><br><span class="line">		tokenServiceEndpoint: tokenServiceEndpoint,</span><br><span class="line">	&#125;</span><br><span class="line">	authorizer.scope = &amp;scope&#123;</span><br><span class="line">		Type:    scopeType,</span><br><span class="line">		Name:    scopeName,</span><br><span class="line">		Actions: scopeActions,</span><br><span class="line">	&#125;</span><br><span class="line">	authorizer.tg = authorizer.generateToken</span><br></pre></td></tr></table></figure></p>
+<p>TokenAuthorizer将被封装到AuthorizerStore中，此外，AuthorizerStore数据结构还包括：ping registry组件的url结构（由<code>your-registry-host:port/v2/</code>构建）、ping<code>your-registry-host:port/v2/</code>之后解析出来的challenges参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/authorizer.go</span><br><span class="line">func NewAuthorizerStore(endpoint string, insecure bool, authorizers ...Authorizer) (*AuthorizerStore, error) &#123;</span><br><span class="line">	client := &amp;http.Client&#123;</span><br><span class="line">		Transport: registry.GetHTTPTransport(insecure),</span><br><span class="line">		Timeout:   30 * time.Second,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	pingURL := buildPingURL(endpoint)</span><br><span class="line">	resp, err := client.Get(pingURL)</span><br><span class="line"></span><br><span class="line">	challenges := ParseChallengeFromResponse(resp)</span><br><span class="line">	ping, err := url.Parse(pingURL)</span><br><span class="line">	return &amp;AuthorizerStore&#123;</span><br><span class="line">		authorizers: authorizers,</span><br><span class="line">		ping:        ping,</span><br><span class="line">		challenges:  challenges,</span><br><span class="line">	&#125;, nil</span><br></pre></td></tr></table></figure></p>
+<p>AuthorizerStore将被封装到自定义的transport中，该transport实现了标准go http transport定义的接口，并将作为http.Client的transport成员实例。http.Client又被封装到Repository数据结构中，Repository实例被当成RepositoryClient返回：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/repository.go</span><br><span class="line">func NewRepositoryWithModifiers(name, endpoint string, insecure bool, modifiers ...Modifier) (*Repository, error) &#123;</span><br><span class="line">	transport := NewTransport(GetHTTPTransport(insecure), modifiers...)</span><br><span class="line">	return NewRepository(name, endpoint, &amp;http.Client&#123;</span><br><span class="line">		Transport: transport,</span><br><span class="line">		//  for transferring large image, OS will handle i/o timeout</span><br><span class="line">		//	Timeout:   30 * time.Second,</span><br><span class="line">	&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>以上就是Harbor封装数据结构以实现访问registry前先构造token的过程，当调用client.ListTag()时，将会调用到自定义的transport，从而调用TokenAuthorizer的相关方法。</p>
+<h2 id="Harbor向registry发送ping请求"><a href="#Harbor向registry发送ping请求" class="headerlink" title="Harbor向registry发送ping请求"></a>Harbor向registry发送ping请求</h2><p>上述NewAuthorizerStore函数的过程会向registry组件发送<code>your-registry-host:port/v2/</code>请求，该接口会对请求进行认证，此时的请求中并没有包含token信息，认证失败，会返回401错误。<br>NewAuthorizerStore函数调用ParseChallengeFromResponse函数对response header进行解析，其中，challenge是docker registry v2定义的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/challenge.go</span><br><span class="line">func ParseChallengeFromResponse(resp *http.Response) []challenge.Challenge &#123;</span><br><span class="line">	challenges := challenge.ResponseChallenges(resp)</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">//https://github.com/docker/distribution/blob/master/registry/client/auth/challenge/authchallenge.go</span><br><span class="line">func ResponseChallenges(resp *http.Response) []Challenge &#123;</span><br><span class="line">	if resp.StatusCode == http.StatusUnauthorized &#123;</span><br><span class="line">		// Parse the WWW-Authenticate Header and store the challenges</span><br><span class="line">		// on this endpoint object.</span><br><span class="line">		return parseAuthHeader(resp.Header)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">func parseAuthHeader(header http.Header) []Challenge &#123;</span><br><span class="line">	challenges := []Challenge&#123;&#125;</span><br><span class="line">	for _, h := range header[http.CanonicalHeaderKey(&quot;WWW-Authenticate&quot;)] &#123;</span><br><span class="line">		v, p := parseValueAndParams(h)</span><br><span class="line">		if v != &quot;&quot; &#123;</span><br><span class="line">			challenges = append(challenges, Challenge&#123;Scheme: v, Parameters: p&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return challenges</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用postman请求<code>your-registry-host:port/v2/</code>，查看response header：<br><img src="/2017/08/26/聊聊Harbor请求registry组件API的处理过程/2.PNG" title="response header"><br>可知，registry会告知客户端token service的url地址，以及对应的service名。</p>
+<h2 id="Harbor生成token"><a href="#Harbor生成token" class="headerlink" title="Harbor生成token"></a>Harbor生成token</h2><p>Harbor通过封装数据结构，自定义transport，实现了在请求registry API前构造token的过程。下面将详细阐述其实现过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (r *Repository) ListTag() ([]string, error) &#123;</span><br><span class="line">	req, err := http.NewRequest(&quot;GET&quot;, buildTagListURL(r.Endpoint.String(), r.Name), nil)</span><br><span class="line">	resp, err := r.client.Do(req)</span><br></pre></td></tr></table></figure></p>
+<p>client就是http.Client实例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//https://github.com/golang/go/blob/release-branch.go1.7/src/net/http/client.go</span><br><span class="line">func (c *Client) Do(req *Request) (*Response, error) &#123;</span><br><span class="line">	method := valueOrDefault(req.Method, &quot;GET&quot;)</span><br><span class="line">	if method == &quot;GET&quot; || method == &quot;HEAD&quot; &#123;</span><br><span class="line">		return c.doFollowingRedirects(req, shouldRedirectGet)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">func (c *Client) doFollowingRedirects(req *Request, shouldRedirect func(int) bool) (*Response, error) &#123;</span><br><span class="line">	if resp, err = c.send(req, deadline); err != nil &#123;</span><br><span class="line"></span><br><span class="line">func (c *Client) send(req *Request, deadline time.Time) (*Response, error) &#123;</span><br><span class="line">	resp, err := send(req, c.transport(), deadline)</span><br><span class="line"></span><br><span class="line">func send(ireq *Request, rt RoundTripper, deadline time.Time) (*Response, error) &#123;</span><br><span class="line">	resp, err := rt.RoundTrip(req)</span><br></pre></td></tr></table></figure></p>
+<p>可以看出，http.Client.transport()方法获取的实例是RoundTripper接口类型，该接口定义如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//https://github.com/golang/go/blob/release-branch.go1.7/src/net/http/client.go</span><br><span class="line">type RoundTripper interface &#123;</span><br><span class="line">	RoundTrip(*Request) (*Response, error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>Harbor自定义的transport正因为实现了该接口，所以在执行上述Do方法时可以执行自定义的RoundTrip函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/transport.go</span><br><span class="line">func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) &#123;</span><br><span class="line">	for _, modifier := range t.modifiers &#123;</span><br><span class="line">		if err := modifier.Modify(req); err != nil &#123;</span><br><span class="line">			return nil, err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	resp, err := t.transport.RoundTrip(req)</span><br></pre></td></tr></table></figure></p>
+<p>modifier即上面提到的AuthorizerStore，Harbor调用了Modify方法之后才会调用标准go http transport的RoundTrip方法来发送请求。我们看一下Modify方法的定义：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/authorizer.go</span><br><span class="line">func (a *AuthorizerStore) Modify(req *http.Request) error &#123;</span><br><span class="line">	//only handle the requests sent to registry</span><br><span class="line">	v2Index := strings.Index(req.URL.Path, &quot;/v2/&quot;)</span><br><span class="line">	if v2Index == -1 &#123;</span><br><span class="line">		return nil</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	for _, challenge := range a.challenges &#123;</span><br><span class="line">		for _, authorizer := range a.authorizers &#123;</span><br><span class="line">			if authorizer.Scheme() == challenge.Scheme &#123;</span><br><span class="line">				if err := authorizer.Authorize(req, challenge.Parameters); err != nil &#123;</span><br><span class="line">					return err</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看出，封装到AuthorizerStore的TokenAuthorizer将被调用，我们看一下Authorize方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/tokenauthorizer.go</span><br><span class="line">func (t *tokenAuthorizer) Authorize(req *http.Request, params map[string]string) error &#123;</span><br><span class="line">	var scopes []*scope</span><br><span class="line">	var token string</span><br><span class="line"></span><br><span class="line">	if t.scope != nil &#123;</span><br><span class="line">		scopes = append(scopes, t.scope)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	scopeStrs := []string&#123;&#125;</span><br><span class="line">	for _, scope := range scopes &#123;</span><br><span class="line">		scopeStrs = append(scopeStrs, scope.string())</span><br><span class="line">	&#125;</span><br><span class="line">	to, expiresIn, _, err := t.tg(params[&quot;realm&quot;], params[&quot;service&quot;], scopeStrs)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	token = to</span><br><span class="line"></span><br><span class="line">	req.Header.Add(http.CanonicalHeaderKey(&quot;Authorization&quot;), fmt.Sprintf(&quot;Bearer %s&quot;, token))</span><br></pre></td></tr></table></figure></p>
+<p>Authorize方法所做的工作就是处理一下scope，然后调用tg函数（其实是个函数指针）生成token，并将生成的token写入到request header中。还记得上面提到的scope吗，它将被转换为字符串后作为参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/tokenauthorizer.go</span><br><span class="line">func (s *scope) string() string &#123;</span><br><span class="line">	return fmt.Sprintf(&quot;%s:%s:%s&quot;, s.Type, s.Name, strings.Join(s.Actions, &quot;,&quot;))</span><br></pre></td></tr></table></figure></p>
+<p>上面的方法中，tg是一个函数指针，其指向在封装TokenAuthorizer的时候就被指定了，指向了tokenAuthorizer.generateToken函数，很明显，该函数就是token生成的具体实现，我们查看一下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">//src/common/utils/registry/auth/tokenauthorizer.go</span><br><span class="line">func (u *usernameTokenAuthorizer) generateToken(realm, service string, scopes []string) (token string, expiresIn int, issuedAt *time.Time, err error) &#123;</span><br><span class="line">	token, expiresIn, issuedAt, err = token_util.RegistryTokenForUI(u.username, service, scopes)</span><br><span class="line"></span><br><span class="line">//src/ui/service/token/authutils.go</span><br><span class="line">func RegistryTokenForUI(username string, service string, scopes []string) (string, int, *time.Time, error) &#123;</span><br><span class="line">	return genTokenForUI(username, service, scopes, registryFilterMap)</span><br><span class="line"></span><br><span class="line">//src/ui/service/token/authutils.go</span><br><span class="line">func genTokenForUI(username string, service string, scopes []string, filters map[string]accessFilter) (string, int, *time.Time, error) &#123;</span><br><span class="line">	isAdmin, err := dao.IsAdminRole(username)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return &quot;&quot;, 0, nil, err</span><br><span class="line">	&#125;</span><br><span class="line">	access := GetResourceActions(scopes)</span><br><span class="line">	err = filterAccess(access, u, filters)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return &quot;&quot;, 0, nil, err</span><br><span class="line">	&#125;</span><br><span class="line">	return MakeRawToken(username, service, access)</span><br><span class="line"></span><br><span class="line">//src/ui/service/token/authutils.go</span><br><span class="line">func MakeRawToken(username, service string, access []*token.ResourceActions) (token string, expiresIn int, issuedAt *time.Time, err error) &#123;</span><br><span class="line">	pk, err := libtrust.LoadKeyFile(privateKey)</span><br><span class="line">	expiration, err := config.TokenExpiration()</span><br><span class="line">	tk, expiresIn, issuedAt, err := makeTokenCore(issuer, username, service, expiration, access, pk)</span><br><span class="line">	rs := fmt.Sprintf(&quot;%s.%s&quot;, tk.Raw, base64UrlEncode(tk.Signature))</span><br><span class="line">	return rs, expiresIn, issuedAt, nil</span><br></pre></td></tr></table></figure></p>
+<p>上述genTokenForUI会对用户身份进行检查，只有是管理员角色才能生成token，此外还有其他的请求过滤检查，这里没有贴出代码。makeTokenCore函数是生成token的关键函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">//src/ui/service/token/authutils.go</span><br><span class="line">func makeTokenCore(issuer, subject, audience string, expiration int,</span><br><span class="line">	access []*token.ResourceActions, signingKey libtrust.PrivateKey) (t *token.Token, expiresIn int, issuedAt *time.Time, err error) &#123;</span><br><span class="line"></span><br><span class="line">	joseHeader := &amp;token.Header&#123;</span><br><span class="line">		Type:       &quot;JWT&quot;,</span><br><span class="line">		SigningAlg: &quot;RS256&quot;,</span><br><span class="line">		KeyID:      signingKey.KeyID(),</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	jwtID, err := randString(16)</span><br><span class="line"></span><br><span class="line">	now := time.Now().UTC()</span><br><span class="line">	issuedAt = &amp;now</span><br><span class="line">	expiresIn = expiration * 60</span><br><span class="line"></span><br><span class="line">	claimSet := &amp;token.ClaimSet&#123;</span><br><span class="line">		Issuer:     issuer,</span><br><span class="line">		Subject:    subject,</span><br><span class="line">		Audience:   audience,</span><br><span class="line">		Expiration: now.Add(time.Duration(expiration) * time.Minute).Unix(),</span><br><span class="line">		NotBefore:  now.Unix(),</span><br><span class="line">		IssuedAt:   now.Unix(),</span><br><span class="line">		JWTID:      jwtID,</span><br><span class="line">		Access:     access,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	var joseHeaderBytes, claimSetBytes []byte</span><br><span class="line"></span><br><span class="line">	if joseHeaderBytes, err = json.Marshal(joseHeader); err != nil &#123;</span><br><span class="line">		return nil, 0, nil, fmt.Errorf(&quot;unable to marshal jose header: %s&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	if claimSetBytes, err = json.Marshal(claimSet); err != nil &#123;</span><br><span class="line">		return nil, 0, nil, fmt.Errorf(&quot;unable to marshal claim set: %s&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	encodedJoseHeader := base64UrlEncode(joseHeaderBytes)</span><br><span class="line">	encodedClaimSet := base64UrlEncode(claimSetBytes)</span><br><span class="line">	payload := fmt.Sprintf(&quot;%s.%s&quot;, encodedJoseHeader, encodedClaimSet)</span><br><span class="line"></span><br><span class="line">	var signatureBytes []byte</span><br><span class="line">	if signatureBytes, _, err = signingKey.Sign(strings.NewReader(payload), crypto.SHA256); err != nil &#123;</span><br><span class="line">		return nil, 0, nil, fmt.Errorf(&quot;unable to sign jwt payload: %s&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	signature := base64UrlEncode(signatureBytes)</span><br><span class="line">	tokenString := fmt.Sprintf(&quot;%s.%s&quot;, payload, signature)</span><br><span class="line">	t, err = token.NewToken(tokenString)</span><br><span class="line">	return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>嗯，是的，其实Harbor也没有生成token的算法过程，docker registry定义了token的格式，并提供了配置认证服务器的地址。因此只要按照定义的格式来准备数据，就可以调用registry的相关函数来生成token：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">//https://github.com/docker/distribution/blob/master/registry/auth/token/token.go</span><br><span class="line">func NewToken(rawToken string) (*Token, error) &#123;</span><br><span class="line">	parts := strings.Split(rawToken, TokenSeparator)</span><br><span class="line">	if len(parts) != 3 &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	var (</span><br><span class="line">		rawHeader, rawClaims   = parts[0], parts[1]</span><br><span class="line">		headerJSON, claimsJSON []byte</span><br><span class="line">		err                    error</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	if headerJSON, err = joseBase64UrlDecode(rawHeader); err != nil &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if claimsJSON, err = joseBase64UrlDecode(rawClaims); err != nil &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	token := new(Token)</span><br><span class="line">	token.Header = new(Header)</span><br><span class="line">	token.Claims = new(ClaimSet)</span><br><span class="line"></span><br><span class="line">	token.Raw = strings.Join(parts[:2], TokenSeparator)</span><br><span class="line">	if token.Signature, err = joseBase64UrlDecode(parts[2]); err != nil &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if err = json.Unmarshal(headerJSON, token.Header); err != nil &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if err = json.Unmarshal(claimsJSON, token.Claims); err != nil &#123;</span><br><span class="line">		return nil, ErrMalformedToken</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return token, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>从代码中，我们可以发现，token是通过JWT（JSON Web Token）来实现的，主要部分是joseHeader和claimSet。joseHeader和claimSet结构体数据转换成字符串之后，进行连合，构成payload字符串，payload再由私钥进行加密签名，得到签名字符串。最后，payload和签名字符串进行连合，传递给token.NewToken函数来生成token。<br>在Harbor中，joseHeader描述了token的类型以及使用的hash算法，除此之外还加入了KeyID这一认证相关的信息，KeyID是采用<code>github.com/docker/libtrust</code>根据公钥生成。<br>ClaimSet包含了进行认证的必要信息，具体包括：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Issuer：代表了发起请求的实体，是一个大小写敏感的字符串。Harbor中该值为&quot;harbor-token-issuer&quot;。</span><br><span class="line">Subject：代表的是JWT的主题，该字段要求在上下文中或者是全局唯一，可以放入用户帐号；Harbor中该值为用户帐号。</span><br><span class="line">Audience：代表的是JWT希望的接受者；Harbor中该值为registry配置的service名，即&quot;harbor-registry&quot;。</span><br><span class="line">Expiration Time：代表的是token的过期时间；Harbor中该值默认为30分钟。</span><br><span class="line">NotBefore：代表的是JWT不能早于该时间来处理；</span><br><span class="line">IssuedAt：代表的是JWT的签发时间。</span><br></pre></td></tr></table></figure></p>
+<p>docker registry在此基础上还增加2个字段：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">– JWTID: 这是一个基于base64加密的随机长度的字符串；</span><br><span class="line">– Access:代表了访问和操作权限，Harbor中该值根据scope字符串转换为对应数据结构得到。</span><br></pre></td></tr></table></figure></p>
+<p>有了这些信息，就可以生成满足要求的token，进而附加到request header中，成功请求registey v2 API。token service会使用私钥进行签名，registry则会使用公钥进行验证，因此，Harbor的ui和registry需要使用配对的公私钥。<br>注：token认证实现可以参考<a href="http://www.skycloudsoftware.com/index.php/2016/06/13/docker-registry-v2-token.html" target="_blank" rel="noopener">从源码看Docker Registry v2中的Token认证实现机制</a>。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>以上就是Harbor请求registry组件API大概的处理过程。由此可以看出，在Harbor请求registry API的过程中，ping请求<code>your-registry-host:port/v2/</code>所得到的service url其实在这个过程中并没有起到作用，但这个service url在docker login的时候则会起到作用。因此，我们最好是对比docker login的过程来理解API请求的过程，方能理解得更深刻。<br>最后的一点提醒，以上源代码皆是代码片段，详情请查看github Harbor和registry V2源码。以Harbor tags v1.1.2为准，查看源代码的时候请注意切换tags，谨记。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/实验室项目环境迁移/" rel="next" title="实验室项目环境迁移">
+                <i class="fa fa-chevron-left"></i> 实验室项目环境迁移
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/27/github-page博客-hexo-next主题-gitment评论/" rel="prev" title="github page博客+hexo next主题+gitment评论">
+                github page博客+hexo next主题+gitment评论 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Harbor是什么"><span class="nav-number">1.</span> <span class="nav-text">Harbor是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调用Harbor-API的身份验证"><span class="nav-number">2.</span> <span class="nav-text">调用Harbor API的身份验证</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#token验证原理"><span class="nav-number">3.</span> <span class="nav-text">token验证原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#docker-login的过程"><span class="nav-number">3.1.</span> <span class="nav-text">docker login的过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试用例"><span class="nav-number">3.2.</span> <span class="nav-text">测试用例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Harbor实现概述"><span class="nav-number">3.3.</span> <span class="nav-text">Harbor实现概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Harbor对数据结构的封装"><span class="nav-number">3.4.</span> <span class="nav-text">Harbor对数据结构的封装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Harbor向registry发送ping请求"><span class="nav-number">3.5.</span> <span class="nav-text">Harbor向registry发送ping请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Harbor生成token"><span class="nav-number">3.6.</span> <span class="nav-text">Harbor生成token</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

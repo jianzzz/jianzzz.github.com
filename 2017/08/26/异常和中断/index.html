@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="计算机原理,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="以下内容摘抄自《80386 Programmer’s Manual》 《Chapter 9, Exceptions and Interrupts》中断和异常是特殊类型的控制转移，它们的表现有时候像不受计算机程序支配的CALL。中断和异常改变了正常程序流，以处理外部事件或报告错误、异常情况。中断和异常的区别是，中断interrupts用于处理处理器外部的异步事件，异常exceptions用于处理处理">
+<meta name="keywords" content="计算机原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="异常和中断">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/异常和中断/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="以下内容摘抄自《80386 Programmer’s Manual》 《Chapter 9, Exceptions and Interrupts》中断和异常是特殊类型的控制转移，它们的表现有时候像不受计算机程序支配的CALL。中断和异常改变了正常程序流，以处理外部事件或报告错误、异常情况。中断和异常的区别是，中断interrupts用于处理处理器外部的异步事件，异常exceptions用于处理处理">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/1.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/2.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/3.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/6.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/7.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/8.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/9.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/10.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/11.gif">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/12.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.101Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="异常和中断">
+<meta name="twitter:description" content="以下内容摘抄自《80386 Programmer’s Manual》 《Chapter 9, Exceptions and Interrupts》中断和异常是特殊类型的控制转移，它们的表现有时候像不受计算机程序支配的CALL。中断和异常改变了正常程序流，以处理外部事件或报告错误、异常情况。中断和异常的区别是，中断interrupts用于处理处理器外部的异步事件，异常exceptions用于处理处理">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/异常和中断/1.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/异常和中断/">
+
+
+
+
+
+  <title>异常和中断 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/异常和中断/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">异常和中断</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T10:45:33+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/计算机原理/" itemprop="url" rel="index">
+                    <span itemprop="name">计算机原理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>以下内容摘抄自《80386 Programmer’s Manual》</p>
+<h1 id="《Chapter-9-Exceptions-and-Interrupts》"><a href="#《Chapter-9-Exceptions-and-Interrupts》" class="headerlink" title="《Chapter 9, Exceptions and Interrupts》"></a>《Chapter 9, Exceptions and Interrupts》</h1><p>中断和异常是特殊类型的控制转移，它们的表现有时候像不受计算机程序支配的<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/CALL.htm" target="_blank" rel="noopener">CALL</a>。中断和异常改变了正常程序流，以处理外部事件或报告错误、异常情况。中断和异常的区别是，中断interrupts用于处理处理器外部的异步事件，异常exceptions用于处理处理器在执行指令时检测到的情况。<br><strong>外部中断的两个来源：</strong><br>1、可屏蔽中断Maskable interrupts，通过INTR pin来发送信号。<br>2、不可屏蔽中断Nonmaskable interrupts，通过NMI (Non-Maskable Interrupt) pin来发送信号。<br><strong>异常的两个来源：</strong><br>1、处理器检测。进一步分为故障faults、陷阱traps和中止aborts。<br>2、编程。指令INTO、INT 3、INT n、BOUND可以引发异常。这些指令通常被称为“软件中断”，但处理器把它们当作异常处理。</p>
+<h2 id="《9-1-Identifying-Interrupts》"><a href="#《9-1-Identifying-Interrupts》" class="headerlink" title="《9.1 Identifying Interrupts》"></a>《9.1 Identifying Interrupts》</h2><p>每一个不同类型的中断或异常都有一个处理器可识别的数。处理器给不可屏蔽中断和异常分配了0-31的标识符。80386目前没有使用所有的数字，在这个范围内未赋值的标识符保留了未来扩张的可能性。可屏蔽中断的标识符是由外部中断控制器决定的，如英特尔的8259A可编程中断控制器，并在处理器的中断应答序列interrupt-acknowledge sequence过程中与处理器通信。具体的分配如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Identifier   Description</span><br><span class="line"></span><br><span class="line">0            Divide error</span><br><span class="line">1            Debug exceptions</span><br><span class="line">2            Nonmaskable interrupt</span><br><span class="line">3            Breakpoint (one-byte INT 3 instruction)</span><br><span class="line">4            Overflow (INTO instruction)</span><br><span class="line">5            Bounds check (BOUND instruction)</span><br><span class="line">6            Invalid opcode</span><br><span class="line">7            Coprocessor not available</span><br><span class="line">8            Double fault</span><br><span class="line">9            (reserved)</span><br><span class="line">10           Invalid TSS</span><br><span class="line">11           Segment not present</span><br><span class="line">12           Stack exception</span><br><span class="line">13           General protection</span><br><span class="line">14           Page fault</span><br><span class="line">15           (reserved)</span><br><span class="line">16           Coprecessor error</span><br><span class="line">17-31        (reserved)</span><br><span class="line">32-255       Available for external interrupts via INTR pin</span><br></pre></td></tr></table></figure></p>
+<p>根据报告的方式以及是否支持重新启动导致异常的指令，异常被分为故障、陷阱、终止。<br><strong>故障：</strong><br>故障是这样一种异常：要么在指令开始执行之前被检测到，要么在指令执行期间被检测到。如果在指令执行期间被检测到，机器恢复到能允许重启导致故障的指令的状态，然后报告故障。<br><strong>陷阱：</strong><br>陷阱是这样一种异常：在检测到异常的指令之后的指令边界立即被报告。<br><strong>终止：</strong><br>终止是这样一种异常：它既不允许获取引起异常的指令的精确位置，也不允许重启导致异常的程序。终止用于报告严重的错误，比如硬件错误和不一致、系统表的非法值。</p>
+<h2 id="《9-2-Enabling-and-Disabling-Interrupts》"><a href="#《9-2-Enabling-and-Disabling-Interrupts》" class="headerlink" title="《9.2 Enabling and Disabling Interrupts》"></a>《9.2 Enabling and Disabling Interrupts》</h2><p>处理器只在一条指令结束及下一条指令开始之际处理异常和中断。在指令边界，处理器通过某些条件和标识设置禁止某些异常和中断。</p>
+<h3 id="《9-2-1-NMI-Masks-Further-NMIs》"><a href="#《9-2-1-NMI-Masks-Further-NMIs》" class="headerlink" title="《9.2.1 NMI Masks Further NMIs》"></a>《9.2.1 NMI Masks Further NMIs》</h3><p>如果正在执行一个不可屏蔽中断的处理程序，处理器将忽略其他来自NMI pin的中断信号，直至执行<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/IRET.htm" target="_blank" rel="noopener">IRET</a>指令。</p>
+<h3 id="《9-2-2-IF-Masks-INTR》"><a href="#《9-2-2-IF-Masks-INTR》" class="headerlink" title="《9.2.2 IF Masks INTR》"></a>《9.2.2 IF Masks INTR》</h3><p>允许中断标志位IF（interrupt-enable flag）控制着是否接受经由INTR pin的外部中断信号。当IF=0，禁止INTR中断；当IF=1，允许INTR中断。处理器接收到RESET信号后，将清除IF和其他标志位。<br><strong>显式改变IF：</strong><a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/CLI.htm" target="_blank" rel="noopener">CLI</a>(Clear Interrupt-Enable Flag)和<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/STI.htm" target="_blank" rel="noopener">STI</a>(Set Interrupt-Enable Flag)显式改变IF(bit 9 in the flag register)。只有CPL &lt; = IOPL时才允许执行CLI和STI，否则将会发生保护异常。<br><strong>隐式改变IF：</strong>1、指令<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/PUSHF.htm" target="_blank" rel="noopener">PUSHF</a>将会在栈上存储所有的标识，包括IF。2、任务切换和指令<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/POPF.htm" target="_blank" rel="noopener">POPF</a>、<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/IRET.htm" target="_blank" rel="noopener">IRET</a>将加载标志寄存器，会修改IF。3、中断门interrupt gates自动重置IF，禁止中断。  </p>
+<h3 id="《9-2-3-RF-Masks-Debug-Faults》"><a href="#《9-2-3-RF-Masks-Debug-Faults》" class="headerlink" title="《9.2.3 RF Masks Debug Faults》"></a>《9.2.3 RF Masks Debug Faults》</h3><p>EFLAGS的RF位控制识别出调试错误，给定一条指令，无论它被重启多少次，RF使得最多只有一次调试错误出现。</p>
+<h3 id="《9-2-4-MOV-or-POP-to-SS-Masks-Some-Interrupts-and-Exceptions》"><a href="#《9-2-4-MOV-or-POP-to-SS-Masks-Some-Interrupts-and-Exceptions》" class="headerlink" title="《9.2.4 MOV or POP to SS Masks Some Interrupts and Exceptions》"></a>《9.2.4 MOV or POP to SS Masks Some Interrupts and Exceptions》</h3><p>软件经常需要使用成对的指令来改变堆栈段，比如<strong>MOV SS, AX</strong>、<strong>MOV ESP, StackTop</strong>。如果SS已经改变而ESP还未收到相应的改变的时候处理异常或中断，中断或异常处理程序执行期间栈指针SS:ESP是不一致的。为了防止这种情况的发生，80386在执行<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/MOV.htm" target="_blank" rel="noopener">MOV</a> SS和<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/POP.htm" target="_blank" rel="noopener">POP</a> SS指令之后，在下一条指令的指令边界内禁止NMI、INTR、debug exceptions、single-step traps。但是页错误和保护错误仍可能发生，若使用80386 <a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LGS.htm" target="_blank" rel="noopener">LSS</a>指令，则不会出现这些问题。</p>
+<h2 id="《9-3-Priority-Among-Simultaneous-Interrupts-and-Exceptions》"><a href="#《9-3-Priority-Among-Simultaneous-Interrupts-and-Exceptions》" class="headerlink" title="《9.3 Priority Among Simultaneous Interrupts and Exceptions》"></a>《9.3 Priority Among Simultaneous Interrupts and Exceptions》</h2><p>如果在指令边界有多个中断或异常在等待，处理器一次只会处理其中一个。该中断或异常的分类需具有最高优先级。处理器将控制转移到中断处理程序的第一个指令。低优先级的异常被丢弃，低优先级的中断保持等待。在中断处理程序返回控制权的时候，被丢弃的异常将被重新发现。<br>同时发生的异常和中断的优先级：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Priority   Class of Interrupt or Exception</span><br><span class="line"></span><br><span class="line">HIGHEST    Faults except debug faults</span><br><span class="line">           Trap instructions INTO, INT n, INT 3</span><br><span class="line">           Debug traps for this instruction</span><br><span class="line">           Debug faults for next instruction</span><br><span class="line">           NMI interrupt</span><br><span class="line">LOWEST     INTR interrupt</span><br></pre></td></tr></table></figure></p>
+<h2 id="《9-4-Interrupt-Descriptor-Table》"><a href="#《9-4-Interrupt-Descriptor-Table》" class="headerlink" title="《9.4 Interrupt Descriptor Table》"></a>《9.4 Interrupt Descriptor Table》</h2><p>中断描述符表（Interrupt Descriptor Table，IDT）将每个异常或中断向量分别与它们的处理过程联系起来。与GDT和LDT表类似，IDT也是由8字节长描述符组成的一个数组。与GDT和LDT表不同的是，IDT的第一项可以包含一个描述符。为了构成IDT表中的一个索引值，处理器把异常或中断的向量号乘以8。因为最多只有256个中断或异常向量，所以IDT无需包含多于256个描述符。IDT中可以含有少于256个描述符，因为只有可能发生的异常或中断才需要描述符。不过IDT中所有空描述符项应该设置其存在位（标志）为0。<br>IDT表可以驻留在线性地址空间的任何地方，处理器使用IDTR寄存器来定位IDT表的位置。这个寄存器中含有IDT表32位的基地址和16位的长度（限长）值。IDT表基地址应该对齐在8字节边界上以提高处理器的访问效率。限长值是以字节为单位的IDT表的长度。<br><a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LGDT.htm" target="_blank" rel="noopener">LIDT</a>和<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/SGDT.htm" target="_blank" rel="noopener">SIDT</a>指令分别用于加载和保存IDTR寄存器的内容，两者都有一个显式的操作数：内存中一个6字节区域的地址。LIDT指令用于把内存中的限长值和基地址操作数加载到IDTR寄存器中。该指令仅能由当前特权级CPL是0的代码执行，通常被用于创建IDT时的操作系统初始化代码中。SIDT指令用于把IDTR中的基地址和限长内容复制到内存中。该指令可在任何特权级上执行。如果中断或异常向量引用的描述符超过了IDT的界限，处理器会产生一个一般保护性异常。<br>中断描述符寄存器和中断寄存器表：<br><img src="/2017/08/26/异常和中断/1.gif" title="中断描述符寄存器和中断寄存器表"><br>LIDT和SIDT的伪描述符格式：<br><img src="/2017/08/26/异常和中断/2.gif" title="LIDT和SIDT的伪描述符格式"></p>
+<h2 id="《9-5-IDT-Descriptors》"><a href="#《9-5-IDT-Descriptors》" class="headerlink" title="《9.5 IDT Descriptors》"></a>《9.5 IDT Descriptors》</h2><p>IDT可能包括3种描述符：Task gates、Interrupt gates、Trap gates。<br><img src="/2017/08/26/异常和中断/3.gif" title="IDT 3种描述符"><br>参考于<a href="http://stackoverflow.com/questions/3425085/%20the-difference-between-call-gate-interrupt-gate-trap-gate，对各种门描述符进行分析。" target="_blank" rel="noopener">http://stackoverflow.com/questions/3425085/%20the-difference-between-call-gate-interrupt-gate-trap-gate，对各种门描述符进行分析。</a><br>通用寄存器EFLAGS保存的是CPU的执行状态和控制信息，其中只需要关注两个寄存器：IF和TF。<br><img src="/2017/08/26/异常和中断/4.PNG" title="EFLAGS"><br><strong>TF(Trap Flag)</strong>：跟踪标志。置1则开启单步执行调试模式，置0则关闭。在单步执行模式下，处理器在每条指令后产生一个调试异常，这样在每条指令执行后都可以查看执行程序的状态。<br><strong>IF(Interrupt enable)</strong>：中断许可标志。控制处理器对可屏蔽硬件中断请求的响应。置1则开启可屏蔽硬件中断响应，置0则关闭。IF标志不影响异常和不可屏蔽终端NMI的产生。  </p>
+<p><strong>gate用于实现从一段代码跳转到另一段代码（可能存在不同的代码段、不同的特权级）时的保护机制问题。</strong>一般而言，存在四种gate：<br>1、Task gate。只能存在GDT或IDT中并被int指令调用。因特尔工程师设计TSS（Task State Segment）主要是通过保存任务的寄存器状态来应用于硬件任务切换。触发硬件任务切换有两种方式，一种是使用TSS本身，一种是使用Task gate。可以通过call和jmp指令导致任务切换。Task gate设计的目的可能是用于在中断到来时触发硬件任务切换，因为跳转到TSS的选择器并不能触发硬件任务切换。现实情况下，由于使用不方便和性能不佳的原因，Task gate和硬件上下文切换功能基本不被使用。例如考虑到TSS只能存在GDT中，而GDT的长度不能大于8192，这就意味着从硬件的角度来说任务数不能超过8k。<br>2、Trap gate。只能存到IDT中并被int指令调用。Trap gate只是将控制权传递给陷阱门描述符指定的拥有更多特权的段的地址。Trap gate的用处在于：system call的实现；异常处理的实现；中断处理的实现（on machines with APIC）。<br>3、Interrupt gate。只能存到IDT中并被int指令调用。类似于Trap gate但会清空IF标志。<br>4、Call gate。可被存到GDT和LDT中并被call和jmp指令调用。类似于Trap gate，Call gate可以从用户模式的任务栈传递参数到内核模式的任务栈。传递的参数数量在Call gate的描述符中指定。Call的使用场景不多，因为：可以使用Trap gate代替；不轻便，如果另一个处理器没有类似的功能，则操作系统移植到另一个处理器的时候为了支持Call gate必须编写更多的代码；不灵活，栈之间可以传递的参数是有限的；性能不优。</p>
+<p>Interrupt gate和Trap gate用来专门处理处理器异常或者中断，Task gate和Call gate一般用来处理用户的软件切换。<br>Interrupt gate和Trap gate的区别：一般情况下，Interrupt gate用于处理意外发生的错误，Trap gate用于处理软件中断和异常，比如页错误、调试中断、除0错误等。Interrupt gate会修改IF，即不再响应接下来的中断了。比如操作系统捕获了一个硬件中断正在处理，又来了另一个。如果用Trap gate，那么第一个处理就被打断了，这样会造成数据崩溃，所以必须屏蔽掉第二个，使一次硬件操作成为原子操作（NMI另说）。还有一个就是断点异常的处理必须暴露给用户程序进行调用，使用Trap gate处理。<br>Call gate和Task gate的区别：task是一个具体可运行的单位，可以运行、挂起、重启等，task的状态保存在TSS中。可以通过call或jmp指令具体调用一个task程序。Call gate和Task gate都可以用来切换到一个task，但是Task gate的寻址需要经过一个TSS找到code selector（具体见task gate descriptor），这比Call gate麻烦，但是带来的好处是：1、切换的时候原来task的上下文环境被自动保存到TSS。2、如果使用Task gate来处理中断例程，可以使程序和其他例程分开，使其具有独立的地址空间等。</p>
+<p>以上四种切换机制的细节如下：<br><img src="/2017/08/26/异常和中断/5.PNG" title="四种切换机制"></p>
+<h2 id="《9-6-Interrupt-Tasks-and-Interrupt-Procedures》"><a href="#《9-6-Interrupt-Tasks-and-Interrupt-Procedures》" class="headerlink" title="《9.6 Interrupt Tasks and Interrupt Procedures》"></a>《9.6 Interrupt Tasks and Interrupt Procedures》</h2><p>类似于<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/CALL.htm" target="_blank" rel="noopener">CALL</a>指令可以调用程序procedure或任务task，中断或异常可以调用一个中断处理程序handler，该handler可能是程序procedure或任务task。当响应中断或异常的时候，处理器使用中断或异常标志在IDT中索引描述符。如果处理器索引到一个中断门或陷阱门，它调用处理程序的方式类似于CALL指令调用一个调用门call gate。如果处理器索引到一个任务门，类似于CALL指令调用一个任务门task gate，它将导致一个任务切换。</p>
+<h3 id="《9-6-1-Interrupt-Procedures》"><a href="#《9-6-1-Interrupt-Procedures》" class="headerlink" title="《9.6.1 Interrupt Procedures》"></a>《9.6.1 Interrupt Procedures》</h3><p>中断门或陷阱门间接指向一个处理程序，该程序将在当前执行任务的上下文中被执行。中断门或陷阱门的选择器指向了GDT或当前LDT的一个可执行段描述符。中断门或陷阱门的偏移部分指向了中断或异常处理程序的起始位置。如下所示：<br><img src="/2017/08/26/异常和中断/6.gif" title="中断门或陷阱门间接指向一个处理程序"><br>80386调用一个中断或异常处理程序的方式大致类似于CALL一个程序，以下部分将解释两者差异之处。</p>
+<h4 id="《9-6-1-1-Stack-of-Interrupt-Procedure》"><a href="#《9-6-1-1-Stack-of-Interrupt-Procedure》" class="headerlink" title="《9.6.1.1 Stack of Interrupt Procedure》"></a>《9.6.1.1 Stack of Interrupt Procedure》</h4><p>就像CALL指令导致控制转移一样，中断或异常处理程序的控制转移使用了栈存储了返回原先程序需要的信息。一个中断将在指针指向中断指令之前将EFLAGS进栈，如下图所示。某些异常会导致error code进栈，异常处理函数可以通过error code判断是什么异常。<br><img src="/2017/08/26/异常和中断/7.gif" title="一个中断将在指针指向中断指令之前将EFLAGS进栈"></p>
+<h4 id="《9-6-1-2-Returning-from-an-Interrupt-Procedure》"><a href="#《9-6-1-2-Returning-from-an-Interrupt-Procedure》" class="headerlink" title="《9.6.1.2 Returning from an Interrupt Procedure》"></a>《9.6.1.2 Returning from an Interrupt Procedure》</h4><p>中断程序离开程序的方法也不用于普通程序，它将使用<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/IRET.htm" target="_blank" rel="noopener">IRET</a>指令离开。IRET类似于RET，除了IRET会将ESP额外增量四个字节(因为flags在栈上)，并将保存的flags赋值到EFLAGS寄存器中。仅当CPL=0时，EFLAGS的IOPL部分将会被改变；仅当CPL &lt;= IOPL时，EFLAGS的IF部分才会被改变。</p>
+<h4 id="《9-6-1-3-Flags-Usage-by-Interrupt-Procedure》"><a href="#《9-6-1-3-Flags-Usage-by-Interrupt-Procedure》" class="headerlink" title="《9.6.1.3 Flags Usage by Interrupt Procedure》"></a>《9.6.1.3 Flags Usage by Interrupt Procedure》</h4><p>通过中断门或陷阱门的中断在当前TF(the trap flag)作为EFLAGS的一部分被保存到栈后，将清零TF。通过这个动作处理器可以防止使用单步调试活动影响中断响应。随后IRET指令恢复EFLAGS在栈上的值，也恢复了TF。<br><strong>中断门和陷阱门的不同在于对IF(the interrupt-enable flag)的影响。经由中断门的中断将重置IF，防止其他中断（当IF=1，允许INTR中断）干扰当前的中断处理程序，随后IRET指令恢复EFLAGS在栈上的值。经由陷阱门的中断将不改变IF。</strong></p>
+<h4 id="《9-6-1-4-Protection-in-Interrupt-Procedures》"><a href="#《9-6-1-4-Protection-in-Interrupt-Procedures》" class="headerlink" title="《9.6.1.4 Protection in Interrupt Procedures》"></a>《9.6.1.4 Protection in Interrupt Procedures》</h4><p>管理中断程序的特权规则类似于程序调用：CPU不允许一个中断转移控制到一个比当前权限更少特权的程序。试图违反该规则将会导致一般保护异常。由于中断的发生一般不可预测，特权规则可以有效地在可执行的中断或异常处理程序的特权级别上强加限制。以下策略确保特权规则不被违反：1、将处理程序安置在一个conforming segment，这种策略用于处理某些异常（如divide error），该程序只能使用栈上可被使用的数据，如果它需要数据段的数据，数据段必须有特权级别3，从而使其不受保护。2、将处理程序安置在特权级别为0的栈上。</p>
+<h3 id="《9-6-2-Interrupt-Tasks》"><a href="#《9-6-2-Interrupt-Tasks》" class="headerlink" title="《9.6.2 Interrupt Tasks》"></a>《9.6.2 Interrupt Tasks》</h3><p>IDT的任务门间接指向一个任务，任务门的选择器指向GDT的TSS描述符。如下图所示：<br><img src="/2017/08/26/异常和中断/8.gif" title="任务门指向一个任务"><br>经由任务门的中断或陷阱的结果是出现一个任务切换。使用一个单独任务来处理中断有两个优点：1、整个上下文将被自动保存。2、通过LDT或页目录给予处理程序单独的地址空间，使其独立于其他任务。<br>中断任务通过IRET返回被中断的任务。<br>如果导致任务切换的异常有一个错误代码，处理器会自动把错误代码放入栈中，对应于中断任务执行的第一条指令的特权级别。<br>当80386操作系统使用中断任务时，实际上有两个调度器：软件调度器(操作系统的一部分)和硬件调度器(处理器的中断机制的一部分)。软件调度器的设计应该考虑一种情况：在启用中断时，硬件调度器随时可能派遣一个中断任务。 </p>
+<h2 id="《9-7-Error-Code》"><a href="#《9-7-Error-Code》" class="headerlink" title="《9.7 Error Code》"></a>《9.7 Error Code》</h2><p>当异常涉及到特定的段，处理器将异常处理程序的错误码放入栈中(无论是程序或任务)。错误码的格式如下：<br><img src="/2017/08/26/异常和中断/9.gif" title="错误码的格式"><br>类似于选择器的格式，但是它没有RPL，而是包含两个one-bit项：1、如果程序的外部事件导致异常，处理器设置EXT位；2、如果错误码的索引部分指向了IDT的门描述符，处理器设置I-bit (IDT-bit)。<br>如果没有设置I-bit，TI值为0表示错误码指向GDT，TI值为1表示指向LDT。剩下的14 bits（包括TI）是段选择符的高14位。在某些情况下，栈上的错误码为空，即低位的word为空。</p>
+<h2 id="《9-8-Exception-Conditions》"><a href="#《9-8-Exception-Conditions》" class="headerlink" title="《9.8 Exception Conditions》"></a>《9.8 Exception Conditions》</h2><p>下面详细描述每一个可能的异常情况。每个描述将异常按故障、陷阱、中止分类。这种分类为系统重启发生异常的程序提供了必要信息。<br><strong>故障faults</strong>：当故障被报告时，导致故障的指令的CS和EIP值将被保存。<br><strong>陷阱traps</strong>：当陷阱被报告时，导致陷阱的指令的下一条动态指令的CS和EIP值将被保存。如果是在指令改变程序流期间发现陷阱，CS和EIP的值会反映程序流的变更。例如，执行<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/JMP.htm" target="_blank" rel="noopener">JMP</a>指令时发现陷阱，CS和EIP的值指向JMP的目标。<br><strong>终止aborts</strong>：终止是这样一种异常：它既不允许获取引起异常的指令的精确位置，也不允许重启导致异常的程序。终止用于报告严重的错误，比如硬件错误和不一致、系统表的非法值。  </p>
+<h3 id="《9-8-1-Interrupt-0-–-Divide-Error》"><a href="#《9-8-1-Interrupt-0-–-Divide-Error》" class="headerlink" title="《9.8.1 Interrupt 0 – Divide Error》"></a>《9.8.1 Interrupt 0 – Divide Error》</h3><p>divide-error属于<strong>故障fault</strong>，在执行<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/DIV.htm" target="_blank" rel="noopener">DIV</a>或<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/IDIV.htm" target="_blank" rel="noopener">IDIV</a>指令时，如果除数为0则出现该故障。</p>
+<h3 id="《9-8-2-Interrupt-1-–-Debug-Exceptions》"><a href="#《9-8-2-Interrupt-1-–-Debug-Exceptions》" class="headerlink" title="《9.8.2 Interrupt 1 – Debug Exceptions》"></a>《9.8.2 Interrupt 1 – Debug Exceptions》</h3><p>处理器触发调试异常的情况有很多种，该异常是故障还是陷阱取决于具体的情况：<br>指令地址断点 <strong>故障fault</strong><br>数据地址断点 <strong>陷阱trap</strong><br>一般检测 <strong>故障fault</strong><br>单步调试single-step <strong>陷阱trap</strong><br>任务切换断点 <strong>陷阱trap</strong><br>处理器不会将该异常的错误码进栈，异常处理程序可以通过检查调试寄存器来确定是哪些条件引起异常。 </p>
+<h3 id="《9-8-3-Interrupt-3-–-Breakpoint》"><a href="#《9-8-3-Interrupt-3-–-Breakpoint》" class="headerlink" title="《9.8.3 Interrupt 3 – Breakpoint》"></a>《9.8.3 Interrupt 3 – Breakpoint》</h3><p><a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/INT.htm" target="_blank" rel="noopener">INT</a> 3指令导致该<strong>陷阱trap</strong>。INT 3指令只有一个字节长，这使得在一个可执行段将一个操作码替换为断点操作码变得很容易。操作系统或调试子系统可以为可执行段使用一个数据段别名，在任何方便捕获正常执行的地方放置INT 3，这样可以执行一些特殊处理，如显示寄存器变量。<br>CS:EIP保存的值指向了断点的后续字节。如果调试器用另外的有效操作符替代了断点，则应该在返回前将保存的EIP值减一。</p>
+<h3 id="《9-8-4-Interrupt-4-–-Overflow》"><a href="#《9-8-4-Interrupt-4-–-Overflow》" class="headerlink" title="《9.8.4 Interrupt 4 – Overflow》"></a>《9.8.4 Interrupt 4 – Overflow》</h3><p>当处理器遇到<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/INT.htm" target="_blank" rel="noopener">INTO</a>指令并且设置了溢出标志OF时，引发该<strong>陷阱trap</strong>。由于有符号算术和无符号算术都使用相同的运算指令，处理器无法区分，因此不会自动引起溢出异常。因此，当在结果被解释为有符号数并且会越界的时候，处理器将设置OF位。当计算有符号操作数时，程序员和编译器要么直接测试OF位，要么使用INTO指令。</p>
+<h3 id="《9-8-5-Interrupt-5-–-Bounds-Check》"><a href="#《9-8-5-Interrupt-5-–-Bounds-Check》" class="headerlink" title="《9.8.5 Interrupt 5 – Bounds Check》"></a>《9.8.5 Interrupt 5 – Bounds Check》</h3><p>当处理器在执行<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/BOUND.htm" target="_blank" rel="noopener">BOUND</a>指令并发现操作数超过指定的限制的时候，引发该<strong>故障fault</strong>。程序可以使用BOUND指令来检查定义在内存块中的有符号数组索引和有符号限长。</p>
+<h3 id="《9-8-6-Interrupt-6-–-Invalid-Opcode》"><a href="#《9-8-6-Interrupt-6-–-Invalid-Opcode》" class="headerlink" title="《9.8.6 Interrupt 6 – Invalid Opcode》"></a>《9.8.6 Interrupt 6 – Invalid Opcode》</h3><p>如果在可执行单元中发现了无效的操作码，引发该<strong>故障fault</strong>。只有当试图执行该非法操作码的时候才会引发故障。该故障的错误码没有入栈。可以在相同的任务里处理该异常。<br>对于给定的操作码，如果操作数的类型是无效的也会引发该异常。比如段内<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/JMP.htm" target="_blank" rel="noopener">JMP</a>引用一个寄存器操作数，或者<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LGS.htm" target="_blank" rel="noopener">LES</a>指令涉及寄存器源操作数</p>
+<h3 id="《9-8-7-Interrupt-7-–-Coprocessor-Not-Available》"><a href="#《9-8-7-Interrupt-7-–-Coprocessor-Not-Available》" class="headerlink" title="《9.8.7 Interrupt 7 – Coprocessor Not Available》"></a>《9.8.7 Interrupt 7 – Coprocessor Not Available》</h3><p>以下两种情况会引发该异常：<br>处理器遇到ESC(逃避escape)指令，且设置了CR0(control register zero)的EM(模拟emulate)位。<br>处理器遇到<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/WAIT.htm" target="_blank" rel="noopener">WAIT</a>指令或ESC指令，且设置了CR0的MP(监控协处理器monitor coprocessor)和TS(任务切换task switched)位。  </p>
+<h3 id="《9-8-8-Interrupt-8-–-Double-Fault》"><a href="#《9-8-8-Interrupt-8-–-Double-Fault》" class="headerlink" title="《9.8.8 Interrupt 8 – Double Fault》"></a>《9.8.8 Interrupt 8 – Double Fault》</h3><p>通常情况下，当处理器试图调用异常处理程序处理之前的例外时又检测到异常，可以连续处理这两个异常。如果处理器不能串行处理它们，将会发出一个<strong>double-fault</strong>异常。为了确定何时将两个故障标识为double-fault，80386将异常分为三类：benign exceptions、contributory exceptions、page faults。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Table 9-3. Double-Fault Detection Classes</span><br><span class="line"></span><br><span class="line">Class           ID          Description</span><br><span class="line"></span><br><span class="line">                 1          Debug exceptions</span><br><span class="line">                 2          NMI</span><br><span class="line">                 3          Breakpoint</span><br><span class="line">Benign           4          Overflow</span><br><span class="line">Exceptions       5          Bounds check</span><br><span class="line">                 6          Invalid opcode</span><br><span class="line">                 7          Coprocessor not available</span><br><span class="line">                16          Coprocessor error</span><br><span class="line"></span><br><span class="line">                 0          Divide error</span><br><span class="line">                 9          Coprocessor Segment Overrun</span><br><span class="line">Contributory    10          Invalid TSS</span><br><span class="line">Exceptions      11          Segment not present</span><br><span class="line">                12          Stack exception</span><br><span class="line">                13          General protection</span><br><span class="line"></span><br><span class="line">Page Faults     14          Page fault</span><br></pre></td></tr></table></figure></p>
+<p>以下说明哪些异常组合导致double-fault而哪些不会：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Table 9-4. Double-Fault Definition</span><br><span class="line">-----------------------------------------------------------------</span><br><span class="line">                        |             SECOND EXCEPTION</span><br><span class="line">                        |</span><br><span class="line">                        |   Benign    |  Contributory  |  Page</span><br><span class="line">                        |   Exception |  Exception     |  Fault</span><br><span class="line">-----------------------------------------------------------------</span><br><span class="line">           Benign       |   OK        |  OK            |  OK</span><br><span class="line">           Exception    |             |                |</span><br><span class="line">           ------------------------------------------------------</span><br><span class="line">FIRST      Contributory |   OK        |  DOUBLE        |  OK</span><br><span class="line">EXCEPTION  Exception    |             |                |</span><br><span class="line">           ------------------------------------------------------</span><br><span class="line">           Page         |             |                |</span><br><span class="line">           Fault        |   OK        |  DOUBLE        |  DOUBLE</span><br><span class="line">-----------------------------------------------------------------</span><br></pre></td></tr></table></figure></p>
+<p>处理器总会将double-fault的错误码入栈，但是错误码总为0。可能不会重新启动引发故障的指令。如果试图调用double-fault处理程序的过程中发生任何异常，将关闭处理器。</p>
+<h3 id="《9-8-9-Interrupt-9-–-Coprocessor-Segment-Overrun》"><a href="#《9-8-9-Interrupt-9-–-Coprocessor-Segment-Overrun》" class="headerlink" title="《9.8.9 Interrupt 9 – Coprocessor Segment Overrun》"></a>《9.8.9 Interrupt 9 – Coprocessor Segment Overrun》</h3><p>在保护模式下，如果在传递协处理器操作数的中间部分到NPX的过程中80386检测到页面或段非法，将引发该异常。该异常是可以避免的。</p>
+<h3 id="《9-8-10-Interrupt-10-–-Invalid-TSS》"><a href="#《9-8-10-Interrupt-10-–-Invalid-TSS》" class="headerlink" title="《9.8.10 Interrupt 10 – Invalid TSS》"></a>《9.8.10 Interrupt 10 – Invalid TSS》</h3><p>当任务切换期间新TSS是非法的将引发该异常。以下情况下TSS被认为是非法的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Table 9-5. Conditions That Invalidate the TSS</span><br><span class="line"></span><br><span class="line">Error Code              Condition</span><br><span class="line"></span><br><span class="line">TSS id + EXT            The limit in the TSS descriptor is less than 103</span><br><span class="line">LTD id + EXT            Invalid LDT selector or LDT not present</span><br><span class="line">SS id + EXT             Stack segment selector is outside table limit</span><br><span class="line">SS id + EXT             Stack segment is not a writable segment</span><br><span class="line">SS id + EXT             Stack segment DPL does not match new CPL</span><br><span class="line">SS id + EXT             Stack segment selector RPL &lt; &gt;  CPL</span><br><span class="line">CS id + EXT             Code segment selector is outside table limit</span><br><span class="line">CS id + EXT             Code segment selector does not refer to code</span><br><span class="line">                        segment</span><br><span class="line">CS id + EXT             DPL of non-conforming code segment &lt; &gt; new CPL</span><br><span class="line">CS id + EXT             DPL of conforming code segment &gt; new CPL</span><br><span class="line">DS/ES/FS/GS id + EXT    DS, ES, FS, or GS segment selector is outside</span><br><span class="line">                        table limits</span><br><span class="line">DS/ES/FS/GS id + EXT    DS, ES, FS, or GS is not readable segment</span><br></pre></td></tr></table></figure></p>
+<p>该<strong>故障fault</strong>的错误码将入栈，用于帮助识别故障的原因。EXT位表示该异常是否由不受程序控制的外部情况所引发，比如经由任务门的外部中断引起非法TSS切换。<br>该故障可能出现在原始任务的上下文或新任务的上下文。异常停留在原始任务的上下文中直到处理器完全验证新TSS的存在。一旦新TSS被验证存在，任务切换则是完整的：也就是说，TR位已经被更新，并且如果是由CALL或中断导致该切换，新TSS反向链接旧TSS。此后处理器发现的任何错误都将在新任务的上下文中进行处理。<br>为了确保有合适的TSS，Interrupt 10的处理程序必须是经由任务门调用的一个任务。</p>
+<h3 id="《9-8-11-Interrupt-11-–-Segment-Not-Present》"><a href="#《9-8-11-Interrupt-11-–-Segment-Not-Present》" class="headerlink" title="《9.8.11 Interrupt 11 – Segment Not Present》"></a>《9.8.11 Interrupt 11 – Segment Not Present》</h3><p>当处理器发现描述符的存在位为0时引发该异常。处理器在以下任何一种情况下可以引发该<strong>故障fault</strong>：<br>尝试加载CS、DS、ES、FS或GS寄存器；加载SS寄存器但导致了栈错误。<br>尝试通过<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LLDT.htm" target="_blank" rel="noopener">LLDT</a>指令加载LDT寄存器；在任务切换期间加载LDT寄存器，但导致”invalid TSS”异常。<br>尝试使用被标记为不存在的门描述符。<br>该故障可以重启。如果异常处理程序设置段存在并返回，被中断的程序将恢复执行。</p>
+<p>如果在任务切换过程中发生了not-present异常，可能未完成任务切换的所有步骤。在任务切换时，处理器首先载入所有段寄存器，然后检查他们的有效性。一旦发现某个not-present异常，剩下的寄存器将不会被检查，因此不能用它们来引用内存。not-present异常处理程序在试图恢复新任务之前需要检查所有段寄存器，否则后续可能引发一般保护错误，使得诊断更加困难。有三种方法可以处理这种情况：<br>1、使用新任务来处理not-present故障。任务切换为被中断程序时，会导致处理器从TSS中加载所有寄存器并检查。<br>2、<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/PUSH.htm" target="_blank" rel="noopener">PUSH</a>和<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/POP.htm" target="_blank" rel="noopener">POP</a>所有段寄存器。POP指令会导致处理器检查所有段寄存器的新内容。<br>3、检查每个段寄存器在TSS中的镜像，模拟测试处理器加载它们的情况。  </p>
+<p>该异常会将错误码入栈。如果外部事件引用了不存在段并引发中断，错误码的EXT位将被置位。如果错误码指向IDT项，I位将被置位，比如INT指令引用了一个不存在的门。<br>操作系统经常使用“segment not present”在段级别上实现虚拟内存。然而，门描述符not-present通常并不表示段不存在，因为门不一定对应于段。Not-present门可能只是操作系统为了某些特殊意义用于触发异常。</p>
+<h3 id="《9-8-12-Interrupt-12-–-Stack-Exception》"><a href="#《9-8-12-Interrupt-12-–-Stack-Exception》" class="headerlink" title="《9.8.12 Interrupt 12 – Stack Exception》"></a>《9.8.12 Interrupt 12 – Stack Exception》</h3><p>以下两种情况一般会触发栈<strong>故障fault</strong>：<br>引用SS寄存器的任何操作由于违反限制的结果。包括<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/POP.htm" target="_blank" rel="noopener">POP</a>、<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/PUSH.htm" target="_blank" rel="noopener">PUSH</a>、<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/ENTER.htm" target="_blank" rel="noopener">ENTER</a>、<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LEAVE.htm" target="_blank" rel="noopener">LEAVE</a>，以及其他隐式使用SS的内存引用操作，如<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/MOV.htm" target="_blank" rel="noopener">MOV </a>AX, [BP+6]。当栈空间太小不满足局部变量空间时，ENTER引发该故障。<br>描述符有效但被标记为不存在的情况下尝试加载SS寄存器，引发该故障。这种情况可能发生在任务切换、interlevel CALL、interlevel return、LSS指令，或者针对SS的MOV或POP指令。  </p>
+<p>当处理器检测到栈异常时，将错误码入栈。如果是由于not-present栈段，或由于interlevel CALL期间新栈溢出而引发异常，错误码将包含出问题的段选择器，处理器可以通过测试描述符的存在位来判断发生哪些异常；其他情况下错误码为0。<br>在所有情况下，导致该故障的指令都可被重启。保存到异常处理程序栈上的返回指针指向了需要被重启的指令。这个指令通常是导致该故障的指令，但如果是由于在任务切换时加载一个不存在的栈段描述符而引发了栈异常，该指令将是新任务的第一条指令。<br>如果在任务切换过程中发生了栈异常，段寄存器不能用于引用内存。在任务切换时，处理器在检查描述符之前首先载入所有段寄存器，然后检查段寄存器的有效性。一旦发现栈异常，剩下的寄存器将不会被检查，因此不能用CS, SS, DS, ES, FS, GS来引用内存。栈异常处理程序在试图恢复新任务之前需要检查所有段寄存器，否则后续可能引发一般保护错误，使得诊断更加困难。</p>
+<h3 id="《9-8-13-Interrupt-13-–-General-Protection-Exception》"><a href="#《9-8-13-Interrupt-13-–-General-Protection-Exception》" class="headerlink" title="《9.8.13 Interrupt 13 – General Protection Exception》"></a>《9.8.13 Interrupt 13 – General Protection Exception》</h3><p>所有不会引发另一个异常的保护违反会引发一般保护异常。包括但不限于：<br>1、使用CS, DS, ES, FS, GS的时候超过限制。<br>2、引用一个描述符表的时候超过段长限制。<br>3、控制转移到一个不可执行的段。<br>4、写入只读数据段或代码段。<br>5、读取只执行段。<br>6、以一个只读描述符来加载SS。除非段寄存器是在任务切换期间来源于TSS，这种情况会引发TSS异常。<br>7、以系统段的描述符来加载SS, DS, ES, FS, GS。<br>8、以可执行但不可读的段的描述符来加载DS, ES, FS, GS。<br>9、以可执行段的描述符来加载SS。<br>10、当段寄存器包含一个空选择器时通过DS, ES, FS, GS访问内存。<br>11、切换到一个繁忙的任务。<br>12、违反特权规则。<br>13、加载CR0时 PG=1 且 PE=0。<br>14、经由中断门或陷阱门的中断或异常从V86模式到除0以外的特权级别。<br>15、超过15个字节的指令长度限制。仅当冗余前缀被放置在一条指令之前才会发生。</p>
+<p>一般保护异常属于<strong>故障fault</strong>。在处理一般保护异常时，处理器将错误码保存到异常处理程序的栈上。如果因为加载描述符而导致异常，错误码将包含一个指向描述符的选择器；否则错误码为空。错误码的选择器可能来自于：1、选择器来源于指令的一个操作数。2、一个门的选择器是指令的操作数。3、选择器来源于任务切换时的TSS。</p>
+<h3 id="《9-8-14-Interrupt-14-–-Page-Fault》"><a href="#《9-8-14-Interrupt-14-–-Page-Fault》" class="headerlink" title="《9.8.14 Interrupt 14 – Page Fault》"></a>《9.8.14 Interrupt 14 – Page Fault》</h3><p>允许分页的情况下，处理器在将线性地址转换为物理地址的过程中如果发现以下情况将会引发页错误：1、地址转换涉及到的页目录项或页表项的存在位为0；2、当前程序没有权限访问该物理页。<br>处理器为异常处理程序提供两种信息用于诊断和恢复：<br>1、保存到栈上的错误码，该错误码的格式不同于其他异常的错误码。如下所示：<br><img src="/2017/08/26/异常和中断/10.gif" title="页错误的错误码的格式"><br>错误码告知异常处理程序三件事：<br>1.1、异常是由于页面不存在还是违反访问权限所引起的。<br>1.2、发生异常的时间点上处理器是在用户级别还是supervisor级别。<br>1.3、引起异常的内存访问是写操作还是读操作。<br>2、CR2(control register two)。处理器将因访问内存而引起异常的线性地址保存到CR2中，异常处理程序可以根据该地址定位到页目录项和页表项。如果在页面错误处理程序执行期间出现了另一个页面错误，异常处理程序应该将CR2保存到栈上。如下所示：<br><img src="/2017/08/26/异常和中断/11.gif" title="CR2"></p>
+<h4 id="《9-8-14-1-Page-Fault-During-Task-Switch》"><a href="#《9-8-14-1-Page-Fault-During-Task-Switch》" class="headerlink" title="《9.8.14.1 Page Fault During Task Switch》"></a>《9.8.14.1 Page Fault During Task Switch》</h4><p>任务切换期间，处理器可能访问四个部分：<br>1、在原先任务的TSS上保存原先任务的状态。<br>2、读取GDT，定位新任务的TSS描述符。<br>3、读取新任务的TSS，检查来源于TSS的段描述符的类型。<br>4、可能读取新任务的LDT，用于验证保存到新TSS上的段寄存器。<br>上述任何一种情况都可能导致页错误。后两种情况的页错误发生在新任务的上下文中。指令指针指的是新任务的下一个指令，而不是导致任务切换的指令。<br>如果操作系统允许在任务切换期间发生页错误，页错误处理程序应该经由任务门调用。</p>
+<h4 id="《9-8-14-2-Page-Fault-with-Inconsistent-Stack-Pointer》"><a href="#《9-8-14-2-Page-Fault-with-Inconsistent-Stack-Pointer》" class="headerlink" title="《9.8.14.2 Page Fault with Inconsistent Stack Pointer》"></a>《9.8.14.2 Page Fault with Inconsistent Stack Pointer》</h4><p>应该特别注意的是，页错误不应该导致处理器使用了无效的栈指针(SS:ESP)。8086系列早期处理器经常使用一对指令来切换到新栈，如：<strong>MOV SS, AX;  MOV SP, StackTop</strong>。由于第二条指令会访问到内存，在SS改变而SP还没有改变的时候，可能会出现页错误。这种时候栈指针SS:SP（32位程序是SS:ESP）的两部分是不一致的。<br>如果页错误处理程序导致切换到定义良好的栈（即处理程序是一个任务或有更高特权的程序），处理器将不会使用不一致的栈指针。然而，如果页错误处理程序是经由中断门或陷阱门调用的，并且是在与页错误处理程序一样的特权级别下发生页错误，处理器仍然会尝试使用当前栈指针指向的栈（非法）。<br>系统实现分页后，在处理页错误时，应该使用<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/LGS.htm" target="_blank" rel="noopener">LSS</a>指令来初始化新的栈。如果页错误处理程序在特权级别0上执行（通常情况下），页错误问题的范围就被限制在特权级别为0的代码上，通常这是操作系统的内核代码。</p>
+<h3 id="《9-8-15-Interrupt-16-–-Coprocessor-Error》"><a href="#《9-8-15-Interrupt-16-–-Coprocessor-Error》" class="headerlink" title="《9.8.15 Interrupt 16 – Coprocessor Error》"></a>《9.8.15 Interrupt 16 – Coprocessor Error》</h3><p>如果在80386的ERROR# input pin上发现80287或80387信号时，80386引发该异常。80386只在开始执行ESC指令的时候，和遇到WAIT指令的时候（MSW的EM位为0），才会测试该pin。</p>
+<h2 id="《9-9-Exception-Summary》"><a href="#《9-9-Exception-Summary》" class="headerlink" title="《9.9 Exception Summary》"></a>《9.9 Exception Summary》</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">Table 9-6 summarizes the exceptions recognized by the 386</span><br><span class="line"></span><br><span class="line">Description  Interrupt  Return Address  Exception Type  Function That</span><br><span class="line">             Number     Points to                       Can Generate            </span><br><span class="line">                        Faulting                        the Exception</span><br><span class="line">                        Instruction</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Divide error    0        YES            FAULT           DIV, IDIV</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Debug           1                       Some debug      Any instruction</span><br><span class="line">exceptions               exceptions are traps and some                          </span><br><span class="line">                         are faults. The exception handler</span><br><span class="line">                         can determine which has occurred </span><br><span class="line">                         by examining DR6.  </span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Breakpoint     3         NO             TRAP            One-byte INT 3</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Overflow       4         NO             TRAP            INTO</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Bounds check   5         YES            FAULT           BOUND</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Invalid opcode 6         YES            FAULT           Any illegal </span><br><span class="line">                                                        instruction</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Coprocessor    7         YES            FAULT           ESC, WAIT</span><br><span class="line">not available    </span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Double fault  8          YES            ABORT         Any instruction         </span><br><span class="line">                                                    that can generate</span><br><span class="line">                                                      an exception</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Coprocessor   9          NO             ABORT        Any operand of an </span><br><span class="line">Segment Overrun                                      ESC instruction </span><br><span class="line">                                                     that wraps around</span><br><span class="line">                                                     the end of a</span><br><span class="line">                                                     segment</span><br><span class="line">----------------------------------------------------------------------- </span><br><span class="line">Invalid TSS  10         YES             FAULT      JMP, CALL, IRET, </span><br><span class="line">                                                   any interrupt</span><br><span class="line">An invalid-TSS fault is not restartable if it occurs during the</span><br><span class="line">processing of an external interrupt.    </span><br><span class="line">-----------------------------------------------------------------------    </span><br><span class="line">Segment not  11         YES             FAULT         Any segment-</span><br><span class="line">present                                               register modifier</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Stack        12         YES             FAULT         Any memory</span><br><span class="line">exception                                             reference thru SS</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">General      13         YES             FAULT/        Any memory </span><br><span class="line">Protection                              ABORT         reference or </span><br><span class="line">                                                      code fetch</span><br><span class="line">All GP faults are restartable. If the fault occurs while attempting to</span><br><span class="line">vector to the handler for an external interrupt, the interrupted program is restartable, but the interrupt may be lost.  </span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Page fault  14          YES             FAULT         Any memory </span><br><span class="line">                                                      reference or  </span><br><span class="line">                                                      code fetch</span><br><span class="line">-----------------------------------------------------------------------</span><br><span class="line">Coprocessor 16          YES             FAULT         ESC, WAIT</span><br><span class="line">error</span><br><span class="line">Coprocessor errors are reported as a fault on the first ESC or WAIT</span><br><span class="line">instruction executed after the ESC instruction that caused the error. </span><br><span class="line">-----------------------------------------------------------------------       </span><br><span class="line">Two-byte    0-255       NO              TRAP          INT n</span><br><span class="line">SW Interrupt</span><br></pre></td></tr></table></figure>
+<h2 id="《9-10-Error-Code-Summary》"><a href="#《9-10-Error-Code-Summary》" class="headerlink" title="《9.10 Error Code Summary》"></a>《9.10 Error Code Summary》</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Table 9-7 summarizes the error information that is available with each </span><br><span class="line">exception.</span><br><span class="line"> </span><br><span class="line">Description                 Interrupt Number    Error Code     </span><br><span class="line">-----------------------------------------------------------------------                  </span><br><span class="line">Divide error                       0            No</span><br><span class="line">Debug exceptions                   1            No</span><br><span class="line">Breakpoint                         3            No</span><br><span class="line">Overflow                           4            No</span><br><span class="line">Bounds check                       5            No</span><br><span class="line">Invalid opcode                     6            No</span><br><span class="line">Coprocessor not available          7            No</span><br><span class="line">System error                       8            Yes (always 0)</span><br><span class="line">Coprocessor Segment Overrun        9            No</span><br><span class="line">Invalid TSS                       10            Yes</span><br><span class="line">Segment not present               11            Yes</span><br><span class="line">Stack exception                   12            Yes</span><br><span class="line">General protection fault          13            Yes</span><br><span class="line">Page fault                        14            Yes</span><br><span class="line">Coprocessor error                 16            No</span><br><span class="line">Two-byte SW interrupt             0-255         No</span><br></pre></td></tr></table></figure>
+<p>系统预留中断类型：<br><img src="/2017/08/26/异常和中断/12.PNG" title="系统预留中断类型"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/计算机原理/" rel="tag"># 计算机原理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/远程登陆centos-ubuntu桌面/" rel="next" title="远程登陆centos/ubuntu桌面">
+                <i class="fa fa-chevron-left"></i> 远程登陆centos/ubuntu桌面
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/大端和小端/" rel="prev" title="大端和小端">
+                大端和小端 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#《Chapter-9-Exceptions-and-Interrupts》"><span class="nav-number">1.</span> <span class="nav-text">《Chapter 9, Exceptions and Interrupts》</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-1-Identifying-Interrupts》"><span class="nav-number">1.1.</span> <span class="nav-text">《9.1 Identifying Interrupts》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-2-Enabling-and-Disabling-Interrupts》"><span class="nav-number">1.2.</span> <span class="nav-text">《9.2 Enabling and Disabling Interrupts》</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-2-1-NMI-Masks-Further-NMIs》"><span class="nav-number">1.2.1.</span> <span class="nav-text">《9.2.1 NMI Masks Further NMIs》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-2-2-IF-Masks-INTR》"><span class="nav-number">1.2.2.</span> <span class="nav-text">《9.2.2 IF Masks INTR》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-2-3-RF-Masks-Debug-Faults》"><span class="nav-number">1.2.3.</span> <span class="nav-text">《9.2.3 RF Masks Debug Faults》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-2-4-MOV-or-POP-to-SS-Masks-Some-Interrupts-and-Exceptions》"><span class="nav-number">1.2.4.</span> <span class="nav-text">《9.2.4 MOV or POP to SS Masks Some Interrupts and Exceptions》</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-3-Priority-Among-Simultaneous-Interrupts-and-Exceptions》"><span class="nav-number">1.3.</span> <span class="nav-text">《9.3 Priority Among Simultaneous Interrupts and Exceptions》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-4-Interrupt-Descriptor-Table》"><span class="nav-number">1.4.</span> <span class="nav-text">《9.4 Interrupt Descriptor Table》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-5-IDT-Descriptors》"><span class="nav-number">1.5.</span> <span class="nav-text">《9.5 IDT Descriptors》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-6-Interrupt-Tasks-and-Interrupt-Procedures》"><span class="nav-number">1.6.</span> <span class="nav-text">《9.6 Interrupt Tasks and Interrupt Procedures》</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-6-1-Interrupt-Procedures》"><span class="nav-number">1.6.1.</span> <span class="nav-text">《9.6.1 Interrupt Procedures》</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-6-1-1-Stack-of-Interrupt-Procedure》"><span class="nav-number">1.6.1.1.</span> <span class="nav-text">《9.6.1.1 Stack of Interrupt Procedure》</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-6-1-2-Returning-from-an-Interrupt-Procedure》"><span class="nav-number">1.6.1.2.</span> <span class="nav-text">《9.6.1.2 Returning from an Interrupt Procedure》</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-6-1-3-Flags-Usage-by-Interrupt-Procedure》"><span class="nav-number">1.6.1.3.</span> <span class="nav-text">《9.6.1.3 Flags Usage by Interrupt Procedure》</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-6-1-4-Protection-in-Interrupt-Procedures》"><span class="nav-number">1.6.1.4.</span> <span class="nav-text">《9.6.1.4 Protection in Interrupt Procedures》</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-6-2-Interrupt-Tasks》"><span class="nav-number">1.6.2.</span> <span class="nav-text">《9.6.2 Interrupt Tasks》</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-7-Error-Code》"><span class="nav-number">1.7.</span> <span class="nav-text">《9.7 Error Code》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-8-Exception-Conditions》"><span class="nav-number">1.8.</span> <span class="nav-text">《9.8 Exception Conditions》</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-1-Interrupt-0-–-Divide-Error》"><span class="nav-number">1.8.1.</span> <span class="nav-text">《9.8.1 Interrupt 0 – Divide Error》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-2-Interrupt-1-–-Debug-Exceptions》"><span class="nav-number">1.8.2.</span> <span class="nav-text">《9.8.2 Interrupt 1 – Debug Exceptions》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-3-Interrupt-3-–-Breakpoint》"><span class="nav-number">1.8.3.</span> <span class="nav-text">《9.8.3 Interrupt 3 – Breakpoint》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-4-Interrupt-4-–-Overflow》"><span class="nav-number">1.8.4.</span> <span class="nav-text">《9.8.4 Interrupt 4 – Overflow》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-5-Interrupt-5-–-Bounds-Check》"><span class="nav-number">1.8.5.</span> <span class="nav-text">《9.8.5 Interrupt 5 – Bounds Check》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-6-Interrupt-6-–-Invalid-Opcode》"><span class="nav-number">1.8.6.</span> <span class="nav-text">《9.8.6 Interrupt 6 – Invalid Opcode》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-7-Interrupt-7-–-Coprocessor-Not-Available》"><span class="nav-number">1.8.7.</span> <span class="nav-text">《9.8.7 Interrupt 7 – Coprocessor Not Available》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-8-Interrupt-8-–-Double-Fault》"><span class="nav-number">1.8.8.</span> <span class="nav-text">《9.8.8 Interrupt 8 – Double Fault》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-9-Interrupt-9-–-Coprocessor-Segment-Overrun》"><span class="nav-number">1.8.9.</span> <span class="nav-text">《9.8.9 Interrupt 9 – Coprocessor Segment Overrun》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-10-Interrupt-10-–-Invalid-TSS》"><span class="nav-number">1.8.10.</span> <span class="nav-text">《9.8.10 Interrupt 10 – Invalid TSS》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-11-Interrupt-11-–-Segment-Not-Present》"><span class="nav-number">1.8.11.</span> <span class="nav-text">《9.8.11 Interrupt 11 – Segment Not Present》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-12-Interrupt-12-–-Stack-Exception》"><span class="nav-number">1.8.12.</span> <span class="nav-text">《9.8.12 Interrupt 12 – Stack Exception》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-13-Interrupt-13-–-General-Protection-Exception》"><span class="nav-number">1.8.13.</span> <span class="nav-text">《9.8.13 Interrupt 13 – General Protection Exception》</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-14-Interrupt-14-–-Page-Fault》"><span class="nav-number">1.8.14.</span> <span class="nav-text">《9.8.14 Interrupt 14 – Page Fault》</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-8-14-1-Page-Fault-During-Task-Switch》"><span class="nav-number">1.8.14.1.</span> <span class="nav-text">《9.8.14.1 Page Fault During Task Switch》</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#《9-8-14-2-Page-Fault-with-Inconsistent-Stack-Pointer》"><span class="nav-number">1.8.14.2.</span> <span class="nav-text">《9.8.14.2 Page Fault with Inconsistent Stack Pointer》</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#《9-8-15-Interrupt-16-–-Coprocessor-Error》"><span class="nav-number">1.8.15.</span> <span class="nav-text">《9.8.15 Interrupt 16 – Coprocessor Error》</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-9-Exception-Summary》"><span class="nav-number">1.9.</span> <span class="nav-text">《9.9 Exception Summary》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#《9-10-Error-Code-Summary》"><span class="nav-number">1.10.</span> <span class="nav-text">《9.10 Error Code Summary》</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="综述什么是MapReduce：MapReduce是一种编程模型，用于大规模数据集的并行运算。软件实现指定一个Map（映射）函数，用来把一组键值对映射成一组新的键值对；指定并发的Reduce（归约）函数，用来保证所有映射的键值对中的每一个共享相同的键组。MapReduce的应用情况：master的schedule调度函数负责根据任务数分配任务给worker，并同步worker的工作。worker启动">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记01 - Lab 1: MapReduce">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="综述什么是MapReduce：MapReduce是一种编程模型，用于大规模数据集的并行运算。软件实现指定一个Map（映射）函数，用来把一组键值对映射成一组新的键值对；指定并发的Reduce（归约）函数，用来保证所有映射的键值对中的每一个共享相同的键组。MapReduce的应用情况：master的schedule调度函数负责根据任务数分配任务给worker，并同步worker的工作。worker启动">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/6.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.135Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记01 - Lab 1: MapReduce">
+<meta name="twitter:description" content="综述什么是MapReduce：MapReduce是一种编程模型，用于大规模数据集的并行运算。软件实现指定一个Map（映射）函数，用来把一组键值对映射成一组新的键值对；指定并发的Reduce（归约）函数，用来保证所有映射的键值对中的每一个共享相同的键组。MapReduce的应用情况：master的schedule调度函数负责根据任务数分配任务给worker，并同步worker的工作。worker启动">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/">
+
+
+
+
+
+  <title>笔记01 - Lab 1: MapReduce | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/16/笔记01-Lab-1-MapReduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记01 - Lab 1: MapReduce</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-16T22:33:27+08:00">
+                2017-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-824-Distributed-Systems/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.824 Distributed Systems</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h1><p>什么是MapReduce：MapReduce是一种编程模型，用于大规模数据集的并行运算。软件实现指定一个Map（映射）函数，用来把一组键值对映射成一组新的键值对；指定并发的Reduce（归约）函数，用来保证所有映射的键值对中的每一个共享相同的键组。<br>MapReduce的应用情况：master的schedule调度函数负责根据任务数分配任务给worker，并同步worker的工作。worker启动时指定Map函数和Reduce函数，接收master调遣时根据任务标志来决定执行Map函数还是Reduce函数。在不同的应用场景下，用户对Map函数和Reduce函数进行自定义，并在启动worker时进行注册即可。</p>
+<p>例子1：单词统计程序中：Map任务将读取文件内容，调用Map函数将文件内容映射成一组新的键值对，然后将映射结果输出到对应的Reduce中间文件中。其中，Map（映射）函数将文件内容映射成一组新的键值对，键为单词，值为出现次数。<br>Reduce任务读取对应的Reduce中间文件中，保证所有相同“单词:次数”键值对共享相同的键组，调用Reduce（归约）函数统计该单词出现的总次数，最后将结果写入到中间文件。</p>
+<p>例子2：反向索引生成程序中：Map任务将读取文件内容，调用Map函数将文件内容映射成一组新的键值对，然后将映射结果输出到对应的Reduce中间文件中。其中，Map（映射）函数将文件内容映射成一组新的键值对，键为单词，值为出现文件名。<br>Reduce任务读取对应的Reduce中间文件中，保证所有相同“单词:文件名”键值对共享相同的键组，调用Reduce（归约）函数统计该单词出现的次数和所有文件名，最后将结果写入到中间文件。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>1、Go version 1.7<br>2、参考资料：<br><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener">Pro Git book</a>，<a href="https://www.kernel.org/pub/software/scm/git/docs/user-manual.html" target="_blank" rel="noopener">git user’s manual</a>，<a href="http://eagain.net/articles/git-for-computer-scientists/" target="_blank" rel="noopener">Git for Computer Scientists</a><br>3、项目地址：git://g.csail.mit.edu/6.824-golabs-2017<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git clone git://g.csail.mit.edu/6.824-golabs-2017 6.824</span><br><span class="line">$ cd 6.824</span><br><span class="line">$ ls</span><br><span class="line">Makefile src</span><br></pre></td></tr></table></figure></p>
+<p>实验准备了顺序和分布式两种Map/Reduce模式。顺序模式启动第一个map任务，然后是第二个、第三个…所有map任务完成后启动reduce任务，该方法速度慢，但有利于调试。分布式模式在启动第一个map任务时就并发启动多个worker线程，然后reduce任务，该方法速度快，但不利于实现和调试。  </p>
+<h2 id="Preamble-Getting-familiar-with-the-source"><a href="#Preamble-Getting-familiar-with-the-source" class="headerlink" title="Preamble: Getting familiar with the source"></a>Preamble: Getting familiar with the source</h2><p>mapreduce提供了简单的Map/Reduce库。master.go的Distributed()函数和Sequential()函数分别提供了分布式模式和顺序模式用于启动job。job包括了以下内容：<br>1、提供许多输入文件、一个map函数、一个reduce函数、reduce任务的数目nReduce。<br>2、master将启动rpc服务（<code>master_rpc.go</code>），等待worker的注册（Register() in master.go）。当map task和reduce task可分配时，master分配这些task到对应的worker（schedule() in schedule.go）。<br>3、master将每个输入文件当成一个map task，启动nMap个map task/worker，每个worker调用doMap()将输入文件的key/value pairs映射到nReduce个中间文件中，映射方法是对每一个pair的key进行哈希。map阶段将产生nMap x nReduce个中间文件，每个worker机器在本地存储nReduce个中间文件。在本实验中，文件存于本机，不同worker都是运行在本机上；但在实际中，每个worker应当被允许读取其他worker写入的文件，可以通过GFS在不同机器上运行worker，并使用分布式存储系统进行存储。<br>4、master启动reduce阶段（<code>doReduce() in common_reduce.go</code>）。每个map task/worker有nReduce个中间文件，对于reduce task R，R将会收集每个map task/worker的第R个中间文件。reduse阶段将生成nReduce个文件。<br>5、master启动merge阶段（<code>mr.merge() in master_splitmerge.go</code>），将nReduce个文件合并为一个文件。<br>6、master为每一个worker发送Shutdown RPC，然后关闭rpc服务。</p>
+<h2 id="Part-I-Map-Reduce-input-and-output"><a href="#Part-I-Map-Reduce-input-and-output" class="headerlink" title="Part I: Map/Reduce input and output"></a>Part I: Map/Reduce input and output</h2><p>完成以下内容：<br>1、为每一个map task切分输出文件，实现<code>doMap() in common_map.go</code>。<br>2、为每一个reduce task收集输入文件，实现<code>doReduce() in common_reduce.go</code>。</p>
+<p>思路：<br>1、doMap函数负责一个map task，这里对应读入一个文件内容。然后，调用map function将文件内容处理为KeyValue数组，遍历每一个KeyValue，对Key进行哈希，并输出到对应的reduce中间文件。doMap产生nReduce个中间文件。<br>2、doReduce函数负责处理所有map task产生的第r个reduce中间文件。读取每一个中间文件，将KeyValue映射到结果集中，相同key的value存于同一个数组中。接着，<strong>对key进行排序</strong>。最后，针对结果集的每一项key-&gt;values[]，调用reduce function将values[]连接为字符串new value，并将key-&gt;new value写入到reduce task的目标文件中，该文件按key字段排序。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">func doMap(</span><br><span class="line">	jobName string, // the name of the MapReduce job</span><br><span class="line">	mapTaskNumber int, // which map task this is</span><br><span class="line">	inFile string,</span><br><span class="line">	nReduce int, // the number of reduce task that will be run (&quot;R&quot; in the paper)</span><br><span class="line">	mapF func(file string, contents string) []KeyValue,</span><br><span class="line">) &#123; </span><br><span class="line">	//now we create file</span><br><span class="line">	files := make([]*os.File,nReduce)</span><br><span class="line">	encs := make([]*json.Encoder,nReduce)	</span><br><span class="line">	var err error</span><br><span class="line">	for i:=0;i&lt;nReduce;i++&#123;</span><br><span class="line">		files[i], err = os.Create((reduceName(jobName,mapTaskNumber,i)))</span><br><span class="line">		defer files[i].Close()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			panic(err.Error())</span><br><span class="line">		&#125;</span><br><span class="line">		encs[i] = json.NewEncoder(files[i])</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	//now we read file</span><br><span class="line">	data, err := ioutil.ReadFile(inFile)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		panic(err.Error());</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	//now we write file</span><br><span class="line">	kvs := mapF(inFile,string(data))</span><br><span class="line">	for _,kv:=range kvs&#123;</span><br><span class="line">		err = encs[ihash(kv.Key)%nReduce].Encode(&amp;kv)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">func doReduce(</span><br><span class="line">	jobName string, // the name of the whole MapReduce job</span><br><span class="line">	reduceTaskNumber int, // which reduce task this is</span><br><span class="line">	outFile string, // write the output here</span><br><span class="line">	nMap int, // the number of map tasks that were run (&quot;M&quot; in the paper)</span><br><span class="line">	reduceF func(key string, values []string) string,</span><br><span class="line">) &#123; </span><br><span class="line">	//now we create file</span><br><span class="line">	outF,err := os.Create(outFile)	</span><br><span class="line">	defer outF.Close()</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		panic(err.Error())</span><br><span class="line">	&#125;</span><br><span class="line">	enc := json.NewEncoder(outF)</span><br><span class="line"></span><br><span class="line">	//now we read file</span><br><span class="line">	kvMap := make(map[string][]string)</span><br><span class="line">	for i:=0;i&lt;nMap;i++&#123;</span><br><span class="line">		file, err := os.Open((reduceName(jobName,i,reduceTaskNumber)))</span><br><span class="line">		defer file.Close()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			panic(err.Error())</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		dec := json.NewDecoder(file)		</span><br><span class="line">		//now we read file</span><br><span class="line">		var kv KeyValue</span><br><span class="line">		for&#123;</span><br><span class="line">			err = dec.Decode(&amp;kv)</span><br><span class="line">			if err != nil &#123;</span><br><span class="line">				break;// done with this file</span><br><span class="line">			&#125;</span><br><span class="line">			kvMap[kv.Key] = append(kvMap[kv.Key],kv.Value)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	//now we sort the immediate result</span><br><span class="line">	var keys []string </span><br><span class="line">	for k,_:=range kvMap&#123;</span><br><span class="line">		keys = append(keys,k)</span><br><span class="line">	&#125;</span><br><span class="line">	sort.Strings(keys)</span><br><span class="line"></span><br><span class="line">	//now we write file</span><br><span class="line">	for _,key:=range keys&#123;</span><br><span class="line">		enc.Encode(KeyValue&#123;key, reduceF(jobName,kvMap[key])&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ export &quot;GOPATH=$PWD&quot; </span><br><span class="line">$ cd &quot;$GOPATH/src/mapreduce&quot;</span><br><span class="line">$ go test -run Sequential</span><br><span class="line">ok  	mapreduce	2.694s</span><br></pre></td></tr></table></figure></p>
+<p>输出调试结果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">common.go加入debugEnabled = true</span><br><span class="line">使用$ go test -v -run Sequential</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/1.PNG" title="运行结果"> 
+<h2 id="Part-II-Single-worker-word-count"><a href="#Part-II-Single-worker-word-count" class="headerlink" title="Part II: Single-worker word count"></a>Part II: Single-worker word count</h2><p>任务：<br>完成单词计数功能，为main/wc.go提供map function和reduce function。map function主要根据输入的文件内容对单词进行提取和计数，reduce function则是对相同key的value次数进行统计。</p>
+<p>思路：<br>1、单词的提取使用strings.FieldsFunc函数，单词的定义是连续的letter字符串，提取如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ss := strings.FieldsFunc(value, func(c rune) bool &#123;</span><br><span class="line">		return !unicode.IsLetter(c)</span><br><span class="line">	&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>2、注意，如果参数输入为<code>go run wc.go master sequential pg-*.txt</code>，golang接收为<code>os.Args[3:]</code>，可以自动识别匹配的文件个数。  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">func mapF(filename string, contents string) []mapreduce.KeyValue &#123;</span><br><span class="line">	// TODO: you have to write this function</span><br><span class="line">	kvs := make([]mapreduce.KeyValue,0)</span><br><span class="line">	values := strings.FieldsFunc(contents,func(c rune)bool&#123;</span><br><span class="line">		return !unicode.IsLetter(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	for _,v:=range values&#123;</span><br><span class="line">		kvs = append(kvs,mapreduce.KeyValue&#123;Key:v,Value:&quot;1&quot;&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	return kvs</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func reduceF(key string, values []string) string &#123;</span><br><span class="line">	// TODO: you also have to write this function</span><br><span class="line">	return strconv.Itoa(len(values))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/main&quot;</span><br><span class="line">$ time go run wc.go master sequential pg-*.txt</span><br><span class="line">$ sort -n -k2 mrtmp.wcseq | tail -10</span><br><span class="line">$ rm mrtmp.*</span><br></pre></td></tr></table></figure></p>
+<p>或<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ bash ./test-wc.sh</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/2.PNG" title="测试结果"> 
+<h2 id="Part-III-Distributing-MapReduce-tasks"><a href="#Part-III-Distributing-MapReduce-tasks" class="headerlink" title="Part III: Distributing MapReduce tasks"></a>Part III: Distributing MapReduce tasks</h2><p>mapreduce的一大卖点正是它可以将顺序模式代码并行化，而且开发者无需做任何改变。此部分内容将使用RPC来模拟分布式计算（没能够真正地在多台机器上机器上进行Map/Reduce部署）。</p>
+<p>master设计思路：<br>1、暴露mapreduce.Distributed接口。根据参数构造master数据结构，包括rpc地址、done channel、互斥锁、条件变量、文件名数组、net.Listener、rpc shutdown channel等。<br>2、启动rpc服务。先创建rpc服务，然后注册master结构。接着，master使用net.Listen进行监听，并使用net.Listener.Accept()接收连接，最后使用Server.ServeConn(conn)处理连接。当worker调用master暴露的rpc接口时将产生连接请求。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rpcs := rpc.NewServer()</span><br><span class="line">rpcs.Register(mr)</span><br><span class="line"></span><br><span class="line">conn, err := mr.l.Accept()</span><br><span class="line">rpcs.ServeConn(conn)</span><br></pre></td></tr></table></figure></p>
+<p>其中 Server.Register 用于注册RPC服务，默认的名字是对象的类型名字(这里是Echo)。如果需要指定特殊的名字，可以用 Server.RegisterName 进行注册。被注册对象的类型所有满足以下规则的方法会被导出到RPC服务接口：<br><code>func (t *T) MethodName(argType T1, replyType *T2) error</code>。被注册对应至少要有一个方法满足这个特征，否则可能会注册失败。<br>master导出的服务接口包括<code>func (mr *Master) Register(args *RegisterArgs, _ *struct{}) error</code>（用于worker注册）、<code>func (mr *Master) Shutdown(_, _ *struct{}) error</code>（用于停止自身rpc服务）。<br>3、调用schedule启动map阶段。在此之前，使用string channel等待worker的注册（sync.Cond.Wait()），一旦注册了worker（sync.Cond.Broadcast()），将其rpc地址写入到string channel中。schedule函数参数包括该string channel，意味着只会使用已注册的worker。当然，如果在启动rpc服务之后、调用schedule之前已经有worker注册了，master将会依次将已注册的worker的rpc地址写入到string channel中，而schedule函数将从该channel中读取。<br>需要注意的是条件变量的用法，不同于pthread条件变量的初始化（条件变量和搭配使用的互斥锁），golang的初始化只使用了一个参数，<strong>sync.NewCond(master)用于初始化master的cond，参数是master结构体，master结构体需包含一个互斥锁和一个条件变量</strong>。<br>map阶段将根据输入文件数目确定map task数，然后分配给worker。每个worker负责一个或多个map task，将对应的文件内容哈希到nReduce个文件中。<br>4、调用schedule启动reduce阶段。该阶段继续使用map阶段的worker和新注册的worker。<br>reduce阶段将根据nReduce确定reduce task数，然后分配给worker。每个worker读取负责map的worker所保存的第r个文件，将其按照key有序规律输出到统计文件中。<br>5、关闭与workers的连接，关闭rpc服务。<br>6、启动merge阶段。按照key有序规律将nReduce个统计文件输出到最终文件中。<br>7、结束计算。</p>
+<p>worker设计思路：<br>1、暴露mapreduce.RunWorker接口。根据参数构造worker数据结构，包括map function、reduce function、可被rpc调用的次数、rpc地址等。<br>2、worker向master注册。<br>3、启动rpc服务。先创建rpc服务，然后注册worker结构。接着，worker使用net.Listen进行监听，并使用net.Listener.Accept()接收连接，最后使用Server.ServeConn(conn)处理连接。当master调用worker暴露的rpc接口时将产生连接请求。RunWorker的最后一个参数表示该worker可被调用的rpc次数，一旦超过次数，worker将关闭监听。<br>worker暴露的rpc接口有<code>func (wk *Worker) DoTask(arg *DoTaskArgs, _ *struct{}) error</code>（用于master分配工作）、<code>func (wk *Worker) Shutdown(_ *struct{}, res *ShutdownReply) error</code>（用于工作完成时被master调用）。<br>4、worker结构体需包含一个互斥锁。<br>5、master可以分配一个或多个task给一个work，但必须等待上一个task完成才能分配下一个task。  </p>
+<p>schedule设计思路：<br>1、计算任务数。<br>2、对每一个任务创建一个goroutine。在每一个goroutine中，通过registerChan阻塞等待可用worker，master将会依次将已注册的worker的rpc地址写入到该channel中，完成任务之后对应的worker也会尝试写入到该channel中。channel的设计满足了“必须等待上一个task完成才能分配下一个task”的需求。<br>3、使用sync.WaitGroup进行任务同步。master必须等待所有worker完成map阶段之后才进行reduce阶段。<br>4、对registerChan的写入必须使用goroutine完成，否则map阶段当最后一个worker完成任务时，将会阻塞写入registerChan，而此时没有对registerChan进行读出，map阶段将无法正常完成。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, registerChan chan string) &#123;</span><br><span class="line">	var ntasks int</span><br><span class="line">	var n_other int // number of inputs (for reduce) or outputs (for map)</span><br><span class="line">	switch phase &#123;</span><br><span class="line">	case mapPhase:</span><br><span class="line">		ntasks = len(mapFiles)</span><br><span class="line">		n_other = nReduce</span><br><span class="line">	case reducePhase:</span><br><span class="line">		ntasks = nReduce</span><br><span class="line">		n_other = len(mapFiles)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fmt.Printf(&quot;Schedule: %v %v tasks (%d I/Os)\n&quot;, ntasks, phase, n_other)</span><br><span class="line"> </span><br><span class="line">	var wg sync.WaitGroup</span><br><span class="line">	for task:=0;task&lt;ntasks;task++&#123;</span><br><span class="line">		wg.Add(1)</span><br><span class="line">		</span><br><span class="line">		go func(taskNum int)&#123;</span><br><span class="line">			//wait until we have available worker</span><br><span class="line">			worker := &lt;- registerChan 		</span><br><span class="line"></span><br><span class="line">			var arg DoTaskArgs</span><br><span class="line">			arg.JobName = jobName</span><br><span class="line">			arg.Phase = phase</span><br><span class="line">			arg.File = mapFiles[taskNum]</span><br><span class="line">			arg.TaskNumber = taskNum</span><br><span class="line">			arg.NumOtherPhase = n_other</span><br><span class="line">			ok := call(worker, &quot;Worker.DoTask&quot;, &amp;arg, nil)</span><br><span class="line">			if ok == false &#123;</span><br><span class="line">				fmt.Printf(&quot;Cleanup: RPC %s error\n&quot;, worker)</span><br><span class="line">			&#125;</span><br><span class="line">			//remember to use goruntine to write data into registerChan</span><br><span class="line">			//because last time we write data into it, it will block until someone read it</span><br><span class="line">			//however, no one read from it, so the last wg.Done() will not been executed</span><br><span class="line">			//and map-phase never finish</span><br><span class="line">			go func()&#123;</span><br><span class="line">				//again, worker is free</span><br><span class="line">				registerChan &lt;- worker</span><br><span class="line">			&#125;()</span><br><span class="line">			wg.Done()</span><br><span class="line">		&#125;(task)</span><br><span class="line">	&#125;</span><br><span class="line">	wg.Wait()</span><br><span class="line"></span><br><span class="line">	fmt.Printf(&quot;Schedule: %v phase done\n&quot;, phase)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/mapreduce&quot;</span><br><span class="line">$ go test -run TestBasic</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/3.PNG" title="测试结果"> 
+<h2 id="Part-IV-Handling-worker-failures"><a href="#Part-IV-Handling-worker-failures" class="headerlink" title="Part IV: Handling worker failures"></a>Part IV: Handling worker failures</h2><p>本部分是需要处理worker出错的现象。MapReduce的worker没有持久状态，一旦worker出错，master发给该worker的rpc包将失败，因此，一旦发现这种现象，master需要将分配给该worker的任务重新分配给其他worker。<br>RPC失败不一定表示worker不在执行任务，有可能worker已经执行完任务了但是回复丢失了，或者worker正在执行任务但是master的RPC超时。因此，两个worker可能接收相同的task，并进行计算和生成输出。对一个给定的输入，对map和reduce function的两次调用将生成相同的输出，因此不会出现不一致性，后续程序不会读取到不同的输出。另外，MapReduce框架确保map和reduce function的输出是原子的：要么没有，要么是map和reduce function一次调用的完全输出（本实验没有实现这个功能，而是简单地停止worker，所以不会出现任务的并发执行问题）。<br>思路：<br>1、worker的fail实现是通过设置可被调用的rpc次数来实现的。<br>2、一旦worker关闭监听，master调用call将失败，尝试选取其他worker。因此，对于每一个任务的goroutine，借助for无限循环模拟worker失败并重新选取worker执行任务的操作，一旦调用成功则跳出循环。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, registerChan chan string) &#123;</span><br><span class="line">	var ntasks int</span><br><span class="line">	var n_other int // number of inputs (for reduce) or outputs (for map)</span><br><span class="line">	switch phase &#123;</span><br><span class="line">	case mapPhase:</span><br><span class="line">		ntasks = len(mapFiles)</span><br><span class="line">		n_other = nReduce</span><br><span class="line">	case reducePhase:</span><br><span class="line">		ntasks = nReduce</span><br><span class="line">		n_other = len(mapFiles)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fmt.Printf(&quot;Schedule: %v %v tasks (%d I/Os)\n&quot;, ntasks, phase, n_other)</span><br><span class="line"> </span><br><span class="line">	var wg sync.WaitGroup</span><br><span class="line">	for task:=0;task&lt;ntasks;task++&#123;</span><br><span class="line">		wg.Add(1)</span><br><span class="line">		</span><br><span class="line">		go func(taskNum int)&#123;</span><br><span class="line">			for&#123; //we use this, cause worker may fail</span><br><span class="line">				//wait until we have available worker</span><br><span class="line">				worker := &lt;- registerChan 		</span><br><span class="line"></span><br><span class="line">				var arg DoTaskArgs</span><br><span class="line">				arg.JobName = jobName</span><br><span class="line">				arg.Phase = phase</span><br><span class="line">				arg.File = mapFiles[taskNum]</span><br><span class="line">				arg.TaskNumber = taskNum</span><br><span class="line">				arg.NumOtherPhase = n_other</span><br><span class="line">				ok := call(worker, &quot;Worker.DoTask&quot;, &amp;arg, nil)</span><br><span class="line">				if ok == false &#123;</span><br><span class="line">					fmt.Printf(&quot;Cleanup: RPC %s error\n&quot;, worker)</span><br><span class="line">				&#125;else&#123;</span><br><span class="line">					//remember to use goruntine to write data into registerChan</span><br><span class="line">					//because last time we write data into it, it will block until someone read it</span><br><span class="line">					//however, no one read from it, so the last wg.Done() will not been executed</span><br><span class="line">					//and map-phase never finish</span><br><span class="line">					go func()&#123;</span><br><span class="line">						//again, worker is free</span><br><span class="line">						registerChan &lt;- worker</span><br><span class="line">					&#125;()</span><br><span class="line">					wg.Done()</span><br><span class="line">					break</span><br><span class="line">				&#125;</span><br><span class="line">			&#125; </span><br><span class="line">		&#125;(task)</span><br><span class="line">	&#125;</span><br><span class="line">	wg.Wait()</span><br><span class="line"></span><br><span class="line">	fmt.Printf(&quot;Schedule: %v phase done\n&quot;, phase)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/mapreduce&quot;</span><br><span class="line">$ go test -run Failure</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/4.PNG" title="测试结果">  
+<h2 id="Part-V-Inverted-index-generation"><a href="#Part-V-Inverted-index-generation" class="headerlink" title="Part V: Inverted index generation"></a>Part V: Inverted index generation</h2><p>本部分将借助map和reduce function来生成反向索引。反向索引广泛应用于文档搜索。一般来讲，反向索引是底层数据到其原始位置的一个映射，比如文档搜索的反向索引是由关键字映射到包含这些关键字的文档。<br>修改main/ii.go的mapF和reduceF以生成反向索引。</p>
+<p>思路：<br>mapF函数：使用strings.FieldsFunc获取文本的所有单词，然后为每个单词创建“单词:文件名”键值对，返回所有键值对。<br>reduceF函数：对同一个单词的所有文件名进行归纳，剔除重复的文件名，然后对文件名进行排序，按照“次数 文件名1，文件名2”的格式返回。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func mapF(document string, value string) (res []mapreduce.KeyValue) &#123;</span><br><span class="line">	// TODO: you should complete this to do the inverted index challenge</span><br><span class="line">	kvs := make([]mapreduce.KeyValue,0)</span><br><span class="line">	values := strings.FieldsFunc(value,func(c rune)bool&#123;</span><br><span class="line">		return !unicode.IsLetter(c)</span><br><span class="line">	&#125;)</span><br><span class="line">	for _,v:=range values&#123;</span><br><span class="line">		kvs = append(kvs,mapreduce.KeyValue&#123;Key:v,Value:document&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	return kvs</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func reduceF(key string, values []string) string &#123;</span><br><span class="line">	// TODO: you should complete this to do the inverted index challenge</span><br><span class="line">	m := make(map[string]string,0)</span><br><span class="line">	for _,v:=range values&#123;</span><br><span class="line">		m[v] = &quot;&quot;</span><br><span class="line">	&#125;</span><br><span class="line">	var keys []string</span><br><span class="line">	for k := range m &#123;</span><br><span class="line">		keys = append(keys, k)</span><br><span class="line">	&#125;</span><br><span class="line">	sort.Strings(keys)</span><br><span class="line">	return strconv.Itoa(len(keys)) + &quot; &quot; + strings.Join(keys,&quot;,&quot;) </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/main&quot;</span><br><span class="line">$ go run ii.go master sequential pg-*.txt</span><br><span class="line">$ head -n5 mrtmp.iiseq</span><br></pre></td></tr></table></figure></p>
+<p>或<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ bash ./test-ii.sh</span><br><span class="line">$ head -n5 mrtmp.iiseq</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/5.PNG" title="测试结果"> 
+<h2 id="最终测试结果"><a href="#最终测试结果" class="headerlink" title="最终测试结果"></a>最终测试结果</h2><p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/main&quot;</span><br><span class="line">$ bash ./test-mr.sh</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/16/笔记01-Lab-1-MapReduce/6.PNG" title="测试结果"> 
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/16/笔记02-Lab-2-Raft/" rel="prev" title="笔记02 - Lab 2: Raft">
+                笔记02 - Lab 2: Raft <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#综述"><span class="nav-number">1.</span> <span class="nav-text">综述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验内容"><span class="nav-number">2.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#准备"><span class="nav-number">2.1.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Preamble-Getting-familiar-with-the-source"><span class="nav-number">2.2.</span> <span class="nav-text">Preamble: Getting familiar with the source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-I-Map-Reduce-input-and-output"><span class="nav-number">2.3.</span> <span class="nav-text">Part I: Map/Reduce input and output</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-II-Single-worker-word-count"><span class="nav-number">2.4.</span> <span class="nav-text">Part II: Single-worker word count</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-III-Distributing-MapReduce-tasks"><span class="nav-number">2.5.</span> <span class="nav-text">Part III: Distributing MapReduce tasks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-IV-Handling-worker-failures"><span class="nav-number">2.6.</span> <span class="nav-text">Part IV: Handling worker failures</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-V-Inverted-index-generation"><span class="nav-number">2.7.</span> <span class="nav-text">Part V: Inverted index generation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最终测试结果"><span class="nav-number">2.8.</span> <span class="nav-text">最终测试结果</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

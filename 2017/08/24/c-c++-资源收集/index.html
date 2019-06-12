@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="编程语言,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="参考手册ClassFoo / C++ 参考手册 基本概念陈皓 - 深入理解C语言陈皓 - 64位平台C/C++开发注意事项C和C++中struct使用的区别new 和 malloc 的区别补：运算符/库函数、初始化、构造/析构函数、自动计算大小、返回指定类型指针。C 中 static 的常见作用sizeof与strlen的区别与联系const static与static const的使用const">
+<meta name="keywords" content="编程语言">
+<meta property="og:type" content="article">
+<meta property="og:title" content="c&#x2F;c++资源收集">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/24/c-c++-资源收集/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="参考手册ClassFoo / C++ 参考手册 基本概念陈皓 - 深入理解C语言陈皓 - 64位平台C/C++开发注意事项C和C++中struct使用的区别new 和 malloc 的区别补：运算符/库函数、初始化、构造/析构函数、自动计算大小、返回指定类型指针。C 中 static 的常见作用sizeof与strlen的区别与联系const static与static const的使用const">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.048Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="c&#x2F;c++资源收集">
+<meta name="twitter:description" content="参考手册ClassFoo / C++ 参考手册 基本概念陈皓 - 深入理解C语言陈皓 - 64位平台C/C++开发注意事项C和C++中struct使用的区别new 和 malloc 的区别补：运算符/库函数、初始化、构造/析构函数、自动计算大小、返回指定类型指针。C 中 static 的常见作用sizeof与strlen的区别与联系const static与static const的使用const">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/24/c-c++-资源收集/">
+
+
+
+
+
+  <title>c/c++资源收集 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/24/c-c++-资源收集/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">c/c++资源收集</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-24T22:35:01+08:00">
+                2017-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/资料收集/" itemprop="url" rel="index">
+                    <span itemprop="name">资料收集</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="参考手册"><a href="#参考手册" class="headerlink" title="参考手册"></a>参考手册</h1><p><a href="http://classfoo.com/ccby/manual/xBvbb" target="_blank" rel="noopener">ClassFoo / C++ 参考手册</a></p>
+<h1 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h1><p><a href="http://coolshell.cn/articles/5761.html" target="_blank" rel="noopener">陈皓 - 深入理解C语言</a><br><a href="http://coolshell.cn/articles/3512.html" target="_blank" rel="noopener">陈皓 - 64位平台C/C++开发注意事项</a><br><a href="http://blog.csdn.net/csdnwei/article/details/50697868" target="_blank" rel="noopener">C和C++中struct使用的区别</a><br><a href="http://blog.jobbole.com/109234/" target="_blank" rel="noopener">new 和 malloc 的区别</a><br>补：<br>运算符/库函数、初始化、构造/析构函数、自动计算大小、返回指定类型指针。<br><a href="http://blog.jobbole.com/109450/" target="_blank" rel="noopener">C 中 static 的常见作用</a><br><a href="http://www.cnblogs.com/carekee/articles/1630789.html" target="_blank" rel="noopener">sizeof与strlen的区别与联系</a><br><a href="http://blog.csdn.net/weishan521520/article/details/5897109" target="_blank" rel="noopener">const static与static const的使用</a><br><a href="http://blog.csdn.net/love_gaohz/article/details/7567856" target="_blank" rel="noopener">const常量与define宏定义的区别</a><br><a href="http://blog.csdn.net/u010276189/article/details/50947677" target="_blank" rel="noopener">const的实现原理</a><br>补：<br>在C里，const常量总是会分配内存，位于只读数据段。<br>在C++中，对于基本类型的常量，编译器并不为其分配存储空间，而是放到符号表，在编译器里进行语法分析的时候，将常量表达式计算求值，并用求得的值来替换表达式，这就是C++的常量折叠。而一旦对const常量使用extern外部引用，或者&amp;解地址等操作时，就会迫使C++编译器给这个const变量分配内存，编译器会重新在内存中创建一个它的拷贝，通过地址访问到的就是这个拷贝而非原始的符号常量；否则就是一个编译时的符号，不占用内存。<br><a href="http://www.cnblogs.com/yc_sunniwell/archive/2010/06/24/1764231.html" target="_blank" rel="noopener">详解C中volatile关键字</a>  </p>
+<h1 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h1><p><a href="http://www.cnblogs.com/fly1988happy/archive/2012/04/16/2452021.html" target="_blank" rel="noopener">NULL指针、零指针、野指针</a><br><a href="https://www.nowcoder.com/questionTerminal/c753ca042ec24145b782b20f8d0aff19" target="_blank" rel="noopener">std::auto_ptr智能指针</a><br><a href="http://blog.csdn.net/xt_xiaotian/article/details/5714477" target="_blank" rel="noopener">C++ 智能指针详解</a><br><a href="https://www.nowcoder.com/questionTerminal/242d747044bd417e95fe37d69884dff8" target="_blank" rel="noopener">函数指针 + 数组指针</a><br><a href="https://www.nowcoder.com/questionTerminal/2fd94d94ccca407dbc82e705c1f1ecbc" target="_blank" rel="noopener">多维指针</a></p>
+<h1 id="内存布局"><a href="#内存布局" class="headerlink" title="内存布局"></a>内存布局</h1><p><a href="https://www.ibm.com/developerworks/cn/linux/l-memory/" target="_blank" rel="noopener">内存管理内幕</a><br>补：<br>几个基本的内存管理策略：malloc、引用计数、内存池、垃圾回收。<br><a href="http://paper.seebug.org/papers/Archive/refs/heap/glibc%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86ptmalloc%E6%BA%90%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90.pdf" target="_blank" rel="noopener">Glibc 内存管理</a><br>补：<br>关注要点：1、chunk组织方式；2、空闲chunk容器种类；3、内存分配步骤；4、内存回收步骤；5、mmap分配阈值动态调整时机；6、fast bins合并时机 ；7、避免glibc内存暴增方法。<br>长生命周期的大内存应使用mmap分配，如果使用sbrk分配，该内存块长期被占用会导致后续短生命周期内存释放后无法归还给操作系统。但是mmap效率低，mmap分配阈值动态调整正是为了使大于128K的短生命周期大内存尽量不会使用mmap分配。<br><a href="http://chenqx.github.io/2014/09/25/Cpp-Memory-Management/" target="_blank" rel="noopener">C/C++内存管理详解</a><br>补：<br>堆和栈的区别：管理方式、空间大小、是否造成内存碎片、分配方式、分配效率、生长方式。<br>野指针的成因：初始化时没有设为NULL或指向合法的内存区、释放时没有设为NULL、操作时超出了变量作用域。<br><a href="http://blog.jobbole.com/109429/" target="_blank" rel="noopener">C/C++ 结构体字节对齐详解</a><br><a href="https://www.nowcoder.com/questionTerminal/ab34afe9546a41d7a7c62abe42b04bef" target="_blank" rel="noopener">题 - c++ 类的内存布局</a><br><a href="http://coolshell.cn/articles/12165.html" target="_blank" rel="noopener">陈皓 - C++ 虚函数表解析</a><br><a href="http://coolshell.cn/articles/12176.html" target="_blank" rel="noopener">陈皓 - C++ 对象的内存布局</a><br>补：<br>1、多重虚拟继承时，子类独有的虚函数会放到第一个父类的虚函数表；g++实验证明，子类重写的其他父类的虚函数会放到第一个父类的虚函数表，但子类重写的第一个父类的虚函数不会放到其他父类的虚函数表（vc++标准可能不一样）。<br>2、多重继承且父类都虚拟继承同一个爷爷类时，构建顺序是【爷爷类-&gt;父类1-&gt;父类2-&gt;子类】，实例顺序是【父类1-&gt;父类2-&gt;子类-&gt;爷爷类】。<br>3、虚拟继承与虚函数之间没有任何绝对联系。虚函数是为了解决多态的问题，虚拟继承是为了解决重复继承中多个间接父类的问题。<br>4、g++实验证明，多重继承且父类都虚拟继承同一个爷爷类时，如果没有涉及虚函数，父类都有对应的虚拟表（父类实例的第一个位置存储表的地址），存储的是虚继承的内容，爷爷类没有对应的虚拟表；如果子类、父类、爷爷类都定义了对应的虚拟函数，则子类实例中父类和爷爷类都会有对应的虚拟表（虚拟表将优先存储虚拟函数内容，再存储虚继承的内容，但并不是每个虚拟表都这样，每个虚拟表如何处理虚继承的内容目前还不清晰），但“子类本身”没有虚拟表（子类独有的虚函数会放到第一个父类的虚拟表）。<br><a href="http://www.oschina.net/translate/cpp-virtual-inheritance" target="_blank" rel="noopener">多重继承和虚继承的内存布局</a><br><a href="https://www.nowcoder.com/questionTerminal/542e2dce5e6e4fd091c54240a2f5cd53" target="_blank" rel="noopener">父类virtual虚构函数（其他成员函数同）</a><br>补：<br>多继承的情况下，首先按照继承顺序调用类的构造函数，再调用子类的构造函数。<br>delete某个基类指针时,只看指针的声明类型的类中是否将析构函数声明为虚函数，如果是则成功按照调用构造函数的相反顺序调用析构函数（跟该类被继承的顺序没关系，且其他被继承类有无设置虚析构函数也没关系），如果不是则只调用该基类的析构函数。<br>delete基类指针时，始终按照调用构造函数的相反顺序调用析构函数。</p>
+<h1 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h1><p><a href="http://blog.csdn.net/yby4769250/article/details/7294696" target="_blank" rel="noopener">C/C++中的0长数组（柔性数组）</a><br><a href="http://coolshell.cn/articles/11377.html" target="_blank" rel="noopener">陈皓 - C语言结构体里的成员数组和指针</a><br>补：<br>使用0长数组而不是指针，是为了一次malloc就给一个结构体内的数据分配一个连续的内存，一次free就可以把所有的内存也给释放掉。<br>对于char s[0]来说，汇编代码用了lea指令，<code>lea   0x04(%rax),   %rdx</code>。<br>对于char*s来说，汇编代码用了mov指令，<code>mov 0x04(%rax),   %rdx</code>。<br>lea全称load effective address，是把地址放进去，而mov则是把地址里的内容放进去。访问成员数组名其实得到的是数组的相对地址，而访问成员指针其实是相对地址里的内容。</p>
+<h1 id="c"><a href="#c" class="headerlink" title="c++"></a>c++</h1><p><a href="http://baiy.cn/doc/cpp/inside_exception.htm" target="_blank" rel="noopener">C++异常机制的实现方式和开销分析</a><br><a href="https://www.nowcoder.com/questionTerminal/cf1a3145d1b946c1861c9d10b8629665" target="_blank" rel="noopener">区分 浅/深拷贝操作 和 赋值操作</a><br><a href="https://www.nowcoder.com/questionTerminal/da5c9884bc824b72a345c8fdfb53b79b" target="_blank" rel="noopener">通过初始化列表来初始化的成员变量(引用，const和没有默认构造函数的成员对象)</a><br>补：<br>const、引用、无默认构造函数的成员变量（调用拷贝构造函数初始化）<br><a href="http://blog.csdn.net/jenghau/article/details/4752735" target="_blank" rel="noopener">c++类中成员变量的初始化总结</a><br><a href="http://blog.csdn.net/kongying168/article/details/3864756" target="_blank" rel="noopener">c++中临时变量不能作为非const的引用参数</a><br><a href="http://blog.csdn.net/chlele0105/article/details/22413157" target="_blank" rel="noopener">C++公有继承、保护继承、私有继承的区别</a><br><a href="http://blog.csdn.net/insistgogo/article/details/6608672" target="_blank" rel="noopener">友元函数</a><br><a href="http://www.cnblogs.com/weizhixiang/articles/5760286.html" target="_blank" rel="noopener">C++继承中重载、重写、重定义的区别</a><br>补：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1 成员函数重载特征（c++类不能同时存在函数名和参数一样的静态函数和非静态函数）：</span><br><span class="line">   a 相同的范围（在同一个类中） </span><br><span class="line">   b 函数名字相同</span><br><span class="line">   c 参数不同 </span><br><span class="line">2 重写（覆盖)是指派生类函数覆盖基类函数，特征是：</span><br><span class="line">   a 不同的范围，分别位于基类和派生类中</span><br><span class="line">   b 函数的名字相同</span><br><span class="line">   c 参数相同</span><br><span class="line">   d 基类函数必须有virtual关键字</span><br><span class="line">3 重定义(隐藏)是指派生类的函数屏蔽了与其同名的基类函数，规则如下：</span><br><span class="line">   a 如果派生类的函数和基类的函数同名，但是参数不同，但是基类函数没有vitual关键字，此时，基类的函数被隐藏。</span><br><span class="line">   b 如果派生类的函数和基类的函数同名，但是参数不同，基类函数有vitual关键字，此时，基类的函数被隐藏。</span><br><span class="line">   c 如果派生类的函数与基类的函数同名，并且参数也相同，但是基类函数没有vitual关键字，此时，基类的函数被隐藏。  </span><br><span class="line">   d 可以在子类成员函数中通过[父类::]的方式调用被隐藏的函数，但是无法通过子类类型的子类实例调用到父类被隐藏的方法。</span><br></pre></td></tr></table></figure></p>
+<h1 id="c-11"><a href="#c-11" class="headerlink" title="c++11"></a>c++11</h1><p><a href="http://www.cnblogs.com/haippy/archive/2013/05/31/3111560.html" target="_blank" rel="noopener">lambda 表达式解析</a><br><a href="http://blog.csdn.net/hzyong_c/article/details/8273884" target="_blank" rel="noopener">C++11新特性学习笔记</a><br><a href="http://www.cnblogs.com/TianFang/archive/2013/01/26/2878356.html" target="_blank" rel="noopener">C++11中的右值引用</a>  </p>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="http://blog.csdn.net/destina/article/details/6198443" target="_blank" rel="noopener">Valgrind使用简介</a></p>
+<h1 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h1><p><a href="http://blog.jobbole.com/108838/" target="_blank" rel="noopener">C 语言预处理命令总结大全</a></p>
+<h1 id="函数区别"><a href="#函数区别" class="headerlink" title="函数区别"></a>函数区别</h1><p><a href="http://blog.jobbole.com/108842/" target="_blank" rel="noopener">memmove 和 memcpy 的区别</a><br>补：<br>经实验，当dst在src后面且dst在src范围内时：<br>memmove和memcpy都能够正确复制，类似于实现时先复制到临时数组中；<br>strcpy无法确保正确复制，而且strcpy复制的个数算上了结束符（猜想strcpy的实现是先计算复制个数，算上结束符，但是没有先复制出数据）；<br>memccpy也无法确保正确复制，在复制过程中会覆盖原有内容，如果一直没有遇到匹配字符，将复制原先整个src的长度；如果遇到匹配字符，结束复制，匹配字符会被复制（猜想memccpy的实现是先计算复制个数，不算上结束符）。<br>strcat会直接走到dst末尾，然后连接上原先整个src的长度的数据（猜想strcat的实现是先计算复制个数，不算上结束符）。<br><a href="http://blog.chinaunix.net/uid-790245-id-2037312.html" target="_blank" rel="noopener">标准C中字符串分割方法</a><br><a href="http://www.cnblogs.com/xmxu/archive/2012/08/20/2647382.html" target="_blank" rel="noopener">strcpy和strncpy用法和区别</a>  </p>
+<h1 id="STL"><a href="#STL" class="headerlink" title="STL"></a>STL</h1><p><a href="http://blog.csdn.net/zdl1016/article/details/4161427" target="_blank" rel="noopener">STL的线程安全解决方案</a>  </p>
+<h1 id="混合编程"><a href="#混合编程" class="headerlink" title="混合编程"></a>混合编程</h1><p><a href="http://www.cnblogs.com/this-543273659/archive/2011/08/19/2146022.html" target="_blank" rel="noopener">C和C++混合编程</a>  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/编程语言/" rel="tag"># 编程语言</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/24/K-R-Chapter-5-Pointers-and-Arrays/" rel="next" title="K&R Chapter 5. Pointers and Arrays">
+                <i class="fa fa-chevron-left"></i> K&R Chapter 5. Pointers and Arrays
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/24/算法与数据结构资源收集/" rel="prev" title="算法与数据结构资源收集">
+                算法与数据结构资源收集 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#参考手册"><span class="nav-number">1.</span> <span class="nav-text">参考手册</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本概念"><span class="nav-number">2.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#指针"><span class="nav-number">3.</span> <span class="nav-text">指针</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存布局"><span class="nav-number">4.</span> <span class="nav-text">内存布局</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数组"><span class="nav-number">5.</span> <span class="nav-text">数组</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c"><span class="nav-number">6.</span> <span class="nav-text">c++</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#c-11"><span class="nav-number">7.</span> <span class="nav-text">c++11</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#优化"><span class="nav-number">8.</span> <span class="nav-text">优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#预处理"><span class="nav-number">9.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数区别"><span class="nav-number">10.</span> <span class="nav-text">函数区别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#STL"><span class="nav-number">11.</span> <span class="nav-text">STL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#混合编程"><span class="nav-number">12.</span> <span class="nav-text">混合编程</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

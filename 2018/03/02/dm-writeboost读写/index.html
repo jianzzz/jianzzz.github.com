@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="缓存,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="题外话近期抽空了解了一下ceph客户端缓存的问题，以期获取断电容灾的解决方案。ceph使用rbd的方式如下(参考ceph的jewel新支持的rbd-nbd)：再结合ceph用户邮件相关讨论，如Local ssd cache for ceph on each compute node和Ceph and EnhanceIO cache，可知可以从三个维度了解：1、krbd2、librbd3、缓存插件">
+<meta name="keywords" content="缓存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dm-writeboost读写">
+<meta property="og:url" content="http://www.jianzzz.com/2018/03/02/dm-writeboost读写/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="题外话近期抽空了解了一下ceph客户端缓存的问题，以期获取断电容灾的解决方案。ceph使用rbd的方式如下(参考ceph的jewel新支持的rbd-nbd)：再结合ceph用户邮件相关讨论，如Local ssd cache for ceph on each compute node和Ceph and EnhanceIO cache，可知可以从三个维度了解：1、krbd2、librbd3、缓存插件">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2018/03/02/dm-writeboost读写/1.png">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.052Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="dm-writeboost读写">
+<meta name="twitter:description" content="题外话近期抽空了解了一下ceph客户端缓存的问题，以期获取断电容灾的解决方案。ceph使用rbd的方式如下(参考ceph的jewel新支持的rbd-nbd)：再结合ceph用户邮件相关讨论，如Local ssd cache for ceph on each compute node和Ceph and EnhanceIO cache，可知可以从三个维度了解：1、krbd2、librbd3、缓存插件">
+<meta name="twitter:image" content="http://www.jianzzz.com/2018/03/02/dm-writeboost读写/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2018/03/02/dm-writeboost读写/">
+
+
+
+
+
+  <title>dm-writeboost读写 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2018/03/02/dm-writeboost读写/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">dm-writeboost读写</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-02T11:06:58+08:00">
+                2018-03-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Ceph/" itemprop="url" rel="index">
+                    <span itemprop="name">Ceph</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="题外话"><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h1><p>近期抽空了解了一下ceph客户端缓存的问题，以期获取断电容灾的解决方案。ceph使用rbd的方式如下(参考<a href="http://www.zphj1987.com/2016/05/19/ceph%E7%9A%84jewel%E6%96%B0%E6%94%AF%E6%8C%81%E7%9A%84rbd-nbd/" target="_blank" rel="noopener">ceph的jewel新支持的rbd-nbd</a>)：<br><img src="/2018/03/02/dm-writeboost读写/1.png" title="ceph使用rbd的方式"><br>再结合ceph用户邮件相关讨论，如<a href="http://lists.ceph.com/pipermail/ceph-users-ceph.com/2016-March/008316.html" target="_blank" rel="noopener">Local ssd cache for ceph on each compute node</a>和<a href="http://lists.ceph.com/pipermail/ceph-users-ceph.com/2015-June/002546.html" target="_blank" rel="noopener">Ceph and EnhanceIO cache</a>，可知可以从三个维度了解：<br>1、krbd<br>2、librbd<br>3、缓存插件</p>
+<p>krbd：<br>krbd的内核代码阅读入口为<a href="http://elixir.free-electrons.com/linux/v4.14.12/source/drivers/block/rbd.c" target="_blank" rel="noopener">以4.14.12版本为例</a>，ceph相关代码逻辑在<a href="https://elixir.bootlin.com/linux/v4.14.12/source/include/linux/ceph" target="_blank" rel="noopener">include/linux/ceph</a>，Sage Weil在内核中扩展的rbd模块是以驱动模式实现的，具体的I/O数据由内核负责，rbd模块获取读写请求之后再与ceph集群通信。krbd模块重点在于与集群通信功能，因此，想要在krbd维度上考虑缓存的问题，相当于要修改内核关于bio的实现，目前来说是不可能的。</p>
+<p>librbd：<br>librbd+nbd的模式似乎可以替代krbd，同时librbd也是虚拟机在使用的，因此从librbd上考虑缓存实现方式比较实际。这里还有一篇推荐文章<a href="http://blog.csdn.net/lzw06061139/article/details/51203461" target="_blank" rel="noopener">Ceph 性能优化 之 带掉电保护的Rbd Cache</a>。这篇文章里的主要逻辑是用读写文件的方式来取代内存缓存，我对这篇文章的疑虑在以下地方：<br>1)、没有讲明断电重启后的数据恢复逻辑，因此也没有讲明应当保存数据结构中具体的哪些字段。<br>2)、没有结合ssd的特性来读写。<br>3)、文章通过默认设定I/O大小和周期性统计应用I/O平均大小来避免性能问题，这种做法是否可以规避掉。</p>
+<p>缓存插件：<br>基于目前的了解，缓存插件应该是通过使用ssd缓存数据来加快块设备落盘的，也就是说，使用缓存插件的目的是“加速”而不是“断电保护”。其次，是否所有缓存插件都具备数据一致性检查，也是需要读取相关源码才能真切了解到。</p>
+<p>推荐的块设备文章<a href="http://www.ningoo.net/html/2011/all_things_about_flashcache_1.html" target="_blank" rel="noopener">深入浅出Flashcache（一）</a>、<a href="http://www.ningoo.net/html/2011/all_things_about_flashcache_2.html" target="_blank" rel="noopener">深入浅出Flashcache（二）</a>、<a href="http://www.ningoo.net/html/2011/all_things_about_flashcache_3.html" target="_blank" rel="noopener">深入浅出Flashcache（三）</a>、<a href="http://blog.yufeng.info/archives/751" target="_blank" rel="noopener">blktrace 深度了解linux系统的IO运作</a>、<a href="http://blog.yufeng.info/archives/1786" target="_blank" rel="noopener">IO模式调查利器blkiomon介绍</a>、<a href="http://blog.yufeng.info/archives/1112" target="_blank" rel="noopener">Linux下Fio和Blktrace模拟块设备的访问模式</a></p>
+<p>基于上述背景，我首先阅读了rbd-nbd的相关代码<a href="https://github.com/ceph/ceph/blob/v12.2.2/src/tools/rbd_nbd/rbd-nbd.cc" target="_blank" rel="noopener">rbd-nbd.cc</a>，找到librbd的读写入口，了解了ceph客户端缓存数据的代码逻辑。接着，我阅读了缓存插件dm-writeboost的相关代码<a href="https://github.com/akiradeveloper/dm-writeboost" target="_blank" rel="noopener">dm-writeboost</a>，以期了解以下问题：<br>1)、如何读写ssd<br>2)、如何控制IO<br>3)、如何将随机写转换为顺序写</p>
+<h1 id="dm-writeboost"><a href="#dm-writeboost" class="headerlink" title="dm-writeboost"></a>dm-writeboost</h1><p>dm-writeboost采用驱动开发模式，通过定义IO处理规则来过滤IO请求。dm-writeboost使用了Device Mapper的相关知识，这有一篇推荐文章<a href="https://www.ibm.com/developerworks/cn/linux/l-devmapper/index.html#resources" target="_blank" rel="noopener">Linux 内核中的 Device Mapper 机制</a>。</p>
+<h2 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h2><p>1、dm-writeboost.h中定义的Overall-Superblock-Segment即为落盘ssd的最终数据，segment_header、metablock等等是在内存中组织的逻辑数据，这些逻辑数据的索引信息将填充在segment_header_device中，而具体缓存在rambuffer中的数据则将写入到Segment的data中，最后落盘。其中，Segment中的segment_header_device (512B) + metablock_device * nr_caches_inseg占据4K大小，一个Segment为512K。<br>2、Segment数据代表了ssd的数据，下刷到ssd是以Segment为单位的，Segment会记录ssd的扇区位置。Segment中包含多个metablock，metablock记录了hdd的扇区位置。Segment的metablock是无序的、随机的。<br>3、读缓存单元数据缓存了hdd的数据，使用了红黑树组织，根据bio指向的hdd扇区位置寻位。读缓存单元存在的意义是将只存在hdd而未存在ssd的数据缓存到ssd，以便加速后续读写。<br>4、所有Segment的所有metablock都关联到哈希表中，哈希表的大小等于nr_caches等于metablock总数，哈希表存在的意义是组织存储在ssd上的数据，并使用了hdd的扇区数进行索引，根据hdd扇区数查找哈希表上的metablock，存在则代表数据存在于ssd上（或即将写入），由metablock又可以定位到对应的Segment。根据bio来寻位哈希表的规则是：bio扇区对应第几个4K/哈希表大小的余数，找到对应的head，并从head的list中根据扇区位置找到对应的metablock。<br>5、I/O大小为4K范围内，通过dm接口设定。<br>6、如何将随机写转变成顺序写？<br>在dm-writeboost里，I/O大小为4K，随机写单元为一个metablock。dm-writeboost采取的策略是将随机写包含在大块里，然后对大块进行顺序写。具体的实现是：dm-writeboost在内存中按顺序维护Segment数组，然后从其中获取下一个空闲Segment，将metablock包含在其中，当Segment满了以后，下刷到ssd中，然后获取下一个空闲的Segment。因此，需要一定的机制来检验Segment是否下刷成功以及有无I/O请求情况，dm-writeboost采用了计数加减来完成这个目标。<br>7、由内存写入ssd时，称为flush，写入时受到缓存区rambuf_pool控制，共8个rambuf，每一个对应缓存一个Segment的数据，因此分配新的rambuf时，需要先等待[当前id - 8]之前的rabbuf下刷到ssd。由ssd写入hdd时，称为writeback，写入时受到Segment数组控制，共nr_segments个。writeback批处理上限默认为32个Segment，受nr_max_batched_writeback参数控制，因此分配新Segment时，需要先等待[当前id - nr_segments]之前的段都writeback完；实际的writeback实现是将每个段的metablock作为一个io处理，若metablock数据不满4K，还将分成扇区处理。writeback写入磁盘的数据将使用红黑树进行组织。<br>8、断电重启由ssd恢复内存组织数据时最多只需要恢复nr_segments段，由最老的段开始恢复，在nr_segments个段范围内，最老的段为已记录max段的下一个（若该段没有数据，则表明之前数据未写满nr_segments个）。恢复过程中一旦出现检验码验证失败，直接丢弃后面数据。恢复过程中，若出现metablock已被hash表索引，则将数据写入到hdd（若新数据不满4k或旧数据不满4k，且旧数据为脏数据未下刷hdd，则需要合并，这种情况下prepare_overwrite的实现是先wait_for_flushing等待旧数据所在段被flush；容易得知，该段断电前一定是被成功下刷过此时我们才能成功读取，因此wait_for_flushing不会出现问题。况且此时还没启动flush进程呢）。<br>9、系统启动的后台进程有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">writeback_daemon：用于将segment_header_array的数据下刷到hdd</span><br><span class="line">flush_daemon：用于将rambuf_pool的数据下刷到ssd</span><br><span class="line">writeback_modulator：用于监控io情况，设置allow_writeback</span><br><span class="line">sb_record_updater：用于更新超级块，记录last_writeback_segment_id</span><br><span class="line">data_synchronizer：用于定期唤醒flush进程，并等待当前段flush完成（可能是为了防止长时间未有io的情况）</span><br></pre></td></tr></table></figure></p>
+<p>10、为了防止数据破坏，使用了两种锁metux和spin-lock。<br>其中，metux用于：唤醒flush进程和分配新段(flush_current_buffer)、读缓存单元写入到内存以下刷到ssd的过程(inject_read_cache)、重新设置读缓存单元(reinit_read_cache_cells)、写入数据(do_process_write)、读取数据时查找cache和读缓存单元(process_read)。spin-lock用于：读取和设置metablock的dirtiness信息。</p>
+<h2 id="读请求"><a href="#读请求" class="headerlink" title="读请求"></a>读请求</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">根据扇区位置查找cache(即对应ssd的哈希表数据，但索引项是hdd的扇区数)</span><br><span class="line">判断是否保留读缓存单元(若原本无读缓存单元，则新增且状态为保留)</span><br><span class="line"></span><br><span class="line">无缓存cache</span><br><span class="line">    保留读缓存单元</span><br><span class="line">        读取hdd到bio中</span><br><span class="line">        状态改为PBD_WILL_CACHE</span><br><span class="line">        将bio数据复制到读缓存单元中</span><br><span class="line">        读缓存工作排队</span><br><span class="line">            超过阈值则取消连续读缓存单元</span><br><span class="line">            将读缓存单元注入为写请求，将所有读缓存单元的数据复制到当前缓存段中，下刷到ssd</span><br><span class="line">    不保留读缓存单元(已有读缓存单元/bio请求数据不满4k)</span><br><span class="line">        请求重映射到hdd(修改bio指向的设备和扇区)</span><br><span class="line"></span><br><span class="line">有缓存cache(数据在SSD中或当前内存缓存段中)</span><br><span class="line">    对应数据在内存中</span><br><span class="line">        根据bio指示的位置和扇区数读取hdd数据到buf中，将buf复制到bio中</span><br><span class="line">        若cache数据指明为脏数据(未下刷到hdd)，在内存中缓存段上获取对应数据，复写到bio中</span><br><span class="line">    对应数据不在内存中(在ssd中)</span><br><span class="line">        等待found_seg下刷到ssd，保证后续ssd数据读取正确</span><br><span class="line">        若cache metablock块数据不满4k(此时已下刷到ssd)</span><br><span class="line">            读取hdd到buf中，并复制到bio中</span><br><span class="line">            若cache数据指明为脏数据(未下刷到hdd)，按扇区读取ssd脏数据，复写到bio中</span><br><span class="line">        若cache metablock块数据满4k(此时已下刷到ssd)</span><br><span class="line">            状态改为PBD_READ_SEG</span><br><span class="line">            将读请求重新映射到ssd</span><br></pre></td></tr></table></figure>
+<p>其中，判断是否保留读缓存单元的逻辑是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">bio请求不满4k，返回不保留</span><br><span class="line">根据bio扇区在红黑树中查找读缓存单元，若找到，返回不保留</span><br><span class="line">读缓存单元游标减一，从读缓存单元数组中获取一个新单元</span><br><span class="line">设置新单元指向的扇区</span><br><span class="line">新单元加入到红黑树中</span><br><span class="line">bio状态改为PBD_WILL_CACHE</span><br><span class="line">根据需要取消新单元</span><br><span class="line">    若当前读取扇区为上次读取扇区last_sector的下一扇区，seqcount++</span><br><span class="line">    否则，seqcount=1</span><br><span class="line">    顺序读次数seqcount大于阈值</span><br><span class="line">        当前已经超过阈值</span><br><span class="line">            取消新单元</span><br><span class="line">        当前未超过阈值</span><br><span class="line">            设置当前已超过阈值</span><br><span class="line">            将当前读缓存单元游标之后的seqcount个单元取消</span><br><span class="line">    设置当前读取扇区last_sector</span><br></pre></td></tr></table></figure></p>
+<h2 id="写请求"><a href="#写请求" class="headerlink" title="写请求"></a>写请求</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">初始化写I/O数据结构，将bio数据复制到写I/O</span><br><span class="line">根据扇区位置查找cache(即对应ssd的哈希表数据，但索引项是hdd的扇区数)</span><br><span class="line"></span><br><span class="line">有缓存cache(数据在SSD中或当前内存缓存段中)</span><br><span class="line">    对应数据在内存中</span><br><span class="line">        写入位置指向找到的metablock，跳到do_write</span><br><span class="line">    对应数据不在内存中</span><br><span class="line">        若bio所带数据不满4k或cache数据不满4k，且cache为脏数据</span><br><span class="line">            读ssd数据，合并到写I/O中</span><br><span class="line">        若cache数据不脏或bio所带数据满4k</span><br><span class="line">            忽略ssd数据</span><br><span class="line">        将找到的metablock标记为干净</span><br><span class="line">无缓存cache</span><br><span class="line">    取消读缓存单元</span><br><span class="line">若当前缓存段已满</span><br><span class="line">    下刷到ssd，获取新缓存段</span><br><span class="line">从当前缓存段中获取空metablock作为写入位置</span><br><span class="line"></span><br><span class="line">do_write:</span><br><span class="line">将写I/O数据复制到rambuffer中(rambuffer缓存了当前应下刷到ssd的段实际数据，是缓存池中的一个单元)</span><br><span class="line">将新的metablock标记为脏</span><br><span class="line">将新的metablock加入到哈希表中(所以哈希表找到记录时，数据可能正在内存中，也可能已经下刷到ssd中)</span><br><span class="line">(等待下次读写触发段刷新)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/缓存/" rel="tag"># 缓存</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/20/docker-v0-1-0源码分析/" rel="next" title="docker-v0.1.0源码分析">
+                <i class="fa fa-chevron-left"></i> docker-v0.1.0源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/12/hello-world/" rel="prev" title="Hello World">
+                Hello World <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题外话"><span class="nav-number">1.</span> <span class="nav-text">题外话</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dm-writeboost"><span class="nav-number">2.</span> <span class="nav-text">dm-writeboost</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#知识点"><span class="nav-number">2.1.</span> <span class="nav-text">知识点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读请求"><span class="nav-number">2.2.</span> <span class="nav-text">读请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写请求"><span class="nav-number">2.3.</span> <span class="nav-text">写请求</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

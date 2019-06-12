@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="综述什么是RaftRaft是实现分布式一致性的协议。在一个分布式系统中，因为各种意外可能，有的服务器可能会崩溃或变得不可靠，它就不能和其他服务器达成一致状态。这样就需要一种Consensus协议，一致性协议是为了确保容错性，也就是即使系统中有一两个服务器当机，也不会影响其处理过程。为了以容错方式达成一致，我们不可能要求所有服务器100%都达成一致状态，只要超过半数的大多数服务器达成一致就可以了，假">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记02 - Lab 2: Raft">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="综述什么是RaftRaft是实现分布式一致性的协议。在一个分布式系统中，因为各种意外可能，有的服务器可能会崩溃或变得不可靠，它就不能和其他服务器达成一致状态。这样就需要一种Consensus协议，一致性协议是为了确保容错性，也就是即使系统中有一两个服务器当机，也不会影响其处理过程。为了以容错方式达成一致，我们不可能要求所有服务器100%都达成一致状态，只要超过半数的大多数服务器达成一致就可以了，假">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/6.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/7.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/8.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.174Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记02 - Lab 2: Raft">
+<meta name="twitter:description" content="综述什么是RaftRaft是实现分布式一致性的协议。在一个分布式系统中，因为各种意外可能，有的服务器可能会崩溃或变得不可靠，它就不能和其他服务器达成一致状态。这样就需要一种Consensus协议，一致性协议是为了确保容错性，也就是即使系统中有一两个服务器当机，也不会影响其处理过程。为了以容错方式达成一致，我们不可能要求所有服务器100%都达成一致状态，只要超过半数的大多数服务器达成一致就可以了，假">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/">
+
+
+
+
+
+  <title>笔记02 - Lab 2: Raft | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/16/笔记02-Lab-2-Raft/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记02 - Lab 2: Raft</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-16T22:41:50+08:00">
+                2017-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-824-Distributed-Systems/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.824 Distributed Systems</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h1><h2 id="什么是Raft"><a href="#什么是Raft" class="headerlink" title="什么是Raft"></a>什么是Raft</h2><p>Raft是实现分布式一致性的协议。在一个分布式系统中，因为各种意外可能，有的服务器可能会崩溃或变得不可靠，它就不能和其他服务器达成一致状态。这样就需要一种Consensus协议，一致性协议是为了确保容错性，也就是即使系统中有一两个服务器当机，也不会影响其处理过程。为了以容错方式达成一致，我们不可能要求所有服务器100%都达成一致状态，只要超过半数的大多数服务器达成一致就可以了，假设有N台服务器，N/2 +1 就超过半数，代表大多数了。Raft为了实现Consensus一致性这个目标，如同选举一样，参选者需要说服大多数选民(服务器)投票给他，一旦选定后就跟随其操作。  </p>
+<h2 id="Raft的服务器状态"><a href="#Raft的服务器状态" class="headerlink" title="Raft的服务器状态"></a>Raft的服务器状态</h2><p>Follower：类似选民，完全被动。<br>Candidate：候选人，可以被选为一个新的领导人。<br>Leader：处理所有客户端交互，日志复制等，一般一次只有一个Leader。  </p>
+<h2 id="Leader-Election：领导人选举"><a href="#Leader-Election：领导人选举" class="headerlink" title="Leader Election：领导人选举"></a>Leader Election：领导人选举</h2><p>服务器以Follower的状态启动，如果没有收到Leader信息，那么Follower可以成为Candidate。Candidate向其他节点发起投票，其他节点回复投票，如果Candidate获得大多数投票，则Candidate成为Leader，对系统的任何更改将首先通过Leader。  </p>
+<h2 id="控制Election的两种timeout设置"><a href="#控制Election的两种timeout设置" class="headerlink" title="控制Election的两种timeout设置"></a>控制Election的两种timeout设置</h2><p>1、election timeout：<br>election timeout表示Follower等待变成Candidate的时间。election timeout是150ms到300ms之间的一个随机数。Follower变成Candidate之后，开始一个新的<strong>election term选举任期</strong>（对term进行编号），并投票给自己。之后，Candidate发送一个<strong>投票请求Request Vote</strong>到其他节点；如果节点在该election term尚未进行过投票，则投票给该Candidate，记录当前选举任期，并重新设置自身的election timeout。一旦Candidate获得大多数投票，Candidate成为Leader。<br>2、heartbeat timeout：<br>每过一个心跳包时间，Leader会发送心跳包给它的Follower。此外，对于客户机发来的新请求，Leader在下一个心跳包时刻将<strong>Append Entries新增条目</strong>发送给Follower。Follower对<strong>Append Entries新增条目</strong>进行响应，并重新设置自身的election timeout。该选举任期election term将会持续，直至Follower在election timeout时间内没有接收到心跳包，则Follower成为新的Candidate。<strong>注意：Follower的响应并不会更改Leader或Candidate的election timeout。</strong></p>
+<h2 id="如何确保每届选举任期内只有一个Leader"><a href="#如何确保每届选举任期内只有一个Leader" class="headerlink" title="如何确保每届选举任期内只有一个Leader"></a>如何确保每届选举任期内只有一个Leader</h2><p>Candidate需要获得大多数投票才能开始新的选举任期election term，这确保了每届选举任期内最多只有一个Leader。如果一个Leader宕机了，新的Leader将开始新的任期，旧的Leader保持旧的任期状态。  </p>
+<h2 id="split-vote：分裂投票"><a href="#split-vote：分裂投票" class="headerlink" title="split vote：分裂投票"></a>split vote：分裂投票</h2><p>如果两个Follower同时变为Candidate，并发出<strong>投票请求Request Vote</strong>，各有一半的Follower收到请求并进行投票；由于这两个Candidate处于同一届新任期，它两不会互相投票，Follower对某个任期的Candidate投票后也不会再对其他Candidate投票，因此两个Candidate都不能获得到大多数投票，这种现象称为split vote。处于split vote阶段的Candidate将各自等待自己的election timeout过期，在此期间可能会有其他Follower成为新的Candidate并请求投票，又或者与旧的Candidate同时成为新的Candidate，再次引发分裂投票。  </p>
+<h2 id="Log-Replication：日志复制"><a href="#Log-Replication：日志复制" class="headerlink" title="Log Replication：日志复制"></a>Log Replication：日志复制</h2><p>对系统的每一次更改都会在Leader上添加一个日志项，该日志项还未committed，所以Leader的值还没更新。为了commit该日志项，Leader首先将日志项副本发送给它的Follower，然后等待，直至大多数Follower写入该日志项并返回响应；接着Leader commit该日志项，更新系统的值，向客户机返回响应，然后在下一个心跳包时刻通知它的Follower该日志项已经被commit，接到通知的Follower也commit该日志项，保持集群的一致性。  </p>
+<p>网络原因可能导致某些节点无法接收到Leader的心跳包，并选举出新的Leader，这时候集群内会存在不同选举任期的Leader和Follower。客户机发送给旧Leader的新请求会记录在旧Leader的日志上，旧Leader的Follow日志也会记录该新请求，但旧Leader以及它的Follow都无法commit该日志项，因为旧Leader无法获得大多数节点的响应。客户机发送给新Leader的新请求会记录在新Leader的日志上，并成功commit，因为新Leader可以获得大多数节点的响应。网络分区恢复后，处于新选举任期的Leader和Follow将忽略处于旧选举任期的Leader发出的心跳包，而处于旧选举任期的Leader和Follower将响应新选举任期的Leader发出的心跳包。处于旧选举任期的Leader和Follower将回滚未提交的日志项，并匹配新Leader的日志，保持集群的一致性。  </p>
+<p>注意：网络原因导致网络分区时，如果新分区的节点数少于等于总数的一半，则该分区无法产生新Leader；如果新旧分区节点数各占一半，则Raft停止服务。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>本章节将构建一个可容错的kv存储系统。在这个实验中，将实现Raft复制状态机协议。下一个实验将在Raft基础上构建一个kv服务，然后在多个复制状态机上共享该服务，获得更高的性能。<br>复制服务（如kv数据库）是通过将数据副本存储在多个副本服务器来实现容错的，副本服务器确保了主服务器宕机的时候可以继续提供服务。实现副本服务器的挑战是宕机可能导致副本服务器存储了不同的备份数据。  </p>
+<p>Raft管理着一个服务的状态副本，并在服务失败后找出正确的状态。Raft实现了一个复制状态机，它将客户机请求按序列组织成日志log，并确保所有副本服务器的日志内容是一致的。每一个副本服务器按照日志记录的请求顺序执行客户机请求，并将这些请求应用到副本服务器的本地服务状态副本上。由于所有活跃副本服务器的日志内容是一致的，所以他们按照相同的顺序执行相同的请求，并继续保持着相同的服务状态。假如一个服务器宕机并随后恢复，Raft负责将其日志状态进行更新。只有在大多数机子是活跃的并且可以互相通信的情况下，Raft才会继续工作；否则Raft将停止工作，并将在大多数机子活跃的情况下重新从离开的地方恢复运行。  </p>
+<p>本实验将借助相关方法将Raft实现为go的一个对象类型，进而可以作为一个调用模块在更大的服务中被调用。Raft实例之间将使用rpc进行通信，以维护日志副本。Raft接口将支持已编号命令的一个不定序列，称为日志条目/日志项。日志项对应一个索引号，并最终被commit。日志项最终将有Raft发送至更大的服务中执行。  </p>
+<p>本实验不同Raft实例只能通过rpc进行通信，不能共享go变量，也不能实现文件。本实验将实现Raft大多数设计思想，包括状态持久化存储、节点宕机并重启之后的状态读取，但不会实现集群成员变化和日志压缩/快照。  </p>
+<p>参考资料：<br><a href="http://thesecretlivesofdata.com/raft/" target="_blank" rel="noopener">illustrated guide to Raft</a><br><a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank" rel="noopener">raft-extended</a><br><a href="https://thesquareplanet.com/blog/students-guide-to-raft/" target="_blank" rel="noopener">Students’ Guide to Raft</a>  </p>
+<h2 id="The-code"><a href="#The-code" class="headerlink" title="The code"></a>The code</h2><p>src/raft提供了框架代码和测试案例，src/labrpc提供一个简单的类rpc系统。扩展raft/raft.go以实现Raft。需要实现以下调用接口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// create a new Raft server instance:</span><br><span class="line">rf := Make(peers, me, persister, applyCh)</span><br><span class="line">创建一个Raft peer，peers参数是已建立的rpc连接数组，每一个连接对应一个peer，包括将创建的peer本身。me参数是该peer在peers数组的下标。</span><br><span class="line"></span><br><span class="line">// start agreement on a new log entry:</span><br><span class="line">rf.Start(command interface&#123;&#125;) (index, term, isleader)</span><br><span class="line">请求Raft将命令追加到日志副本中，该函数不阻塞等待执行过程，而是立即返回。</span><br><span class="line"></span><br><span class="line">// ask a Raft for its current term, and whether it thinks it is leader</span><br><span class="line">rf.GetState() (term, isLeader)</span><br><span class="line"></span><br><span class="line">// each time a new entry is committed to the log, each Raft peer</span><br><span class="line">// should send an ApplyMsg to the service (or tester).</span><br><span class="line">type ApplyMsg</span><br></pre></td></tr></table></figure></p>
+<h2 id="src-labrpc"><a href="#src-labrpc" class="headerlink" title="src/labrpc"></a>src/labrpc</h2><p>src/labrpc提供一个简单的类rpc系统，用于模拟网络的客户机和服务器情况。labrpc使用Network结构体对客户机ClientEnd和服务器Server进行组合，该结构体使用map保存客户机和服务器结构，Network的connections是客户机名到服务器名的映射，表示客户机是否连通服务器。Network拥有一个endCh，该数据是一个chan reqMsg，用于阻塞读取发送到网络的数据。ClientEnd在创建之时会复制该endCh，通过对其channel副本写入数据，模拟发送到网络中。网络一旦从endCh中读取到请求信息reqMsg，则根据请求信息找到对应的服务器Server，服务器对请求进行处理，然后将处理结果写入到reqMsg中的replyCh，该响应信息也是一个channel。网络调用Server的服务时，同时开启了超时机制，一旦超时，判断服务器是否宕机，是则返回服务出错响应，否则继续等待服务调用结果。<br>注意：ClientEnd发送请求信息前就创建了reqMsg-&gt;replyCh，然后往endCh副本写入reqMsg（阻塞），直至网络读取reqMsg之后，ClientEnd转而阻塞读取reqMsg-&gt;replyCh；而网络从endCh读出reqMsg后，交由对应服务器进行处理，处理结果只需写回reqMsg-&gt;replyCh即可。由此可以看出go channel的神奇之处：将包含channel的结构体A写入channel中，另一方从该channel副本中读出到结构体B中，A和B仍共享同一个channel。</p>
+<p>大致流程：<br>1、调用MakeNetwork创建网络，阻塞读取endCh，即客户机请求。<br>2、调用Network.MakeEnd创建客户机，将其加入到网络中，状态未激活。<br>3、调用MakeService将用户定义的结构体及其接口封装为服务Service，使用的是reflect技术。<br>4、调用MakeServer创建服务器。<br>5、调用Server.AddService将服务添加到服务器中，表示该服务器提供该服务。<br>6、调用Network.AddServer将服务器加入到网络中。<br>7、调用Network.Connect将客户机映射到服务器，表示该客户机连通该服务器。<br>8、调用Network.Enable激活客户机。<br>9、调用ClientEnd.Call方法，调用服务器服务，等待响应结果。</p>
+<p>本实验raft之间的通信是利用了ClientEnd.Call方法，具体实现是在每个raft服务器上建立ClientEnd数组，每个ClientEnd负责与对应的raft服务器进行通信（调用服务器服务，等待响应结果）。</p>
+<h2 id="Part-2A"><a href="#Part-2A" class="headerlink" title="Part 2A"></a>Part 2A</h2><p>此部分主要实现raft领导选举以及心跳包，实现的目标是选举一位leader，如果没有出错则维持该leader，如果旧leader出错或者数据包丢失了（发给leader的或者是leader发出的），则选举新的领导。<br>参考<a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank" rel="noopener">In Search of an Understandable Consensus Algorithm</a>一文，可大致了解到，raft的状态数据包括：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/1.PNG" title="raft的状态数据"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">所有服务器上的持久化状态：在响应RPCs前更新到稳态存储中</span><br><span class="line">currentTerm    raft服务器已知的最新任期号（启动时初始化为0，持续递增）    </span><br><span class="line">voteFor        当前任期内收到选票的候选者Id（表明投票给了谁）</span><br><span class="line">log[]          日志项集，每一个日志项包含了任务状态机的命令，以及收到该日志</span><br><span class="line">               项时的领导任期，日志项的初始索引是1</span><br><span class="line"></span><br><span class="line">所有服务器上的易变状态：</span><br><span class="line">commitIndex    raft服务器已知的已提交的日志项最高索引（初始化为0，持续递增）  </span><br><span class="line">lastApplied    raft服务器已知的已应用的日志项最高索引（初始化为0，持续递增）  </span><br><span class="line"></span><br><span class="line">leader服务器上的易变状态：选举之后重新初始化  </span><br><span class="line">nextIndex[]    对于每一个服务器，leader需要发送给该服务器的下一个日志项索引</span><br><span class="line">             （初始化为leader的最新日志项索引+1）</span><br><span class="line">matchIndex[]   对于每一个服务器，leader已知的复制到该服务器的日志项最高索引</span><br><span class="line">             （初始化为0， 持续递增）</span><br></pre></td></tr></table></figure></p>
+<p>发送和处理投票请求的数据和逻辑为：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/2.PNG" title="发送和处理投票请求的数据和逻辑"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">投票请求数据：  </span><br><span class="line">term           候选人启动的任期号</span><br><span class="line">candidateId    候选人Id</span><br><span class="line">lastLogIndex   候选人最新的日志项索引</span><br><span class="line">lastLogTerm    候选人最新的日志项对应的任期号</span><br><span class="line"></span><br><span class="line">投票回复数据：</span><br><span class="line">term           当前任期，用于候选人更新自己的任期</span><br><span class="line">voteGranted    true表示候选人获得选票</span><br><span class="line"></span><br><span class="line">投票请求的接收实现：</span><br><span class="line">1、如果候选人启动的任期号term &lt; 当前任期currentTerm，回复false</span><br><span class="line">2、如果voteFor为空或是候选人Id，并且候选人的日志至少与选民的日志一样新，选民投票给该候选人</span><br></pre></td></tr></table></figure></p>
+<p>发送和处理心跳包/日志项的数据和逻辑为：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/3.PNG" title="发送和处理心跳包/日志项的数据和逻辑"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">心跳包/日志项请求数据：  </span><br><span class="line">term           leader的任期号</span><br><span class="line">leaderId       leaderId用于选民对客户机请求重定向</span><br><span class="line">prevLogIndex   紧接着新条目的先前的日志项索引 </span><br><span class="line">prevLogTerm    索引为prevLogIndex的日志项的任期号</span><br><span class="line">entries[]      待存储的日志项（心跳包为空）</span><br><span class="line">leaderCommit   leader已知的已提交的日志项最高索引</span><br><span class="line"></span><br><span class="line">心跳包/日志项回复数据：  </span><br><span class="line">term           当前任期，用于leader更新自己的任期</span><br><span class="line">success        当选民的日志项匹配prevLogIndex和prevLogTerm时，回复true</span><br><span class="line"></span><br><span class="line">心跳包/日志项请求的接收实现：</span><br><span class="line">1、如果leader的任期号term &lt; 当前任期currentTerm，回复false</span><br><span class="line">2、如果选民的日志项不匹配prevLogIndex和prevLogTerm时，回复false</span><br><span class="line">3、如果已有的日志项与新日志项冲突（索引相同，任期不同），删除该日志项和后续所有日志项</span><br><span class="line">4、添加所有不存在的日志项</span><br><span class="line">5、如果leader已知的已提交的日志项最高索引 &gt; 选民已知的已提交的日志项最高索引，将选民的commitIndex更新为min(leader已知的已提交的日志项最高索引,新日志项的最高索引)</span><br></pre></td></tr></table></figure></p>
+<p>选民、候选者、领导状态转换逻辑为：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/4.PNG" title="选民、候选者、领导状态转换逻辑"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">对于所有服务器：</span><br><span class="line">1、如果raft服务器已知的已提交的日志项最高索引commitIndex &gt; raft服务器已知的已应用的日志项最高索引lastApplied，增大lastApplied，应用log[lastApplied]到状态机上。</span><br><span class="line">2、如果RPC请求或响应中term T &gt; 当前任期号currentTerm，设置currentTerm=T，身份转换为选民。</span><br><span class="line"></span><br><span class="line">对于选民：</span><br><span class="line">1、对候选人和leader的RPC请求进行响应。</span><br><span class="line">2、如果在选举超时计时内没有收到leader的AppendEntries RPC或候选人的投票请求，身份转换为候选人。</span><br><span class="line"></span><br><span class="line">对于候选人：</span><br><span class="line">1、转换为候选人时，开始选举：</span><br><span class="line">   递增currentTerm</span><br><span class="line">   选举自己</span><br><span class="line">   重设选举超时计时</span><br><span class="line">   发送投票请求到其他所有服务器</span><br><span class="line">2、如果收到了大多数选民的投票，身份转换为leader</span><br><span class="line">3、如果收到了新leader的AppendEntries RPC，身份转换为选民。</span><br><span class="line">4、如果选举计时超时，启动新一轮选举。</span><br><span class="line"></span><br><span class="line">对于leader：</span><br><span class="line">1、向每一个server发送初始的空AppendEntries RPC（心跳包），在每个空闲时期重复该操作以避免选举超时。</span><br><span class="line">2、如果接收到客户机的命令：在本地追加日志项，在日志项应用到状态机之后回复客户机。</span><br><span class="line">3、如果最后的日志索引大于等于nextIndex[]（leader需要发送给每一个服务器的下一个日志项索引）：从nextIndex开始发送携带日志项的AppendEntries RPC，如果成功则更新nextIndex和matchIndex，如果由于日志不一致导致失败，递减nextIndex并重试。</span><br><span class="line">4、如果存在N &gt; leader已提交的日志项最高索引commitIndex，且大多数matchIndex[i] &gt;= N，且log[N].term == 当前任期号，设置commitIndex为N。</span><br></pre></td></tr></table></figure></p>
+<h3 id="Part-2A解决思路"><a href="#Part-2A解决思路" class="headerlink" title="Part 2A解决思路"></a>Part 2A解决思路</h3><p>根据以上描述，在领导选举阶段，可使用3种channel来控制raft的状态变化：chanLeader表示已成为leader、chanHeartBeat表示收到心跳包/日志项、chanSuccVote表示成功进行投票。<br><strong>另外，在收到投票请求时、收到投票请求回复时、收到心跳包/日志项时、收到心跳包/日志项回复时，如果收到更新的任期号，则应该立即将服务器任期号更新，并将状态更新为选民；注意不要采用写入channel进行通知，并在channel读出端统一再转换为选民身份的做法。这是因为：接收请求的处理或接收回复的处理过程中需要加锁来修改服务器数据（调用rf.mu.Lock()），如果在处理过程中收到更新的任期号并更新了服务器任期号，但却没有及时将身份转换为选民身份，而是写入channel进行通知，那么意味着在channel读出端的go routine中需要竞争加锁（调用rf.mu.Lock()）来转换身份；这种情况下，很有可能导致旧leader任期号更新了，身份却还没转变，则会导致一个任期内存在两个leader的现象。</strong>同时，外部调用rf.GetState()获取服务器状态应该时，rf.GetState()也应该加锁进行读取。</p>
+<p>此部分需要扩展的数据结构包括：<br>用于维持服务器状态：Raft<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">state：状态</span><br><span class="line">voteCount：获得选票数量</span><br><span class="line">chanSuccVote：成功投票的通知</span><br><span class="line">chanHeartBeat：收到心跳包或日志项的通知</span><br><span class="line">chanLeader：成为leader的通知</span><br><span class="line">currentTerm：当前任期号</span><br><span class="line">votedFor：投票给谁</span><br></pre></td></tr></table></figure></p>
+<p>用于发送投票请求：RequestVoteArgs<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Term：候选人的任期号</span><br><span class="line">CandidateId：候选人的id，用于投票者记录投票给了谁</span><br></pre></td></tr></table></figure></p>
+<p>用于接收投票请求回复：RequestVoteReply<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Term：回复者的任期号</span><br><span class="line">VoteGranted：是否获得选票</span><br></pre></td></tr></table></figure></p>
+<p>用于发送rpc心跳包或日志项：AppendEntries<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Term：leader的任期号</span><br></pre></td></tr></table></figure></p>
+<p>用于接收rpc心跳包或日志项回复：AppendEntriesReply<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Term：回复者的任期号</span><br><span class="line">Success：如果回复者的日志匹配了prevLogIndex和prevLogTerm，返回true，在leader选举阶段直接返回true即可</span><br></pre></td></tr></table></figure></p>
+<p>通知状态变化具体表现为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">当raft服务器状态为选民时，使用select进行多路复用：</span><br><span class="line">1、&lt;- chanSuccVote，已成功投票，进入下一次超时计算。</span><br><span class="line">2、&lt;- chanHeartBeat，已成功收到心跳包/日志项，进入下一次超时计算。</span><br><span class="line">3、&lt;- time.After(time.Duration(rand.Int63()%150+150)*time.Millisecond)，超时，状态转换为候选人。</span><br><span class="line"></span><br><span class="line">当raft服务器状态为候选人时，递增选举号，投票给自己，然后广播请求选民进行投票，之后，使用select进行多路复用：</span><br><span class="line">1、&lt;- chanLeader，已成为leader（状态已转换为leader）。</span><br><span class="line">2、&lt;- chanHeartBeat，已成功收到心跳包/日志项，如果在等待期间收到更大任期号，那么在接收心跳包/日志项的处理过程中已将候选人的状态转换为选民，因此这里无需做任何处理。</span><br><span class="line">3、&lt;- chanSuccVote，已成功投票（状态已转换为选民）。注意到候选人首先会投票给自己，在相同的任期号内不会再投票给其他人；因此如果收到chanSuccVote通知，说明在等待期间收到更大任期号，那么在接收投票请求的处理过程中已将候选人的状态转换为选民，因此这里无需做任何处理。</span><br><span class="line">4、&lt;- time.After(time.Duration(rand.Int63()%150+150)*time.Millisecond)，超时，状态不变，进入下一轮选举。</span><br><span class="line"></span><br><span class="line">当raft服务器状态为leader时，使用select进行多路复用：</span><br><span class="line">1、&lt;- chanSuccVote，已成功投票（状态已转换为选民）。旧leader如果收到候选人的更大任期号，则在接收投票请求的处理过程中已将leader的状态转换为选民，因此这里无需做任何处理。 </span><br><span class="line">2、&lt;- time.After(HEARTBEATINTERVAL)，广播发送心跳包/日志项。</span><br><span class="line">3、注意leader无需对心跳包/日志项进行多余处理，如果该leader收到的心跳包/日志项携带了更大任期号，则旧leader会在接收心跳包/日志项的处理过程中将状态转换为选民，因此我们只需要在上述步骤2广播发送心跳包/日志项的过程中附加判断当前服务器状态是不是leader就可以了，一旦不是leader则不进行发送。另一方面，如果leader收到一心跳包就跳出select，则可以进行攻击，从而影响到正常的心跳包/日志项的发送。</span><br></pre></td></tr></table></figure></p>
+<p><strong>注意，Part 2A不需要考虑任何关于日志项的字段。</strong><br>候选人广播发送投票请求，当接收者接收到请求后，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、如果当前任期号大于请求参数中候选人启动的任期号，则不投票，返回参数中附上当前任期号并直接返回。</span><br><span class="line">2、如果当前任期号小于请求参数中候选人启动的任期号，更新当前任期号，voteFor置为-1，立即将状态转换为选民。</span><br><span class="line">3、返回参数中附上当前任期号。</span><br><span class="line">4、如果voteFor值为-1，要么是当前任期内还没投过票，要么是接收了新的任期号，此时往chanSuccVote写入true，返回参数中VoteGranted设为true，voteFor置为候选人Id。</span><br></pre></td></tr></table></figure></p>
+<p>候选人广播发送投票请求后，对于每一个收到的请求结果，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、如果服务器状态已经不是候选人，直接返回。</span><br><span class="line">2、如果发送参数中的任期号已经不等于当前任期号，直接返回。</span><br><span class="line">3、如果返回参数中的任期号大于当前任期号，更新当前任期号（导致步骤2的出现），候选人状态立即转换为选民（导致步骤1的出现），返回。</span><br><span class="line">4、如果返回参数中VoteGranted为true，表明收到选票，如果当前服务器状态仍是候选人状态，计算投票人数是否超出一半，是则往chanLeader写入true，候选人状态立即转换为leader。</span><br></pre></td></tr></table></figure></p>
+<p>leader广播发送心跳包/日志项请求，当接收者接收到请求后，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、如果当前任期号大于请求参数中leader的任期号，返回参数附上当前任期号并直接返回。</span><br><span class="line">2、如果当前任期号小于请求参数中leader的任期号，更新当前任期号，立即将状态转换为选民。</span><br><span class="line">3、返回参数中附上当前任期号。</span><br><span class="line">4、往chanHeartBeat写入true，返回参数中Success设为true。</span><br></pre></td></tr></table></figure></p>
+<p>leader广播发送心跳包/日志项请求后，对于每一个收到的请求结果，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、如果服务器状态已经不是leader，直接返回。</span><br><span class="line">2、如果发送参数中的任期号已经不等于当前任期号，直接返回。</span><br><span class="line">3、如果返回参数中的任期号大于当前任期号，更新当前任期号（导致步骤2的出现），leader状态立即转换为选民（导致步骤1的出现），返回。</span><br></pre></td></tr></table></figure></p>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/raft&quot;</span><br><span class="line">$ go test -run 2A</span><br></pre></td></tr></table></figure></p>
+<p>结果：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/5.PNG" title="2A测试结果"> </p>
+<h2 id="Part-2B"><a href="#Part-2B" class="headerlink" title="Part 2B"></a>Part 2B</h2><p>此部分主要实现raft日志复制以保证数据一致性。客户端调用Start()时，如果服务器是leader，则将会将命令添加到日志中。leader通过发送AppendEntries RPC将日志追加到其他服务器。（按照<a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank" rel="noopener">In Search of an Understandable Consensus Algorithm</a>一文的说法，非leader服务器接收到客户端发送的请求时，将转发请求到leader，本实验的做法是直接忽略）  </p>
+<p>此部分需要扩展的数据结构包括：<br>用于维持服务器状态：Raft<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">chanCommit：服务器更新commitIndex时通知service或tester</span><br><span class="line">chanApplyMsg：服务器更新commitIndex时通知service或tester写入数据的通道 </span><br><span class="line">log[]：服务器保存的日志数组</span><br><span class="line">commitIndex：服务器提交的最高日志索引</span><br><span class="line">lastApplied：服务器应用的最高日志索引</span><br><span class="line">nextIndex[]：leader保存的需要发送给其他服务器的日志索引</span><br><span class="line">matchIndex[]：leader保存的已复制到其他服务器的日志索引</span><br></pre></td></tr></table></figure></p>
+<p>用于保存日志数据：LogEntry<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Index：日志项对应的索引</span><br><span class="line">Term：日志项对应的任期号</span><br><span class="line">Command：命令</span><br></pre></td></tr></table></figure></p>
+<p>用于发送投票请求：RequestVoteArgs<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">LastLogIndex：候选人最新日志项的索引</span><br><span class="line">LastLogTerm：候选人最新日志项的任期号</span><br></pre></td></tr></table></figure></p>
+<p>用于发送rpc心跳包或日志项：AppendEntries<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">LeaderId：leader的Id，用于重定向客户端请求到leader，本实验未实现</span><br><span class="line">PrevLogIndex：leader所发送日志项的前一个日志项索引</span><br><span class="line">PrevLogTerm：leader所发送日志项的前一个日志项任期号</span><br><span class="line">Entries[]：leader本次发送的日志项数组</span><br><span class="line">LeaderCommit：leader的commitIndex</span><br></pre></td></tr></table></figure></p>
+<p>用于接收rpc心跳包或日志项回复：AppendEntriesReply<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Success：如果回复者的日志匹配了prevLogIndex和prevLogTerm，返回true</span><br><span class="line">NextIndex：回复者告知leader下次发送的日志项索引，用于提高leader重新发送日志的效率</span><br></pre></td></tr></table></figure></p>
+<p><strong>Raft的实现保证了以下五个特性</strong>：<br><strong>1、选举安全性</strong>：<br>一个特定任期内只有最多只有一个leader。<br>如何保证：候选人的状态变化只有三种情况，变为leader、变为follower、重新新一轮投票请求。raft采用随机时间来减少分裂投票的情况。只有当候选人获得大多数选票时（本实验实现为超过一半）才能成为leader，这确保了一个特定任期内只有最多只有一个leader（假如leader无法与其他服务器通信了，但没有宕机，则系统可能存在两个leader，原来的leader也可以接收到客户端请求，但是新日志项无法提交）。<br><strong>2、leader只追加</strong>：<br>leader不会重写或者删除日志项。<br><strong>3、日志匹配</strong>：<br>如果不同服务器的日志中的两个日志项的index和term一样，那么它们的命令相同。<br>如何保证：一个leader在一个特定的term和特定的index上只会创建一个日志项，且日志项从来不改变位置。<br>如果不同服务器的日志中的两个日志项的index和term一样，那么在它们之前的所有日志都是相同的。<br>如何保证：追加日志项时，附带发送前一个日志项的index和term，接收者只有在日志保持一致时才会追加新日志。<br><strong>4、leader完整性</strong>：<br>如果一个日志项在某个选举期内被提交，那么后续更高任期的leader日志中将会出现该日志项。<br>如何确保：对投票添加约束。只有当候选人的日志比选民的日志更加新（判断逻辑见后）时，候选人才有可能获得选票。另外，对于leader而言，只有在其新任期内复制了新日志到其他服务器并收到大多数回复，才有可能更新commitIndex，倘若只复制旧任期的日志项，是无法更新commitIndex的。<br><strong>5、状态机安全性</strong>：<br>一旦某个服务器将某个索引的日志项应用到状态机上，则不会出现其他服务器在相同索引处应用其他不同日志项的情况。日志项应用之时，该服务器在该日志项之前的日志与leader相同，且该日志项已被commit。<br>如何确保：leader完整性、日志匹配、raft要求按照日志索引顺序将日志项应用到状态机上。  </p>
+<p><strong>如何判断日志更加新，即more up-to-date</strong>：<br>比较两个日志的最后一项的term，越大的越新。倘若一样大，则日志项越多的越新。</p>
+<p>以下是对日志项提交的一个补充说明：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/6.PNG" title="对日志项提交的一个补充说明"><br>第一行表示日志项索引，S1~S5表示服务器，方格内数字表示任期。（a）表示S1为leader，term为2，接收了客户端的命令并在index=2上添加新日志项，成功将日志项复制到S2中。（b）表示S1宕机，S5为leader，由于日志比S2旧，只获取到S3~S5的选票，term为3，接收了客户端的命令并在index=2上添加新日志项。（c）表示S5宕机，S1恢复，并重新被选为leader，term=4，接收了客户端的命令并在index=3上添加新日志项，成功将index=2的日志项复制到S3中。此时，index=2的日志项已经复制到大多数服务器上，但该日志项尚未被提交，因为term=4的日志项还未被复制到大多数服务器上。（d）如果S1宕机，S5恢复，由于日志比S1旧，只可能获取到S2~S5的选票，term为5，成功将term为3的日志项复制到所有服务器并重写了选民的日志，index=2的日志项被提交。（e）如果c中S1将term=4的日志项复制到S2和S3中，term=4的日志项将被提交，之后S1宕机，则S5无法成为新leader，因为其日志比大多数服务器的日志旧。</p>
+<h3 id="Part-2B解决思路"><a href="#Part-2B解决思路" class="headerlink" title="Part 2B解决思路"></a>Part 2B解决思路</h3><p>1、raft的状态通知变化与Part 2A一样，但是在由候选人转换为leader时，需要初始化nextIndex数组和matchIndex数组，其中nextIndex[i]初始化为leader的最后一个日志项index+1，matchIndex[i]初始化为0。同时，在启动raft的时候追加一个index=0且term=0的日志项到log[]中，以确保日志项的index和log的下标一致（有效日志项的初始index是1）。<br>2、raft启动时使用go routine等待服务器的日志提交通知，一旦获取到通知，将服务器最后应用的日志项的下一项开始(lastApplied+1)，到已提交的最高日志项(commitIndex)范围内的日志项数据通知到service或tester，并更新应用日志索引lastApplied。<br>3、raft接收到客户端的命令时，首先判断是不是leader，不是则忽略，否则将命令追加到本地日志上，初始index=1。<br>4、候选人广播发送投票请求前，将候选人的最新日志项的索引和任期号附加到投票参数LastLogIndex和LastLogTerm上。<strong>对于每次投票请求的发送，附加判断当前服务器状态是否仍旧是候选人，一旦不是则无需发送。</strong><br>5、候选人广播发送投票请求，当接收者接收到请求后，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、如果当前任期号大于请求参数中候选人启动的任期号，则不投票，返回参数中附上当前任期号并直接返回。</span><br><span class="line">2、如果当前任期号小于请求参数中候选人启动的任期号，更新当前任期号，voteFor置为-1，立即将状态转换为选民。</span><br><span class="line">3、返回参数中附上当前任期号。</span><br><span class="line">4、判断候选人的日志是否更加新，即比较当前最后一个日志项的term和参数中的LastLogTerm，越大的越新。倘若一样大，则比较当前最后一个日志项的index和参数中的LastLogIndex，越大的越新。</span><br><span class="line">5、如果voteFor值为-1，要么是当前任期内还没投过票，要么是接收了新的任期号，且候选人的日志更加新，此时往chanSuccVote写入true，返回参数中VoteGranted设为true，voteFor置为候选人Id。</span><br></pre></td></tr></table></figure></p>
+<p>6、候选人广播发送投票请求后，对于每一个收到的请求结果，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、如果服务器状态已经不是候选人，直接返回。</span><br><span class="line">2、如果发送参数中的任期号已经不等于当前任期号，直接返回。</span><br><span class="line">3、如果返回参数中的任期号大于当前任期号，更新当前任期号（导致步骤2的出现），候选人状态立即转换为选民（导致步骤1的出现），返回。  </span><br><span class="line">4、如果返回参数中VoteGranted为true，表明收到选票，如果当前服务器状态仍是候选人状态，计算投票人数是否超出一半，是则往chanLeader写入true，候选人状态立即转换为leader。</span><br></pre></td></tr></table></figure></p>
+<p>7、leader广播发送心跳包/日志项请求前，更新commitIndex，更新规则是：如果存在N &gt; leader已提交的日志项最高索引commitIndex，且大多数matchIndex[i] &gt;= N，且log[N].term == 当前任期号，设置commitIndex为N（本实验实现为从后往前查找N，一旦找到满足的N即退出查找）。leader将commitIndex附加到参数中，然后广播发送日志项。对于每个服务器，将nextIndex[i]开始的所有log复制到参数中，并将索引为nextIndex[i]-1的日志项的index和term附加到参数中，即PrevLogIndex和PrevLogTerm，以便接收者检查日志的一致性。<strong>对于每次心跳包/日志项的发送，附加判断当前服务器状态是否仍旧是leader，一旦不是则无需发送。</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注意：一旦当前服务器状态不是leader，则不能发送心跳包/日志项，否则会导致出错。例如：1、三台服务器都在index=1上提交了日志项(term=1)，之后leader S1与其他服务器失去通信，但接收了term=1的其他日志项。2、S0成为新leader，并接收了term=2的新日志项(index=2)，S0和S2都提交了该日志项，之后leader S0与其他服务器失去通信。3、S1恢复通信，并且认为自己还是leader，此时S1的日志是旧于S2的，S1开始第一次尝试广播发送日志给S0(无法通信)和S2，在处理回复之前由于过了心跳包间隔又启动第二次尝试广播发送日志(还没真正发送)，此时收到了第一次发送日志的S2回复，并更新了任期号和状态；这时候，第二次广播发送日志就将使用最新的任期号；由于没有在实际发送数据的时候判断当前最新服务器状态，最终导致服务器在非leader情况下使用最新的任期号发送了旧日志，且由于index=1的日志项已提交(导致PrevLogIndex和PrevLogTerm匹配)，最终导致S2删掉了term=2的日志项而追加了term=1的日志项。</span><br></pre></td></tr></table></figure></p>
+<p>8、leader广播发送心跳包/日志项请求，当接收者接收到请求后，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1、如果当前任期号大于请求参数中leader的任期号，返回参数附上当前任期号并直接返回，回复参数的Success为false。</span><br><span class="line">2、如果当前任期号小于请求参数中leader的任期号，更新当前任期号，立即将状态转换为选民。  </span><br><span class="line">3、返回参数中附上当前任期号。</span><br><span class="line">4、往chanHeartBeat写入true。</span><br><span class="line">5、如果参数中的PrevLogIndex大于当前服务器最高日志项索引，将回复参数的NextIndex更新为最高日志项索引+1，返回，回复参数的Success为false。</span><br><span class="line">6、检查日志一致性，如果当前服务器在PrevLogIndex上的日志项任期号term1不等于参数中的PrevLogTerm，则将回复参数的NextIndex更新后返回，回复参数的Success为false，NextIndex为：任期号为term1的第一个日志项索引（由后往前判断），这可以加快leader重发日志项的效率。</span><br><span class="line">7、如果参数中的日志项不为空，尝试追加日志项到本地。如果已有的日志项与新日志项冲突（索引相同，任期不同），删除该日志项和后续所有日志项；添加所有不存在的日志项。为方便，可以将PrevLogIndex之后的日志项截取掉，并直接追加所有到来的日志项，将回复参数的NextIndex更新为最高日志项索引+1。</span><br><span class="line">8、如果leader已提交日志项的最高索引 &gt; 当前服务器已提交日志项的最高索引，将当前服务器的commitIndex更新为min(leader已提交日志项的最高索引,当前服务器日志项的最高索引)。如果当前服务器的commitIndex被修改了（没被改动无需进行通知），则往chanCommit写入true（促使日志项的应用，以及通知service或tester）。注意参数中的日志项为空时，也是有可能更新commitIndex的，即commitIndex的更新时机与参数中的日志项是否为空没有关系。</span><br><span class="line">9、回复参数的Success为true。</span><br></pre></td></tr></table></figure></p>
+<p>9、leader广播发送心跳包/日志项请求后，对于每一个收到的请求结果，作出以下判断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、如果服务器状态已经不是leader，直接返回。</span><br><span class="line">2、如果发送参数中的任期号已经不等于当前任期号，直接返回。</span><br><span class="line">3、如果返回参数中的任期号大于当前任期号，更新当前任期号（导致步骤2的出现），leader状态立即转换为选民（导致步骤1的出现），返回。  </span><br><span class="line">4、如果回复参数的Success为true，说明接收者的已有日志与leader保持一致，且接收者接收了新的日志项（如果有）。如果leader发送的日志项不为空，则更新对应的nextIndex[i]为已发送日志的最后一项的index+1，matchIndex[i]为已发送日志的最后一项的index。</span><br><span class="line">5、如果回复参数的Success为false，说明接收者的已有日志与leader不一致，根据回复参数的NextIndex更新对应的nextIndex[i]。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">注意：</span><br><span class="line">当leader发送的日志项为空时，是否需要更新matchIndex[i]？</span><br><span class="line">观点1，需要更新，考虑以下场景：raft集群启动后，leader A接收了5个客户端命令，追加到日志，并且复制到其他服务器。其他服务器都成功接收到了日志，但此时leader A的commitIndex[i]还只是0。这时leader A宕机，B成为新的leader，B的matchIndex[i]初始化为0。然而，leader B没有发送日志到其他服务器，因为所有的服务器日志都是一致的。这种情况下，倘若不更新matchIndex[i]，则matchIndex[i]可能会一直保持为0，导致旧日志无法被提交。</span><br><span class="line">观点1的说法其实是不完整的，因为它忽略了一个事实：只有在当前任期号currentTerm内接收了新日志并成功追加到其他服务器时，才有可能更新commitIndex；倘若在当前任期号currentTerm内没有接收新日志，而只是将旧日志的matchIndex[i]更新，也不会更新leader B的commitIndex。而一旦接收了新日志并成功追加到其他服务器时，则总有一个时刻leader发送的日志项不为空；因此，在这种情况下，观点2“如果leader发送的日志项为空则不需要更新matchIndex[i]”，这种做法是正确的。  </span><br><span class="line">raft重启之后需要可能需要通过快照来恢复数据（后续实验会实现），如果没使用快照的话，则会将日志项一个一个重新应用并通知service或tester；这种情况下，倘若raft重启后尝试发送数据到follower，但由于服务器之间日志一致，则会导致matchIndex[i]无法更新，最终在没有接收到新请求的情况下，leader是无法更新commitIndex的，最终没办法通知service或tester，除非上层应用重启后有尝试发送请求到raft。</span><br></pre></td></tr></table></figure>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/raft&quot;</span><br><span class="line">$ go test -run 2B</span><br></pre></td></tr></table></figure></p>
+<p>结果：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/7.PNG" title="2B测试结果"></p>
+<h2 id="Part-2C"><a href="#Part-2C" class="headerlink" title="Part 2C"></a>Part 2C</h2><p>raft服务器在重启时应该从它的离开点恢复服务，这就要求raft服务器必须在一些时间点保存持久状态。真实情况中，raft服务器应该在数据变化时将服务器数据持久化到磁盘中，并且在重启之后从磁盘中读取最新的持久化数据。在我们的实验中，并没有使用到磁盘，而是通过序列化和反序列化将数据存储到Persister object中。当调用Raft.Make()函数启动raft服务器时，将从Persister object中读取最后保存的持久化状态数据。</p>
+<p>raft重启时都是选民身份，因此无需持久化leader或候选人相关的数据。raft需要持久化的数据如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、currentTerm：当前服务器已知的任期号。</span><br><span class="line">2、votedFor：当前服务器给谁投过票。</span><br><span class="line">3、log[]：当前服务器的日志数组。</span><br></pre></td></tr></table></figure></p>
+<p>注意：不能对commitIndex（当前服务器已提交的最高日志项索引）和lastApplied（当前服务器已应用的最高日志项索引）进行持久化。当raft重启之后，应该根据所有服务器的日志情况重新计算matchIndex[]，并且从头开始按顺序将已提交的日志项通知到service或tester。</p>
+<p>需要持久化raft服务器数据的时机：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1、leader接收了客户端的命令并追加到日志中。</span><br><span class="line">2、接收到投票请求，导致更新已知的任期号或进行投票。</span><br><span class="line">3、接收到投票请求的回复，导致更新已知的任期号。</span><br><span class="line">4、leader广播发送心跳包/追加日志项请求前更新commitIndex。</span><br><span class="line">5、接收到心跳包/追加日志项请求，导致更新已知的任期号，或追加日志，或更新接收者的commitIndex，或更新接收者的lastApplied。</span><br><span class="line">6、接收到心跳包/追加日志项请求的回复，导致更新已知的任期号。</span><br></pre></td></tr></table></figure></p>
+<p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/raft&quot;</span><br><span class="line">$ go test -run 2C</span><br></pre></td></tr></table></figure></p>
+<p>结果：<br><img src="/2017/08/16/笔记02-Lab-2-Raft/8.PNG" title="2C测试结果"> </p>
+<h2 id="本实验没有实现的部分"><a href="#本实验没有实现的部分" class="headerlink" title="本实验没有实现的部分"></a>本实验没有实现的部分</h2><p>1、本实验是基于单机模拟的，没有实现真正的分布式。<br>2、日志没有存储到磁盘上。<br>3、非leader收到客户端请求时，没有转发到leader而只是简单地忽略。<br>4、持久化服务器状态数据时没有写入到磁盘上。<br>5、没有涉及集群成员变化的情况。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/笔记01-Lab-1-MapReduce/" rel="next" title="笔记01 - Lab 1: MapReduce">
+                <i class="fa fa-chevron-left"></i> 笔记01 - Lab 1: MapReduce
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/" rel="prev" title="笔记03 - Lab 3: Fault-tolerant Key/Value Service">
+                笔记03 - Lab 3: Fault-tolerant Key/Value Service <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#综述"><span class="nav-number">1.</span> <span class="nav-text">综述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是Raft"><span class="nav-number">1.1.</span> <span class="nav-text">什么是Raft</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft的服务器状态"><span class="nav-number">1.2.</span> <span class="nav-text">Raft的服务器状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader-Election：领导人选举"><span class="nav-number">1.3.</span> <span class="nav-text">Leader Election：领导人选举</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制Election的两种timeout设置"><span class="nav-number">1.4.</span> <span class="nav-text">控制Election的两种timeout设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何确保每届选举任期内只有一个Leader"><span class="nav-number">1.5.</span> <span class="nav-text">如何确保每届选举任期内只有一个Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#split-vote：分裂投票"><span class="nav-number">1.6.</span> <span class="nav-text">split vote：分裂投票</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Replication：日志复制"><span class="nav-number">1.7.</span> <span class="nav-text">Log Replication：日志复制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验内容"><span class="nav-number">2.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">2.1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-code"><span class="nav-number">2.2.</span> <span class="nav-text">The code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#src-labrpc"><span class="nav-number">2.3.</span> <span class="nav-text">src/labrpc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2A"><span class="nav-number">2.4.</span> <span class="nav-text">Part 2A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Part-2A解决思路"><span class="nav-number">2.4.1.</span> <span class="nav-text">Part 2A解决思路</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2B"><span class="nav-number">2.5.</span> <span class="nav-text">Part 2B</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Part-2B解决思路"><span class="nav-number">2.5.1.</span> <span class="nav-text">Part 2B解决思路</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-2C"><span class="nav-number">2.6.</span> <span class="nav-text">Part 2C</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本实验没有实现的部分"><span class="nav-number">2.7.</span> <span class="nav-text">本实验没有实现的部分</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

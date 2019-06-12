@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="综述raft snapshot随着客户端请求的不断增加，raft的日志项不断增加。为了压缩日志，raft采取快照snapshotting的方式，以某个日志项为基准，将之前的整个系统状态写入到快照文件中，然后删除该日志项之前的所有日志。快照内容通常是所有命令操作过的对象的最新值，作为快照基准的日志项必须是已提交的数据项。 raft的服务器中，无论是leader还是follower，一旦触发快照条件，">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记03 - Lab 3: Fault-tolerant Key&#x2F;Value Service">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="综述raft snapshot随着客户端请求的不断增加，raft的日志项不断增加。为了压缩日志，raft采取快照snapshotting的方式，以某个日志项为基准，将之前的整个系统状态写入到快照文件中，然后删除该日志项之前的所有日志。快照内容通常是所有命令操作过的对象的最新值，作为快照基准的日志项必须是已提交的数据项。 raft的服务器中，无论是leader还是follower，一旦触发快照条件，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/4.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.217Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记03 - Lab 3: Fault-tolerant Key&#x2F;Value Service">
+<meta name="twitter:description" content="综述raft snapshot随着客户端请求的不断增加，raft的日志项不断增加。为了压缩日志，raft采取快照snapshotting的方式，以某个日志项为基准，将之前的整个系统状态写入到快照文件中，然后删除该日志项之前的所有日志。快照内容通常是所有命令操作过的对象的最新值，作为快照基准的日志项必须是已提交的数据项。 raft的服务器中，无论是leader还是follower，一旦触发快照条件，">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/">
+
+
+
+
+
+  <title>笔记03 - Lab 3: Fault-tolerant Key/Value Service | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记03 - Lab 3: Fault-tolerant Key/Value Service</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-16T22:42:26+08:00">
+                2017-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-824-Distributed-Systems/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.824 Distributed Systems</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h1><h2 id="raft-snapshot"><a href="#raft-snapshot" class="headerlink" title="raft snapshot"></a>raft snapshot</h2><p>随着客户端请求的不断增加，raft的日志项不断增加。为了压缩日志，raft采取快照snapshotting的方式，以某个日志项为基准，将之前的整个系统状态写入到快照文件中，然后删除该日志项之前的所有日志。快照内容通常是所有命令操作过的对象的最新值，作为快照基准的日志项必须是已提交的数据项。</p>
+<p>raft的服务器中，无论是leader还是follower，一旦触发快照条件，服务器都会独立采取快照措施以压缩日志。此外，如果leader采取快照措施压缩了自身的日志，但是被丢弃的日志还未发送给follower；这种情况下，leader还需要发送快照到follower以更新follower的日志和快照。幸运的是，这种情况在正常操作中是不可能发生的，因为能与leader通信的follower一般已经保存了这些被丢弃的日志项。但是，网络原因或者follower响应慢或者新服务器加入了raft集群的话，都可能导致被丢弃的日志还未发送给follower。此时，为了保证这些follower的日志up-to-date，必须由leader在网络上向他们发送快照。</p>
+<p>快照文件可以分块发送，follower接收到完整的快照文件之后，将丢弃快照所对应的日志部分，但保留快照文件之后的日志。快照文件也可能包含了follower日志不曾有过的内容，这时follower将丢弃整个日志。若follower有未提交的日志项（如被隔离的旧leader接收了请求但无法提交，最后恢复通信变成follower并接收了快照），也将被快照文件所替代。</p>
+<p>快照策略偏离了raft的strong leader原则，因为follower本身也可以执行该快照策略，但这并没有破坏raft的状态一致性。follower仍然只能从leader接收日志数据，只不过follower现在可以重新组织他们的数据，但数据来源依然是leader。当然，follower可能先后接收到日志项和快照，因此可能出现先接收了更新的快照，而后才接收到旧的日志项，这种情况下follower应当忽略这些旧日志项。倘若只由leader来创建快照，然后一并发送给follower，将会产生两个问题：1、浪费网络带宽，降低快照处理速度，follower在满足日志压缩的条件下自行压缩日志将大大高效于从网络中接收快照文件并进行存储；2、leader的实现将更复杂，需要并行处理新日志发送和快照文件发送，以不阻塞接收新的客户端请求。</p>
+<p>影响快照策略的性能问题有：1、服务器决定进行快照处理的时机。快照太过频繁将浪费磁盘带宽和资源，太过稀少则可能耗尽存储容量，并且重启的时候将消耗大量的时间来恢复日志。一个简单的解决设置阈值，如果该阈值比预期的快照大小大得多，则快照带来的磁盘带宽开销将会很小。2、写快照文件将会花费大量的时间，但我们不希望因此延迟了正常的操作。解决这个问题的方法是使用copy-on-write策略，可以利用操作系统的copy-on-write支持为整个状态机创建一个内存快照。</p>
+<h1 id="实验内容"><a href="#实验内容" class="headerlink" title="实验内容"></a>实验内容</h1><h2 id="Part-3A-Key-value-service-without-log-compaction"><a href="#Part-3A-Key-value-service-without-log-compaction" class="headerlink" title="Part 3A: Key/value service without log compaction"></a>Part 3A: Key/value service without log compaction</h2><p>本实验部分将基于raft实现一个可容错的kv存储服务。kv存储服务将被构建为复制状态机，包含了多个kv服务器，每个kv服务器都基于raft日志来协调本身的活动。尽管可能发生网络分区或者其他错误，但只要大多数raft服务器是活跃的并且能够互相通信，kv存储服务就必须能够持续处理客户端的请求。</p>
+<h3 id="客户端-服务器的布局"><a href="#客户端-服务器的布局" class="headerlink" title="客户端-服务器的布局"></a>客户端-服务器的布局</h3><p>kv存储服务体系包括了客户端和kv服务器，每个kv服务器关联到一个raft服务器。客户端发送PutAppend()、Get()的RPC请求到kv服务器上，kv服务器将客户端请求按次序追加到raft日志上。一个客户端可以向任何kv服务器发送rpc，如果kv服务器关联的raft服务器不是leader或者出现错误，客户端需要重新向其他服务器发送请求；各个kv服务器可面向多个客户端，并维护一致的key-value存储。一旦raft提交了对应的请求操作（并因此应用到kv状态机上），kv服务器需要向客户端发送回复。如果kv服务器发现请求操作无法被提交（例如更换了leader），kv服务器需要向客户端发送报告，客户端再重新向其他服务器发送请求。<br>相关的数据结构是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">type Clerk struct &#123;</span><br><span class="line">	servers []*labrpc.ClientEnd //客户端可联系的kv服务器</span><br><span class="line">&#125;</span><br><span class="line">type RaftKV struct &#123; </span><br><span class="line">	me      int</span><br><span class="line">	rf      *raft.Raft //kv服务器关联的raft服务器</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="kv服务器职责"><a href="#kv服务器职责" class="headerlink" title="kv服务器职责"></a>kv服务器职责</h3><p>kv服务器底层借助raft进行实现，因此，kv服务器本身需要长时间等待raft的日志提交通知。针对已提交的操作，kv服务器需要存储key-value对的内容。客户端提供Put()、Append()、Get()三种接口，实际上转换为调用kv服务器可接受的PutAppend()、Get()两种RPC请求。kv服务器需要处理客户端的重复请求。kv服务器之间不进行通信，由其关联的raft服务器之间会保持通信。<br>相关的数据结构是：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">// 客户端发送Put、Append请求</span><br><span class="line">type PutAppendArgs struct &#123;</span><br><span class="line">	Key   string</span><br><span class="line">	Value string</span><br><span class="line">	Op    string // &quot;Put&quot; or &quot;Append&quot; </span><br><span class="line">	ClerkId int64</span><br><span class="line">	ReqId	int64</span><br><span class="line">&#125;</span><br><span class="line">// 客户端发送Put、Append请求的回复</span><br><span class="line">type PutAppendReply struct &#123;</span><br><span class="line">	WrongLeader bool</span><br><span class="line">	Err         Err</span><br><span class="line">&#125;</span><br><span class="line">// 客户端发送Get请求</span><br><span class="line">type GetArgs struct &#123;</span><br><span class="line">	Key string </span><br><span class="line">	ClerkId int64</span><br><span class="line">	ReqId	int64</span><br><span class="line">&#125;</span><br><span class="line">// 客户端发送Get请求的回复</span><br><span class="line">type GetReply struct &#123;</span><br><span class="line">	WrongLeader bool</span><br><span class="line">	Err         Err</span><br><span class="line">	Value       string</span><br><span class="line">&#125;</span><br><span class="line">// 客户端参数</span><br><span class="line">type Clerk struct &#123; </span><br><span class="line">	lastLeader int //存储已知关联到leader的kv服务器索引	</span><br><span class="line">	reqId	int64 //客户端发送请求序号</span><br><span class="line">	clerkId	int64 //客户端标志序列</span><br><span class="line">&#125;</span><br><span class="line">// kv服务器参数</span><br><span class="line">type RaftKV struct &#123; </span><br><span class="line">	applyCh chan raft.ApplyMsg //用于等待raft的日志提交通知</span><br><span class="line">	maxraftstate int //用于压缩raft日志的快照阈值</span><br><span class="line">	rpcResult map[int]chan Op //用于等待新追加的日志项的提交</span><br><span class="line">	kvMap 	map[string]string //用于存储kv键值对</span><br><span class="line">	ackMap	map[int64]int64   //用于识别客户端的重复请求</span><br><span class="line">&#125;</span><br><span class="line">// 日志项参数，kv服务器将客户端的请求转换为该结构，并追加到raft日志中</span><br><span class="line">type Op struct &#123; </span><br><span class="line">	Key string</span><br><span class="line">	Value string</span><br><span class="line">	Op string</span><br><span class="line">	ClerkId int64</span><br><span class="line">	ReqId	int64</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="raft的日志项"><a href="#raft的日志项" class="headerlink" title="raft的日志项"></a>raft的日志项</h3><p>raft的日志项内容是一个Op结构体，该结构体内容来自于客户端的请求参数，包括键、值、操作类型、客户端标识符、客户端请求序号。</p>
+<h3 id="kv服务器监听日志项提交"><a href="#kv服务器监听日志项提交" class="headerlink" title="kv服务器监听日志项提交"></a>kv服务器监听日志项提交</h3><p>kv服务器接到客户端的请求后，将请求参数内容保存到Op结构体中，调用raft.Start()方法尝试将Op追加到raft日志中。如果raft.Start()返回参数中指明该kv服务器的raft服务器不是leader，则kv服务器直接回复客户端，回复参数WrongLeader为true，客户端再次向其他服务器发送请求。如果该kv服务器的raft服务器是leader，则根据返回的日志index，尝试使用select阻塞读取日志项提交结果。kv服务器使用了<code>rpcResult map[int]chan Op</code>数据结构来通知日志项已被raft提交的结果：首先，kv服务器启动时使用go routine监听raft的日志提交通知，即阻塞读取applyCh，一旦有读出，将读出结果Op写入到rpcResult[index]中，键是该日志项的索引index；其次，kv服务器每次成功调用raft.Start()之后（成功指的是服务器为leader），根据raft.Start()返回的日志项索引阻塞读取rpcResult[index]，一旦读出成功，表明完成了客户端的请求操作（该表述不一定正确，因为网络分区可能造成在index索引处读取到的日志项并不是所等待的预期日志项，详见后面分析）。这样就完成了kv服务器监听raft日志项提交和通知日志项提交结果的工作。</p>
+<h3 id="kv服务器追加Get请求到日志"><a href="#kv服务器追加Get请求到日志" class="headerlink" title="kv服务器追加Get请求到日志"></a>kv服务器追加Get请求到日志</h3><p>kv存储服务的一个设计原则是：当客户端发送请求到kv服务器时，如果kv服务器关联的raft服务器不是majority的一部分，则不应该完成该请求。当客户端发送Get请求时，kv服务器没有办法直接判断其关联的raft服务器是不是majority的一部分，因此，一个简单的解决方法是调用raft.Start()将Get请求操作追加到raft日志中，如果能够收到raft的日志项提交通知，说明其关联的raft服务器是majority的一部分，并且该Get请求可完成。</p>
+<h3 id="kv服务器对重复请求的处理"><a href="#kv服务器对重复请求的处理" class="headerlink" title="kv服务器对重复请求的处理"></a>kv服务器对重复请求的处理</h3><p><strong>kv服务器如何标识客户端请求</strong>：<br>由于一个客户端可以向任何kv服务器发送rpc请求，因此kv服务器识别客户端请求时，不仅需要识别该请求是来自于哪个客户端，还需要识别某个客户端的不同请求。因此，本实验使用了两个字段来识别客户端请求，分别是客户端id和请求id。客户端id通过随机数产生，每个客户端在初始化的使用将请求id置为0，之后每次发送请求时，都将请求id加1。<br><strong>kv服务器处理客户端重复请求的必要性</strong>：<br>客户端的重复请求应当被忽略。由于网络分区、网络丢包等原因，客户端可能多次发送同一请求，如果kv服务器不忽略这些重复请求，则写请求会破坏kv键值对的正确存储，造成数据破坏。<br><strong>kv服务器如何识别重复的客户端请求</strong>：<br>kv服务器使用<code>ackMap  map[int64]int64</code>结构来确认客户端请求，该map的key值是客户端id，value值是已确认的最大请求id。本实验使用了累加确认的方式，即一旦发现客户端请求id小于或等于已确认的最大请求id，则判断该请求是重复的，这要求客户端有序发送请求，而不能一次性发送多个请求。<br><strong>kv服务器何时确认客户端请求</strong>：<br>原则：当客户端发送请求到kv服务器时，如果kv服务器关联的raft服务器不是majority的一部分，则不应该完成该请求。因此，kv服务器本可以在Get()和PutAppend()两个函数的入口处判断该请求是否是重复请求，以减少服务器的不必要开销，但这违反了上述原则。因此，本实验的方案是尝试将请求操作追加至raft日志中，一旦kv服务器收到raft的日志提交通知，则判断该请求是否是重复请求，如果是则不进行kv存储（<strong>对于重复请求的处理：仍需要通过channel通知日志项提交结果，且kv服务器按照请求操作成功进行回复即可，这样客户端收到预期回复后停止重发</strong>），否则根据已提交日志项进行kv存储。<br>kv存储的具体细节是：使用<code>kvMap   map[string]string</code>数据结构进行存储，如果操作是Put，则<code>kv.kvMap[args.Key] = args.Value</code>；如果操作是Append，则<code>kv.kvMap[args.Key] += args.Value</code>；如果操作是Get，无需存储；最后，将该请求的请求id登记到对应的客户端id上（kv.ackMap），表明当前对该客户端id已确认的最大请求id。注意到，<strong>不需要对Get请求进行存储，但需要对Get请求进行确认</strong>。  另一个需要注意的问题是：<strong>判断是否是重复请求以及进行kv存储这两个操作需要在同一个锁范围内执行，否则，对于两个相同的请求，可能导致在进行kv存储前执行了两次判断操作，并一致认为该请求不重复，最终对同一请求追加了两次值</strong>。</p>
+<h3 id="补充：客户端如何发送请求"><a href="#补充：客户端如何发送请求" class="headerlink" title="补充：客户端如何发送请求"></a>补充：客户端如何发送请求</h3><p>kv服务器处理请求但回复丢失（Call的调用结果被置为false），或者客户端超时重传（如果有），都可能造成客户端重复发送请求的情况。<br>设计1：客户端只有在本次发送请求并成功收到预期回复时才可以进行下次发送（本实验采取的设计）。对于这种情况，kv服务器接收到的每个客户端的请求将是有序的。那么，由于网络原因导致客户端重发请求时，kv服务器可以采用累加确认结果来判别是不是重复请求（当前请求id小于等于已确认的最大请求id则表明是重复请求）。累加确认方法只记录每个客户端的最高确认项。<br>设计2：客户端可并发发送多个请求。对于这种情况，请求id小的请求不一定先被kv服务器接收到，这意味着先被提交的请求操作，其请求id不见得更小。因此，为了能识别重复请求，应当对每个客户端的每个请求进行单独记录，即不再采用累加确认方法，该方案存在的缺点是kv服务器需要维护的数据量大大增加。另一种解决方案是仍旧采用累加确认方法，并且需要在确认更大的请求id之前提示客户端重传之前尚未确认的数据包，该方案需要重新设计客户端-kv服务器的通信协议，并且可能加大网络负载。</p>
+<h3 id="kv服务器等待日志项提交结果的通知时设置超时"><a href="#kv服务器等待日志项提交结果的通知时设置超时" class="headerlink" title="kv服务器等待日志项提交结果的通知时设置超时"></a>kv服务器等待日志项提交结果的通知时设置超时</h3><p>kv服务器接收客户端请求并调用raft.Start()方法尝试将请求操作追加至raft日志中，如果调用成功且kv服务器所关联的raft服务器是leader，则kv服务器会阻塞读取rpcResult[index]，以等待日志项提交结果的通知。在此，是否需要设置超时等待呢？<br>kv服务器等待的是索引index所对应日志项的提交结果通知，而没有针对具体的leader。raft可能在kv服务器等待期间更换了leader，考虑以下场景：<br>raft集群启动后，客户端向kv服务器发送rpc请求，kv服务器将请求操作发送到所关联的raft服务器leader A，然后等待提交结果通知。leader A将请求操作追加到日志，并且复制到其他服务器。其他服务器都成功接收到了日志，但此时leader A还未commit该日志项。这时leader A宕机，B成为新的leader。kv服务器若没有设置等待超时，则客户端会一直等待回复，不会发送新的请求；然而，leader B在当前新任期内倘若没有追加新的日志项，是不会提交旧日志项的（未提交的部分），导致kv服务器一直收不到日志项提交结果的通知，造成死锁。<br>因此，kv服务器需要在等待日志项提交结果的通知设置超时等待。这里有两种设计方案：1、一旦超时则直接告知客户端是wrong leader，客户端尝试从下一个服务器开始重发请求。2、使用for无限循环和select机制，阻塞等待日志项提交结果的通知和进行超时处理，一旦超时就检查当前所关联raft服务器的状态，一旦发现不是leader，则跳出循环，告知客户端是wrong leader，否则继续下一次select。</p>
+<h3 id="kv服务器收到日志项提交结果的通知后判断是否是预期结果-网络分区对kv服务器的影响"><a href="#kv服务器收到日志项提交结果的通知后判断是否是预期结果-网络分区对kv服务器的影响" class="headerlink" title="kv服务器收到日志项提交结果的通知后判断是否是预期结果/网络分区对kv服务器的影响"></a>kv服务器收到日志项提交结果的通知后判断是否是预期结果/网络分区对kv服务器的影响</h3><p>kv服务器接收客户端请求并调用raft.Start()方法尝试将请求操作追加至raft日志中，如果调用成功且kv服务器所关联的raft服务器是leader，则kv服务器会阻塞读取rpcResult[index]，以等待日志项提交结果的通知。接收到通知后，是否可以直接断定该请求已完成了呢？<br>考虑以下场景：<br>一开始，kv服务器A所关联的raft服务器是leader，之后发生了网络分区，kv服务器A所关联的raft服务器处于少数机子可连通的分区，此时kv服务器A所关联的raft服务器仍然以为自己是leader。kv服务器A接收了客户端的请求，raft.Start()仍表明是leader，日志项的索引index为1，然后kv服务器A等待raft的日志项提交。大多数机子可连通的分区选举了新的leader，新leader接收了新日志项并成功提交（index为1）后，网络分区恢复了。这时候，kv服务器A所关联的raft服务器接收了来自于新leader的日志项并提交，kv服务器A收到了index为1的日志项提交通知，但此时该日志项并不是预期的日志项。这种情况下，应当告知客户端是wrong leader，让客户端重新发送请求。因此，kv服务器接收到通知后，应当判断接受结果是否等同于预期的请求操作。</p>
+<h3 id="客户端解决非leader问题"><a href="#客户端解决非leader问题" class="headerlink" title="客户端解决非leader问题"></a>客户端解决非leader问题</h3><p>kv服务器发现是非leader的时机：<br>1、kv服务器调用raft.Start()追加请求操作到raft日志时，返回参数指明raft服务器是否是leader。<br>2、kv服务器使用for无限循环和select机制来阻塞等待日志项提交结果的通知和进行超时处理时，通过raft.GetState()查看当前raft服务器是不是leader。<br>客户端对非leader的处理：<br>1、客户端使用了lastLeader来记录已知的kv服务器索引。每次调用Call向服务器发送请求后，调用成功并且回复的wrongLeader为false时，更新lastLeader。<br>2、在网络可靠的情况下，这种做法很大几率地避免了轮询服务器发送请求的情况。但在网络不可靠的情况下，很有可能出现以下情况：调用Call向关联leader的kv服务器发送请求，由于Call失败转而向非leader重新发送请求；如果客户端支持并发发送请求，某个程序对于同个客户端的lastLeader的修改可能会影响其他程序对于lastLeader的读取，进而影响其他程序轮询服务器发送请求。</p>
+<h3 id="kv服务器重启的影响及数据持久化"><a href="#kv服务器重启的影响及数据持久化" class="headerlink" title="kv服务器重启的影响及数据持久化"></a>kv服务器重启的影响及数据持久化</h3><p>kv服务器重启意味着之前的kv键值对数据丢失、确认数据丢失，后续请求可能获取不到正确的数据。在本实验中，kv服务器重启意味着使用相同的配置条件重新Make一个kv服务器，所以对应的raft服务器也是重新Make出来的。raft的启动将使用其持久化数据，对于kv服务器而言，有没有必要考虑数据持久化呢？<br>对于这个问题有两个解决方案，其一是仿照raft为kv服务器进行持久化数据存储，一旦更新kv服务器的数据则进行持久化存储，kv服务器启动时使用其持久化数据；其二是借助raft的底层实现，kv服务器本身不采取数据持久化的做法，具体方案是：<br>raft持久化数据不能包括已提交的最高索引和已应用的最高索引！当kv服务器重启时，其数据为空，如果raft持久化了已提交的最高索引和已应用的最高索引，则已提交过的日志项数据无法重构到kv服务器中。相反，若raft服务器重新启动时读取了持久化数据，并设置已提交的最高索引和已应用的最高索引均为0，则其所有日志项都会按索引顺序通知到kv服务器，kv服务器按顺序读出日志项内容后，对kv键值对和确认数据进行重构即可。当kv服务器重启后，对于新接收的请求操作，假如其日志项index为i，根据日志项提交通知的实现，只有当kv服务器收到index小于等于i的所有日志项的提交通知后才会对该请求操作进行回复，因此保证了数据的完整性。</p>
+<h2 id="Part-3B-Key-value-service-with-log-compaction"><a href="#Part-3B-Key-value-service-with-log-compaction" class="headerlink" title="Part 3B: Key/value service with log compaction"></a>Part 3B: Key/value service with log compaction</h2><p>直至目前为止，kv服务器重启时将借助整个raft日志来恢复状态。但是，对于长时间运行的raft服务器来说，不可能一直保持完整的日志。本实验将借助raft和kv服务器之间的协作来节省空间：kv服务器时不时将当前状态持久化存储到快照中，raft则根据快照覆盖范围来丢弃日志。当kv服务器重启或者远远慢于leader的进度且必须跟进时，服务器首先安装快照，然后从创建快照的基准点之后开始恢复日志（实际上本实验没有进行硬盘操作，因此是先恢复了持久化的日志数据，然后根据快照对日志进行截断）。</p>
+<p>参考<a href="https://pdos.csail.mit.edu/6.824/papers/raft-extended.pdf" target="_blank" rel="noopener">In Search of an Understandable Consensus Algorithm</a>一文，可大致了解到，raft的快照形式为：<br><img src="/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/1.PNG" title="快照形式"><br>结合到本实验中，实际上snapshot是由kv服务器提供的，而不是raft服务器自身产生，raft服务器的日志实现为业务无关型，当然也没有办法收集到所有命令操作过的对象的最新值。kv服务器接收到raft的日志项提交通知后，判断是否达到快照阈值，如果达到，则将本身的kv数据和请求确认数据写入到snapshot后，发送给对应的raft服务器，之后raft服务器再获取快照文件对应的最后一个日志项的index和term，然后和kv服务器传来的snapshot一起持久化到自身的snapshot中，并且压缩自身的日志。 </p>
+<p>倘若leader丢弃的日志还未复制给follower，则leader会通过rpc将最新的snapshot发送给follower，具体格式为：<br><img src="/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/2.PNG" title="snapshot rpc"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">快照请求数据：</span><br><span class="line">term: leader的任期号</span><br><span class="line">leaderId: leaderId用于选民对客户机请求重定向 </span><br><span class="line">lastIncludedIndex: 快照文件所囊括的日志项上限的索引(包括lastIncludedIndex)</span><br><span class="line">lastIncludedTerm: lastIncludedIndex对应的日志项任期号</span><br><span class="line">offest: 数据块在整个快照文件中的偏移(byte)</span><br><span class="line">data[]: 快照文件的某个字节码数据块，从offest开始</span><br><span class="line">done: 是否是最后一个数据块</span><br><span class="line"></span><br><span class="line">快照回复数据：</span><br><span class="line">term: 当前任期，用于leader更新自己的任期</span><br><span class="line"></span><br><span class="line">快照的接收实现：</span><br><span class="line">1、如果leader的任期号term &lt; 当前任期currentTerm，直接回复 </span><br><span class="line">2、如果是第一个数据块(offest为0)，创建snapshot</span><br><span class="line">3、将data写入到snapshot的offest处</span><br><span class="line">4、如果不是最后一个数据块，回复并等待其他数据块</span><br><span class="line">5、保存snapshot文件，丢弃任何已存在的或局部的index更小的snapshot</span><br><span class="line">6、如果已存在的日志项拥有snapshot囊括的最后一个日志项，丢弃该日志项之前的所有日志，维护之后的日志，回复</span><br><span class="line">7、丢弃整个日志</span><br><span class="line">8、使用snapshot的数据重设状态机(加载snapshot的集群配置)。</span><br></pre></td></tr></table></figure></p>
+<p>本实验没有将snapshot分块传输，而是直接一整块发送。raft的follower接收到leader的snapshot之后，将该snapshot数据回传给上一层的kv服务器，而kv服务器使用该snapshot更新自身的kv数据和请求确认数据。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">快照请求数据：</span><br><span class="line">term: leader的任期号 </span><br><span class="line">lastIncludedIndex: 快照文件所囊括的日志项上限的索引(包括lastIncludedIndex)</span><br><span class="line">lastIncludedTerm: lastIncludedIndex对应的日志项任期号 </span><br><span class="line">data[]: 快照文件的某个字节码数据块，从offest开始 </span><br><span class="line"></span><br><span class="line">快照回复数据：</span><br><span class="line">term: 当前任期，用于leader更新自己的任期</span><br><span class="line">nextIndex: 回复者告知leader下次发送的日志项索引</span><br><span class="line"></span><br><span class="line">快照的接收实现：</span><br><span class="line">1、如果leader的任期号term小于当前任期currentTerm，直接回复 </span><br><span class="line">2、如果当前任期currentTerm小于请求参数中leader的任期号，更新当前任期号，立即将状态转换为选民。  </span><br><span class="line">3、返回参数中附上当前任期号。  </span><br><span class="line">4、往chanHeartBeat写入true。</span><br><span class="line">5、判断当前commitIndex是否大于lastIncludedIndex，是则将返回参数的nextIndex赋值commitIndex+1，返回。 </span><br><span class="line">6、保存snapshot文件。</span><br><span class="line">7、如果已存在的日志项拥有snapshot囊括的最后一个日志项，丢弃该日志项之前的所有日志，维护之后的日志，否则丢弃整个日志。</span><br><span class="line">8、更新commitIndex和lastApplied为lastIncludedIndex。</span><br><span class="line">9、使用snapshot的数据重设状态机(加载snapshot的集群配置)。</span><br><span class="line">10、将返回参数的nextIndex赋值lastIncludedIndex+1，返回。</span><br></pre></td></tr></table></figure></p>
+<h3 id="快照策略执行的流程"><a href="#快照策略执行的流程" class="headerlink" title="快照策略执行的流程"></a>快照策略执行的流程</h3><p>本实验的快照策略执行流程为：1、tester在创建kv服务器时绑定了快照阈值maxraftstate；2、kv服务器接收客户端请求并发送给对应的raft服务器，然后等待日志提交结果的通知，每接收到一个通知之后，判断maxraftstate与关联的raft服务器的持久化数据的大小(包括日志)，一旦超出maxraftstate，kv服务器将自身的kv数据和请求确认数据打包到snapshot中，连同刚通知的日志项index发送给raft服务器；3、raft服务器根据index获取已提交日志项的任期号，压缩自身日志，然后将index、term、kv服务器的snapshot打包存储为自身新的snapshot中；4、任何raft服务器均可以响应对应kv服务器的快照并压缩自身的日志和进行snapshot存储。5、leader心跳包发送日志项期间，假如发现有未发送的日志项被丢弃，则采取将持久化的snapshot发送到follower的措施；6、follower接收到snapshot后，以该snapshot为准进行日志压缩和snapshot存储，并将snapshot发给kv服务器以更新kv服务器自身的kv数据和请求确认数据。7、raft服务器重启时，首先读取状态持久化数据，恢复日志，然后读取快照数据，进行日志截断，最后将snapshot发给kv服务器以更新kv服务器自身的kv数据和请求确认数据。</p>
+<h3 id="raft的日志压缩"><a href="#raft的日志压缩" class="headerlink" title="raft的日志压缩"></a>raft的日志压缩</h3><p>raft的日志没有使用磁盘存储，而是采用了slice实现，因此为了能够保证日志截断后的正常索引，raft的日志项需要存储index。每次截取日志后，raft将lastIncludedIndex和lastIncludedTerm对应的日志项作为log[0]，该日志项已经被丢弃，将其作为当前第一个日志项在某些场景下可以带来计算方便，比如InstallSnapshot RPC参数中的lastIncludedIndex和lastIncludedTerm的获取。</p>
+<h3 id="快照内容的构成"><a href="#快照内容的构成" class="headerlink" title="快照内容的构成"></a>快照内容的构成</h3><p>kv服务器在监听到raft的日志项提交通知后，判断是否需要执行快照策略。对于kv服务器来说，其需要识别重复的客户端请求，也需要存储kv键值对内容，因此由kv服务器发给raft服务器的快照内容包括了kv数据和请求确认数据，同时还包括此时被通知的日志项的index。raft服务器则是根据index获取到对应的日志项的term，然后将这两者作为lastIncludedIndex和lastIncludedTerm，连同kv服务器发来的快照内容一起打包进了snapshot中。<br>由此也可看出，快照的内容针对的是已提交的日志项及其导向的kv数据，未提交的日志项数据不会存储在快照中。</p>
+<h3 id="快照策略的时机"><a href="#快照策略的时机" class="headerlink" title="快照策略的时机"></a>快照策略的时机</h3><p>三个时机：<br>1、kv服务器根据快照阈值maxraftstate和raft服务器的持久化数据的大小通知其所关联的raft服务器执行快照策略；<br>2、leader在发送日志项的过程中，根据nextIndex[i]和log[0].Index判断是否有未发送的日志项被丢弃。如上所述，log[0]对应的是最新的快照文件所囊括的最大的日志项；而nextIndex[i]的更新时机是在leader成功向follower追加日志并接收到回复；因此，如果nextIndex[i] &lt;= log[0].Index，说明对于该follower有未发送的日志项被丢弃的现象，leader应该将其snapshot发送给follower，而不是发送日志。由此也可看出，leader发送snapshot是在广播发送心跳包/日志项的过程中额外添加的处理，如果发送失败，则在后面的心跳包期间会继续尝试发送。另一方面，由于网络原因，<strong>可能出现leader发送追加日志后又发送更新的snapshot，而后follower先接收处理snapshot，再处理过时的追加日志，这种时候应该将过时的追加日志丢弃（判断条件是参数中PrevLogIndex小于follower快照中的最后一个日志项的index）</strong>。<br>leader成功发送snapshot之后，应当及时更新nextIndex[i]和matchIndex[i]；follower成功接收到snapshot后，应当及时更新commitIndex和lastApplied为lastIncludedIndex。<br>注意：<strong>考虑以下情景：1、leader发送日志和commitIndex N到follower A，A追加日志，并将日志提交到索引N；2、A回复leader，回复丢失，leader无法更新nextIndex[]；3、leader压缩日志，根据nextIndex[]和快照内容，判断出该follower有未发送的日志项被丢弃的现象，leader发送snapshot和lastIncludedIndex M；4、A接收snapshot，压缩日志，更新commitIndex和lastApplied为M；5、由于M &lt; N，(M，N]范围内的日志项再次被提交。</strong>上述场景导致日志项被重复提交，在我们的实验中，raft通知kv服务器（写入channel ch1）的时候是需要加锁的，而kv服务器读取通知后，会将通知结果写入到channel ch2中，kv服务器会有另外的程序等待读取该channel ch2以判断请求是否完成；因此，如果日志项被重复提交，kv服务器读取通知后会再次将结果写入到channel ch2中，但可能没有程序读出该channel ch2（因为这不是一次新请求），从而导致kv服务器读取通知程序被阻塞，进而导致raft通知阻塞，没办法释放锁。<strong>因此，follower在接收到leader的快照时，应当判断commitIndex是否大于lastIncludedIndex，如果是，则直接忽略该snapshot，并将返回参数的nextIndex赋值为commitIndex+1。</strong><br>3、raft重启后，恢复持久化数据，然后读取快照数据，进行日志截断，最后将snapshot发给kv服务器以更新kv服务器自身的kv数据和请求确认数据。raft读取快照后，应当及时更新commitIndex和lastApplied。  </p>
+<h3 id="快照处理请求过时"><a href="#快照处理请求过时" class="headerlink" title="快照处理请求过时"></a>快照处理请求过时</h3><p>raft服务器每次更新commitIndex之后，都会将(lastApplied,commitIndex]区间内的日志项逐一通知到kv服务器，这期间需要加锁；而kv服务器在监听到每一个日志项提交通知后都会判断是否需要发送快照数据，一旦需要则会反过来通知raft服务器进行快照处理，raft服务器进行快照处理也需要进行加锁。因此，kv服务器通知raft服务器进行快照处理需要通过go runtine实现，而不能阻塞等待，否则会造成raft服务器死锁。<br>采取go runtine通知raft服务器进行快照处理后，则可能出现多个快照处理的通知都被阻塞，直到(lastApplied,commitIndex]区间内的日志项逐一通知完毕后raft释放了锁，然后随机竞争。因此，<strong>raft执行快照处理前需要判断kv服务器传递的index是否已经小于log[0].Index（lastIncludedIndex），一旦是，则表明已经有更新的快照被保存了，当前的快照处理是过时请求，应当忽略。</strong></p>
+<h2 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h2><p>测试：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd &quot;$GOPATH/src/kvraft&quot;</span><br><span class="line">$ go test</span><br></pre></td></tr></table></figure></p>
+<p>结果：<br><img src="/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/3.PNG" title="测试结果"><br><img src="/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/4.PNG" title="测试结果2">  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/16/笔记02-Lab-2-Raft/" rel="next" title="笔记02 - Lab 2: Raft">
+                <i class="fa fa-chevron-left"></i> 笔记02 - Lab 2: Raft
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记01-x86-v6-book-Chapter-0/" rel="prev" title="笔记01 - x86 v6 book | Chapter 0">
+                笔记01 - x86 v6 book | Chapter 0 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#综述"><span class="nav-number">1.</span> <span class="nav-text">综述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#raft-snapshot"><span class="nav-number">1.1.</span> <span class="nav-text">raft snapshot</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验内容"><span class="nav-number">2.</span> <span class="nav-text">实验内容</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-3A-Key-value-service-without-log-compaction"><span class="nav-number">2.1.</span> <span class="nav-text">Part 3A: Key/value service without log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端-服务器的布局"><span class="nav-number">2.1.1.</span> <span class="nav-text">客户端-服务器的布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器职责"><span class="nav-number">2.1.2.</span> <span class="nav-text">kv服务器职责</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#raft的日志项"><span class="nav-number">2.1.3.</span> <span class="nav-text">raft的日志项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器监听日志项提交"><span class="nav-number">2.1.4.</span> <span class="nav-text">kv服务器监听日志项提交</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器追加Get请求到日志"><span class="nav-number">2.1.5.</span> <span class="nav-text">kv服务器追加Get请求到日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器对重复请求的处理"><span class="nav-number">2.1.6.</span> <span class="nav-text">kv服务器对重复请求的处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#补充：客户端如何发送请求"><span class="nav-number">2.1.7.</span> <span class="nav-text">补充：客户端如何发送请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器等待日志项提交结果的通知时设置超时"><span class="nav-number">2.1.8.</span> <span class="nav-text">kv服务器等待日志项提交结果的通知时设置超时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器收到日志项提交结果的通知后判断是否是预期结果-网络分区对kv服务器的影响"><span class="nav-number">2.1.9.</span> <span class="nav-text">kv服务器收到日志项提交结果的通知后判断是否是预期结果/网络分区对kv服务器的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端解决非leader问题"><span class="nav-number">2.1.10.</span> <span class="nav-text">客户端解决非leader问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kv服务器重启的影响及数据持久化"><span class="nav-number">2.1.11.</span> <span class="nav-text">kv服务器重启的影响及数据持久化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Part-3B-Key-value-service-with-log-compaction"><span class="nav-number">2.2.</span> <span class="nav-text">Part 3B: Key/value service with log compaction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#快照策略执行的流程"><span class="nav-number">2.2.1.</span> <span class="nav-text">快照策略执行的流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#raft的日志压缩"><span class="nav-number">2.2.2.</span> <span class="nav-text">raft的日志压缩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#快照内容的构成"><span class="nav-number">2.2.3.</span> <span class="nav-text">快照内容的构成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#快照策略的时机"><span class="nav-number">2.2.4.</span> <span class="nav-text">快照策略的时机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#快照处理请求过时"><span class="nav-number">2.2.5.</span> <span class="nav-text">快照处理请求过时</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试结果"><span class="nav-number">2.3.</span> <span class="nav-text">测试结果</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

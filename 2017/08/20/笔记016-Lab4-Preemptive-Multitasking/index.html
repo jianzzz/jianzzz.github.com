@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="Part A: Multiprocessor Support and Cooperative Multitasking任务：扩展jos使之支持多处理器；添加系统调用支持用户进程创建新进程；实现协作性循环调度，当前进程自愿放弃cpu或exit的时候允许内核由一个进程切换到另一个进程。 Multiprocessor Supportjos支持“对称多处理”(SMP：symmetric multiproc">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记016 - Lab4: Preemptive Multitasking">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="Part A: Multiprocessor Support and Cooperative Multitasking任务：扩展jos使之支持多处理器；添加系统调用支持用户进程创建新进程；实现协作性循环调度，当前进程自愿放弃cpu或exit的时候允许内核由一个进程切换到另一个进程。 Multiprocessor Supportjos支持“对称多处理”(SMP：symmetric multiproc">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/3.png">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.163Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记016 - Lab4: Preemptive Multitasking">
+<meta name="twitter:description" content="Part A: Multiprocessor Support and Cooperative Multitasking任务：扩展jos使之支持多处理器；添加系统调用支持用户进程创建新进程；实现协作性循环调度，当前进程自愿放弃cpu或exit的时候允许内核由一个进程切换到另一个进程。 Multiprocessor Supportjos支持“对称多处理”(SMP：symmetric multiproc">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/">
+
+
+
+
+
+  <title>笔记016 - Lab4: Preemptive Multitasking | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记016 - Lab4: Preemptive Multitasking</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:17:47+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Part-A-Multiprocessor-Support-and-Cooperative-Multitasking"><a href="#Part-A-Multiprocessor-Support-and-Cooperative-Multitasking" class="headerlink" title="Part A: Multiprocessor Support and Cooperative Multitasking"></a>Part A: Multiprocessor Support and Cooperative Multitasking</h1><p>任务：扩展jos使之支持多处理器；添加系统调用支持用户进程创建新进程；实现协作性循环调度，当前进程自愿放弃cpu或exit的时候允许内核由一个进程切换到另一个进程。</p>
+<h2 id="Multiprocessor-Support"><a href="#Multiprocessor-Support" class="headerlink" title="Multiprocessor Support"></a>Multiprocessor Support</h2><p>jos支持“对称多处理”(SMP：symmetric multiprocessing)，这是一种多处理器模型，所有cpu都能等价访问系统资源，如内存和I/O总线。在SMP中，尽管所有cpu在功能上是相同的，在引导过程中仍然可以将它们分为两类：1、引导处理器BSP（the bootstrap processor）：负责初始化系统和启动操作系统；2、应用程序处理器APs（the application processors）：在操作系统启动之后由BSP激活，然后开始运行。硬件和BIOS决定哪个处理器是BSP。<strong>到目前为止，所有jos代码都是运行在BSP上的。</strong></p>
+<p>在SMP系统中，每个cpu都有一个附带的局部高级可编程中断处理器LAPIC（local APIC：Advanced Programmable Interrupt Controller）。LAPIC负责在整个系统中传递中断。LAPIC为其所连接的cpu提供一个唯一的标识符。在lab4中，我们使用LAPIC单元的三个基本功能：<br>1、读取LAPIC标识符APIC ID以识别我们的代码当前运行在哪个cpu上。（见cpunum()）<br>2、从BSP处发送STARTUP处理器间中断IPI（interprocessor interrupt）到APs，启动其他cpu。（见<code>lapic_startap()</code>）<br>3、part C将编程LAPIC的内置计时器，触发时钟中断以支持抢占式多任务调度。（见<code>apic_init()</code>）</p>
+<p>处理器通过内存映射I/O MMIO（memory-mapped I/O）来访问附带的LAPIC。在MMIO中，一部分物理内存是硬连线到一些I/O设备的寄存器上的，所以可以通过使用相同的用以访问内存的load/store指令来访问设备寄存器。关于IO hole，我们已经使用了物理地址0xA0000来写VGA display缓存。LAPIC存放的IO hole起始物理地址是0xFE000000（4G空间中的32m），使用在KERNBASE的直接映射来访问的话，这个地址太高了。在jos中，虚拟内存映射在MMIOBASE位置留出了4MB空间以映射设备。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 1: 实现kern/pmap.c的mmio_map_region函数，在kern/lapic.c的lapic_init中查看mmio_map_region函数的使用情况。需要做完Exercise 2之后才能通过对于mmio_map_region的测试。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">//</span><br><span class="line">// Reserve size bytes in the MMIO region and map [pa,pa+size) at this</span><br><span class="line">// location.  Return the base of the reserved region.  size does *not*</span><br><span class="line">// have to be multiple of PGSIZE.</span><br><span class="line">//</span><br><span class="line">// jianzzz: 我们可能会多次调用mmio_map_region()，每一次给出pa和size，将会将pa映射到递增的va，映射范围是size(以PGSIZE为大小向上对齐)。若映射地址超出MMIOLIM则越界。</span><br><span class="line">void *</span><br><span class="line">mmio_map_region(physaddr_t pa, size_t size)</span><br><span class="line">&#123; </span><br><span class="line">	static uintptr_t base = MMIOBASE;</span><br><span class="line"></span><br><span class="line">	// Reserve size bytes of virtual memory starting at base and</span><br><span class="line">	// map physical pages [pa,pa+size) to virtual addresses</span><br><span class="line">	// [base,base+size).  Since this is device memory and not</span><br><span class="line">	// regular DRAM, you&apos;ll have to tell the CPU that it isn&apos;t</span><br><span class="line">	// safe to cache access to this memory.  Luckily, the page</span><br><span class="line">	// tables provide bits for this purpose; simply create the</span><br><span class="line">	// mapping with PTE_PCD|PTE_PWT (cache-disable and</span><br><span class="line">	// write-through) in addition to PTE_W.  (If you&apos;re interested</span><br><span class="line">	// in more details on this, see section 10.5 of IA32 volume</span><br><span class="line">	// 3A.)</span><br><span class="line">	//</span><br><span class="line">	// Be sure to round size up to a multiple of PGSIZE and to</span><br><span class="line">	// handle if this reservation would overflow MMIOLIM (it&apos;s</span><br><span class="line">	// okay to simply panic if this happens). </span><br><span class="line">	// Your code here:</span><br><span class="line">	uint32_t sizeup = (uint32_t)ROUNDUP((char *) size, PGSIZE);</span><br><span class="line">	if(base + sizeup &gt; MMIOLIM)&#123;</span><br><span class="line">		panic(&quot;mmio_map_region: requested size to map went over MMIOLIM&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	boot_map_region(kern_pgdir,base,sizeup,pa,PTE_PCD | PTE_PWT | PTE_W | PTE_P);</span><br><span class="line">	base += sizeup; </span><br><span class="line">	//panic(&quot;mmio_map_region not implemented&quot;);</span><br><span class="line">	return (void *)(base-sizeup);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Application-Processor-Bootstrap"><a href="#Application-Processor-Bootstrap" class="headerlink" title="Application Processor Bootstrap"></a>Application Processor Bootstrap</h2><p>在启动APs之前，BSP从BIOS的内存区域中读取MP配置表，收集多处理器系统的信息，比如CPUs数目、APIC IDs、LAPIC单元的MMIO地址。见kern/mpconfig.c的<code>mp_init()</code>。</p>
+<p>kern/init.c的<code>boot_aps()</code>函数驱动AP启动程序的运行。APs在实模式下启动，与boot/boot.S的引导过程相似：<code>boot_aps()</code>将AP入口代码（kern/mpentry.S）拷贝到实模式下的一个可寻址的内存位置。与boot/boot.S的引导过程不同的是，jos会控制AP将会在哪里开始执行代码；jos将入口代码拷贝到0x7000（<code>MPENTRY_PADDR</code>），但640KB以下的任何unused、page-aligned的物理地址都被使用。</p>
+<p>此后，<code>boot_aps()</code>逐一激活APs，通过给匹配AP的LAPIC发送STARTUP IPIs以及一个初始CS:IP地址，AP将在该地址上（即<code>MPENTRY_PADDR</code>）执行入口代码。kern/mpentry.S在简单设置之后将AP运行模式设为保护模式，开启分页，然后调用c函数<code>mp_main()</code>（also in kern/init.c）。<code>boot_aps()</code>等待AP发送<code>CPU_STARTED</code>信号（见struct CpuInfo的<code>cpu_status</code>域），然后激活下一个AP。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 2. 阅读boot_aps()和mp_main()，以及kern/mpentry.S，了解APs启动过程的control flow transfer。修改kern/pmap.c的page_init()实现，避免在MPENTRY_PADDR分配页，保证APs启动代码的拷贝、运行安全。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">page_init(void)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4:</span><br><span class="line">	// Change your code to mark the physical page at MPENTRY_PADDR</span><br><span class="line">	// as in use</span><br><span class="line"></span><br><span class="line">	// The example code here marks all physical pages as free.</span><br><span class="line">	// However this is not truly the case.  What memory is free?</span><br><span class="line">	//  1) Mark physical page 0 as in use.</span><br><span class="line">	//     This way we preserve the real-mode IDT and BIOS structures</span><br><span class="line">	//     in case we ever need them.  (Currently we don&apos;t, but...)</span><br><span class="line">	//  第一页数据是被使用的，该页保存了实模式IDT和BIOS数据结构</span><br><span class="line">	//  2) The rest of base memory, [PGSIZE, npages_basemem * PGSIZE)</span><br><span class="line">	//     is free.</span><br><span class="line">	//  第二页至基本内存结束位置(640K)是可用的</span><br><span class="line">	//  3) Then comes the IO hole [IOPHYSMEM, EXTPHYSMEM), which must</span><br><span class="line">	//     never be allocated.</span><br><span class="line">	//  [IOPHYSMEM, EXTPHYSMEM),即[0x0A0000,0x100000)--[640K,1MB)是被使用的</span><br><span class="line">	//  4) Then extended memory [EXTPHYSMEM, ...).</span><br><span class="line">	//     Some of it is in use, some is free. Where is the kernel</span><br><span class="line">	//     in physical memory?  Which pages are already in use for</span><br><span class="line">	//     page tables and other data structures?</span><br><span class="line">	//  扩展内存开始位置至当前pages数组存储的末端为不可使用的部分，其中包括页目录空间和映射内存的pages数组空间!!!</span><br><span class="line">	//  当前pages数组存储的末端开始至可用内存末端即为可用的</span><br><span class="line">	//</span><br><span class="line">	// Change the code to reflect this.</span><br><span class="line">	// NB: DO NOT actually touch the physical memory corresponding to</span><br><span class="line">	// free pages!</span><br><span class="line"></span><br><span class="line">	// uint32_t page_IOPHYSMEMBEGIN = npages_basemem;</span><br><span class="line">	uint32_t page_IOPHYSMEMBEGIN = (uint32_t)IOPHYSMEM / PGSIZE;</span><br><span class="line"></span><br><span class="line">	// uint32_t num_pages_io_hole = 96;</span><br><span class="line">	// uint32_t page_EXTPHYSMEMBEGIN = npages_basemem + num_pages_io_hole;</span><br><span class="line">	uint32_t page_EXTPHYSMEMBEGIN = (uint32_t)EXTPHYSMEM / PGSIZE;</span><br><span class="line">	</span><br><span class="line">	// 内核代码存放于0x100000处，即1M处，KERNBASE是内核代码存储起点的虚拟地址</span><br><span class="line">	// 对于存于物理地址1M后的数据，其虚拟地址减去KERNBASE的值相当于该处与内核代码存储起点虚拟地址位置的差，</span><br><span class="line">	// 而不是与0x0的差, 需要加上1M的空间</span><br><span class="line">	// 1M = 256 page </span><br><span class="line">	// uint32_t num_kernelpages = (((uint32_t) boot_alloc(0)) - KERNBASE) / PGSIZE;</span><br><span class="line">	//uint32_t page_KernelPageInfoEnd = npages_basemem + num_pages_io_hole + num_kernelpages; </span><br><span class="line">	uint32_t page_KernelPageInfoEnd = (((uint32_t) boot_alloc(0)) - KERNBASE) / PGSIZE + 256;    </span><br><span class="line">	 </span><br><span class="line">	page_free_list = NULL;</span><br><span class="line">	size_t i;</span><br><span class="line">	//pages数组与实际物理空间存在映射关系，但没有使用实际空间存储物理页位置</span><br><span class="line">	for (i = 0; i &lt; npages; i++) &#123;</span><br><span class="line">		if(i==0 ||</span><br><span class="line">			//Lab4 : page at MPRENTRY_PADDR, reserved for CPU startup code . e.g. 0x7000</span><br><span class="line">			i == PGNUM(MPENTRY_PADDR) ||</span><br><span class="line">			//(i&gt;=page_IOPHYSMEM &amp;&amp; i&lt;page_EXTPHYSMEMBEGIN) ||</span><br><span class="line">			//(i&gt;=page_EXTPHYSMEMBEGIN &amp;&amp; i&lt;page_KernelPageInfoEnd) ||</span><br><span class="line">			(i&gt;=page_IOPHYSMEMBEGIN &amp;&amp; i&lt;page_KernelPageInfoEnd)</span><br><span class="line">			)&#123;</span><br><span class="line">			pages[i].pp_ref = 1;</span><br><span class="line">			continue;	</span><br><span class="line">		&#125; </span><br><span class="line">		pages[i].pp_ref = 0;		</span><br><span class="line">		//往回指的指针pp_link要越过非空物理页,这样page_free_list才能通过pp_link往回获取空闲空间</span><br><span class="line">		//双向链表</span><br><span class="line">		pages[i].pp_link = page_free_list;</span><br><span class="line">		page_free_list = &amp;pages[i];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question 1. 比较kern/mpentry.S和boot/boot.S。请记住：kern/mpentry.S被编译和链接后是运行在KERNBASE之上的，就像其他程序一样。设计MPBOOTPHYS宏的目的是什么？为什么boot/boot.S不需要它？</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kern/mpentry.S的内容原先是加载在内核程序的页空间中的，在BSP激活其他APs之前，BSP会将这部分内容移到MPENTRY_PADDR物理页中。所以AP在执行kern/mpentry.S时，kern/mpentry.S中的标记符物理地址需要以MPENTRY_PADDR为基础重新计算。MPBOOTPHYS宏就是用于确定kern/mpentry.S中的标识符物理地址。</span><br><span class="line">对于boot/boot.S来说，它是由bios加载到0x7c00的，然后开始执行这部分代码，由于当时尚未开启分页，链接地址即为物理地址，所以boot/boot.S中标识符的物理地址是直接由链接地址确定的。</span><br></pre></td></tr></table></figure>
+<h2 id="Per-CPU-State-and-Initialization"><a href="#Per-CPU-State-and-Initialization" class="headerlink" title="Per-CPU State and Initialization"></a>Per-CPU State and Initialization</h2><p>多处理器操作系统很重要的一点是区分每个处理器私有的处理器状态和整个系统共享的全局状态。kern/cpu.h定义了per-CPU状态的大部分，包括struct CpuInfo（存储per-CPU变量）。cpunum()返回的是调用它的cpu的ID，该值可以索引cpus数组。thiscpu是个宏定义，指向当前cpu的struct CpuInfo。<br>以下是部分per-CPU状态：<br>1、<strong>Per-CPU kernel stack</strong>：多个cpu可以同时trap到内核中，为了防止干扰彼此的运行，需要为每个处理器设置单独的栈空间。内核物理空间中数组<code>percpu_kstacks[NCPU][KSTKSIZE]</code>保存了NCPU个栈空间。BSP的内核栈地址是bootstack，映射到虚拟地址KSTACKTOP之下的KSTKSIZE大小的空间。紧随着，越过KSTKGAP字节之后，映射CPU1栈空间，以此类推。<br>2、<strong>Per-CPU TSS and TSS descriptor</strong>：TSS任务状态段用于寻位每个cpu的内核栈。CPU i的TSS存于cpus[i].cpu_ts中，相关联的TSS描述符定义在GDT入口gdt[(GD_TSS0 &gt;&gt; 3) + i]。kern/trap.c定义的全局ts变量不再生效。<br>3、<strong>Per-CPU current environment pointer</strong>：因为每个cpu可以同时运行不同的用户进程，因此重新定义curenv指向<code>cpus[cpunum()].cpu_env</code>，它指向的是运行在当前cpu上的当前进程。<br>4、所有的寄存器，包括系统寄存器，对每个cpu来说都是私有的。因此，初始化这些寄存器的指令，比如lcr3(), ltr(), lgdt(), lidt()等，都必须在每个寄存器上执行一次。<code>env_init_percpu()</code>和<code>trap_init_percpu()</code>正是用于这个目的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 3. 修改kern/pmap.c的mem_init_mp()函数，将每个cpu的栈映射到KSTACKTOP以下部分，参考inc/memlayout.h。每个栈的大小是KSTKSIZE+KSTKGAP字节。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">static void</span><br><span class="line">mem_init_mp(void)</span><br><span class="line">&#123; </span><br><span class="line">	//     Permissions: kernel RW, user NONE</span><br><span class="line">	//</span><br><span class="line">	// LAB 4: Your code here:</span><br><span class="line">	int i=0;</span><br><span class="line">	uint32_t bottom_stack = KSTACKTOP - KSTKSIZE;</span><br><span class="line">	for (i = 0; i &lt; NCPU; i++) &#123;</span><br><span class="line">		boot_map_region(kern_pgdir, bottom_stack, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);</span><br><span class="line">		bottom_stack -= KSTKGAP; // guard</span><br><span class="line">		bottom_stack -= KSTKSIZE;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 4. kern/trap.c的trap_init_percpu()函数初始化了BSP的TSS和TSS描述符，修改这部分代码，使之支持所有cpu。提示：新代码将不会使用到全局变量ts。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">trap_init_percpu(void)</span><br><span class="line">&#123; </span><br><span class="line">	// ltr sets a &apos;busy&apos; flag in the TSS selector, so if you</span><br><span class="line">	// accidentally load the same TSS on more than one CPU, you&apos;ll</span><br><span class="line">	// get a triple fault.  If you set up an individual CPU&apos;s TSS</span><br><span class="line">	// wrong, you may not get a fault until you try to return from</span><br><span class="line">	// user space on that CPU.</span><br><span class="line">	//</span><br><span class="line">	// LAB 4: Your code here:</span><br><span class="line"></span><br><span class="line">	// Setup a TSS so that we get the right stack</span><br><span class="line">	// when we trap to the kernel.</span><br><span class="line">	//ts.ts_esp0 = KSTACKTOP;</span><br><span class="line">	//ts.ts_ss0 = GD_KD;</span><br><span class="line">	thiscpu-&gt;cpu_ts.ts_esp0 = (uintptr_t) percpu_kstacks[thiscpu-&gt;cpu_id] + KSTKSIZE;</span><br><span class="line">	thiscpu-&gt;cpu_ts.ts_ss0 = GD_KD;</span><br><span class="line"></span><br><span class="line">	// Initialize the TSS slot of the gdt.</span><br><span class="line">	//gdt[GD_TSS0 &gt;&gt; 3] = SEG16(STS_T32A, (uint32_t) (&amp;ts),</span><br><span class="line">	//				sizeof(struct Taskstate) - 1, 0);</span><br><span class="line">	//gdt[GD_TSS0 &gt;&gt; 3].sd_s = 0;</span><br><span class="line">	gdt[(GD_TSS0 &gt;&gt; 3) + thiscpu-&gt;cpu_id] = SEG16(STS_T32A, (uint32_t) (&amp;thiscpu-&gt;cpu_ts),</span><br><span class="line">					sizeof(struct Taskstate) - 1, 0);</span><br><span class="line">	gdt[(GD_TSS0 &gt;&gt; 3) + thiscpu-&gt;cpu_id].sd_s = 0;</span><br><span class="line"></span><br><span class="line">	// Load the TSS selector (like other segment selectors, the</span><br><span class="line">	// bottom three bits are special; we leave them 0)</span><br><span class="line">	//ltr(GD_TSS0);  </span><br><span class="line">        //ltr(((GD_TSS0 &gt;&gt; 3) + thiscpu-&gt;cpu_id) &lt;&lt; 3); </span><br><span class="line">	ltr(GD_TSS0 + (thiscpu-&gt;cpu_id &lt;&lt; 3)); </span><br><span class="line"></span><br><span class="line">	// Load the IDT</span><br><span class="line">	lidt(&amp;idt_pd);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="多处理器总结要点"><a href="#多处理器总结要点" class="headerlink" title="多处理器总结要点"></a>多处理器总结要点</h2><p>jos支持多处理器之后，大概的启动过程如下：<br>1、BSP调用<code>mem_init()</code>函数，主要完成创建页目录、pages数组、envs数组、映射pages数组/envs数组/BSP内核栈等到页目录中。<br>2、BSP调用<code>env_init()</code>函数，初始化envs数组；同时调用<code>env_init_percpu()</code>函数加载当前cpu的GDT和gs/fs/es/ds/ss段描述符。<br>3、BSP调用<code>trap_init()</code>函数，初始化IDT表；同时调用<code>trap_init_percpu()</code>函数初始化当前cpu的TSS和IDT。<br>4、BSP调用<code>mp_init()</code>函数，<code>mp_init()</code>函数通过调用<code>mpconfig()</code>从BIOS中读取浮动指针mp，从mp中找到struct mpconf多处理器配置表，然后根据这个结构体内的entries信息（processor table entry）对各个cpu结构体进行配置（主要是cpuid）。如果proc-&gt;flag是MPPROC_BOOT，说明这个入口对应的处理器是用于启动的处理器，我们把结构体数组cpus[ncpu]地址赋值给bootcpu指针。注意这里ncpu是个全局变量，那么这里实质上就是把cpus数组的第一个元素的地址给了bootcpu。如果出现任何entries匹配错误，则认为处理器的初始化失败了，不能用多核处理器进行机器的运行。<br>5、BSP调用<code>lapic_init()</code>函数，映射lapic物理地址到页目录（映射的虚拟地址递增），设置时钟，允许APIC接收中断。<br>6、BSP调用<code>pic_init()</code>函数，初始化8259A中断控制器，允许生成中断。<br>7、BSP调用<code>boot_aps()</code>函数，复制cpu启动代码到0x7000，然后对每个cpu分别确定内核栈地址后调用<code>lapic_startap()</code>函数。<code>lapic_startap()</code>函数命令对应cpu从加载代码处开始执行。BSP使用轮询等待目标cpu启动完成（目标cpu使用自旋锁通知），然后激活下一个cpu。<br>8、AP（cpu）从加载代码处启动，加载gdt表、手动设置初始页表、开启保护模式、分页等，然后跳转到<code>mp_main()</code>函数；<code>mp_main()</code>函数直接切换到页目录，然后调用<code>lapic_init()</code>函数映射lapic物理地址到页目录（映射的虚拟地址递增），并允许APIC接收中断；调用<code>env_init_percpu()</code>函数加载当前cpu的GDT和gs/fs/es/ds/ss段描述符；调用<code>trap_init_percpu()</code>函数初始化当前cpu的TSS和IDT，然后使用自旋锁设置启动完成标识，并调用<code>sched_yield()</code>函数尝试开始执行可执行进程。<br>9、BSP上自行创建进程，并调用<code>sched_yield()</code>函数尝试开始执行可执行进程。</p>
+<p>需要注意到：<strong>每个cpu都有自己独立的寄存器和CPU栈、TSS，但是整个内核中只有一份envs数组、pages数组、内核页目录、idt、gdt、lapic物理地址。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">问题是：lapic物理地址只有一个，每次启动cpu的过程中是怎么改变lapic的呢？还有cpunum()的实现方式不明白。。。。。。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">???</span><br></pre></td></tr></table></figure>
+<h2 id="Locking"><a href="#Locking" class="headerlink" title="Locking"></a>Locking</h2><p>启动APs之后，我们需要解决多处理器并发执行内核代码的竞争条件。实现这一点的最简单的方法是使用一个内核锁，该内核锁是一个全局锁，一旦某个进程进入内核模式则尝试获取该锁，当进程返回到用户模式时释放该锁。在这个模型中，在用户模式下的进程可以并发在任何可用cpu上运行，但至多一个进程可以运行在内核模式下，其他试图进入内核模式的进程被迫等待。<br>kern/spinlock.h定义了内核锁<code>kernel_lock</code>，并提供<code>lock_kernel()</code>和<code>unlock_kernel()</code>方法用于获取和释放锁。需要在以下四个地方设置内核锁：<br>1、<code>i386_init()</code>：在BSP激活其他cpu之前获取内核锁。<br>2、<code>mp_main()</code>：初始化AP之后获取内核锁，然后调用<code>sched_yield()</code>在该AP上运行进程。<br>3、<code>trap()</code>：如果是由用户模式trap到内核的，获取内核锁。通过<code>tf_cs</code>的低两位判断是用户模式还是内核模式。<br>4、<code>env_run()</code>：在切换为用户模式之前释放内核锁。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 5: 完成以上任务。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">i386_init():</span><br><span class="line">	// Acquire the big kernel lock before waking up APs</span><br><span class="line">	// Your code here:</span><br><span class="line">	lock_kernel();</span><br><span class="line">	// Starting non-boot CPUs</span><br><span class="line">	boot_aps(); </span><br><span class="line"></span><br><span class="line">mp_main():</span><br><span class="line">	// Now that we have finished some basic setup, call sched_yield()</span><br><span class="line">	// to start running processes on this CPU.  But make sure that</span><br><span class="line">	// only one CPU can enter the scheduler at a time!</span><br><span class="line">	//</span><br><span class="line">	// Your code here: </span><br><span class="line">	lock_kernel();</span><br><span class="line">	sched_yield(); </span><br><span class="line"></span><br><span class="line">trap():</span><br><span class="line">        if ((tf-&gt;tf_cs &amp; 3) == 3) &#123;</span><br><span class="line">		// Trapped from user mode.</span><br><span class="line">		// Acquire the big kernel lock before doing any</span><br><span class="line">		// serious kernel work.</span><br><span class="line">		// LAB 4: Your code here.</span><br><span class="line">		lock_kernel();</span><br><span class="line">		assert(curenv);</span><br><span class="line"></span><br><span class="line">env_run():</span><br><span class="line">	lcr3(PADDR(e-&gt;env_pgdir)); </span><br><span class="line">	//lab4</span><br><span class="line">	unlock_kernel(); </span><br><span class="line">	env_pop_tf(&amp;(e-&gt;env_tf));//never return</span><br></pre></td></tr></table></figure>
+<p>在<code>sched_yield()</code>中实现循环调度时会调用<code>env_run()</code>函数，进而释放内核锁。经过上述加锁、释放锁操作后，只有当BSP激活所有APs并且开始调用<code>sched_yield()</code>运行用户程序时，其他CPU才可能开始执行用户程序。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question 2. 使用内核锁可以保证一次只有一个CPU可以运行内核代码。那么，为何还需要将每个cpu的CPU栈分开？请描述一个使用了内核锁和共享内核栈后出错的场景。</span><br></pre></td></tr></table></figure>
+<p>如果使用共享的内核栈的话，当出现中断时，硬件会先自动将相关寄存器进栈，然后才执行锁的检查，共享内核栈可能会导致系统崩溃。<br>支持多个cpu的时候，只有一份内核页目录，所有cpu都会使用这个页目录映射CPU栈。不同的CPU栈映射到不同的虚拟地址上。<br>在此需要注意的是另一个现象：不同的用户进程是可以同时将用户栈物理地址映射到UXSTACKTOP上的。这是因为每一个用户进程都有一份独立的页目录，创建用户进程的时候会分配和映射一页用户栈物理页到UXSTACKTOP上，多个cpu同时运行多个用户进程的时候，实际上都是使用各自的页目录进行寻址和存储数据到各自的用户栈物理页上的。  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Challenge: 内核锁易于使用，但它消除了内核模式下的所有并发。大多数现代操作系统使用不同的锁来保护共享状态的不同部分，使用的方法称为细粒度锁（fine-grained locking）。细粒度锁可以显著提高性能，但更难以实现且容易出错。</span><br><span class="line">若要在jos实现细粒度锁，可以自由决定锁的粒度（即每个锁保护的数据量大小）。可以使用自旋锁来实现互斥访问以下jos内容：</span><br><span class="line">The page allocator：页分配器</span><br><span class="line">The console driver：控制台驱动</span><br><span class="line">The scheduler：调度器</span><br><span class="line">The inter-process communication (IPC) state：进程间通信状态，将在part C实现。</span><br></pre></td></tr></table></figure>
+<h2 id="Round-Robin-Scheduling"><a href="#Round-Robin-Scheduling" class="headerlink" title="Round-Robin Scheduling"></a>Round-Robin Scheduling</h2><p>此部分内容将修改jos内核使之可以以循环机制（round-robin）交替调度多个进程。jos的循环机制如下：<br>1、kern/sched.c的<code>sched_yield()</code>函数负责选择一个新的进程来执行。它从上一个运行进程之后开始，以循环方式顺序搜索envs[]数组，选择第一个状态为<code>ENV_RUNNABLE</code>的进程，并调用<code>env_run()</code>函数跳转到该进程。<br>2、<code>sched_yield()</code>不能同时在两个cpu上执行调度同一个进程。区分某个进程是否正在某个cpu上运行的方法是：该进程的状态是<code>ENV_RUNNING</code>。<br>3、用户进程可以调用<code>sys_yield()</code>系统调用（该函数调用<code>sched_yield()</code>函数），自愿放弃cpu资源给其他进程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Exercise 6. 在sched_yield()中实现循环调度。在syscall()中分发sys_yield()。确保在mp_main()中调用sched_yield()。在kern/init.c中创建三个或三个以上进程，执行user/yield.c。在yield程序退出之后，系统将不存在可执行进程，并陷入到monitor中。</span><br><span class="line">如果CPUS=1，所有进程将会成功执行。</span><br><span class="line">如果CPUS&gt;1，一旦没有更多可运行环境，由于未处理的定时器中断可能导致一般性保护异常或内核页错误。后面将解决该问题。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">sched_yield(void)</span><br><span class="line">&#123;</span><br><span class="line">	struct Env *idle;</span><br><span class="line">		 </span><br><span class="line">	// Implement simple round-robin scheduling.</span><br><span class="line">	//</span><br><span class="line">	// Search through &apos;envs&apos; for an ENV_RUNNABLE environment in</span><br><span class="line">	// circular fashion starting just after the env this CPU was</span><br><span class="line">	// last running.  Switch to the first such environment found.</span><br><span class="line">	//</span><br><span class="line">	// If no envs are runnable, but the environment previously</span><br><span class="line">	// running on this CPU is still ENV_RUNNING, it&apos;s okay to</span><br><span class="line">	// choose that environment.</span><br><span class="line">	//</span><br><span class="line">	// Never choose an environment that&apos;s currently running on</span><br><span class="line">	// another CPU (env_status == ENV_RUNNING). If there are</span><br><span class="line">	// no runnable environments, simply drop through to the code</span><br><span class="line">	// below to halt the cpu.</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here. </span><br><span class="line">	int i;</span><br><span class="line">	int current_env_idx = curenv ? ENVX(curenv-&gt;env_id) : 0;</span><br><span class="line">	int idx = curenv ? (current_env_idx + 1) % NENV : 0; // start by looking at the next process</span><br><span class="line"> </span><br><span class="line">	for (i = 0; i &lt; NENV; i++) &#123;</span><br><span class="line">		if (envs[idx].env_status == ENV_RUNNABLE)</span><br><span class="line">			env_run(&amp;envs[idx]);</span><br><span class="line">		idx = (idx + 1) % NENV;</span><br><span class="line">	&#125; </span><br><span class="line">	if (curenv != NULL &amp;&amp; curenv-&gt;env_status == ENV_RUNNING)</span><br><span class="line">		env_run(curenv);</span><br><span class="line">  </span><br><span class="line">	// sched_halt never returns</span><br><span class="line">	sched_halt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question 3.env_run()修改了参数e的成员状态之后就会调用lcr3切换到进程的页目录，这时候内存管理单元MMU所使用的寻址上下文立即发生了变化。在地址切换前后，为什么参数e仍能够被引用？</span><br></pre></td></tr></table></figure>
+<p>因为对于所有env来说，内核空间的虚拟地址是相同的，这部分地址也被映射进env的页目录。参数e本身也是内核空间的一部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Question 4.每次内核从一个进程切换到另一个进程的时候，需要保存旧进程的寄存器以便后面恢复，怎么做？什么时候这样做？</span><br></pre></td></tr></table></figure>
+<p>由内核模式进入trap()函数时，只管调用<code>trap_dispatch()</code>就行，就算调用之后会执行新的env，也不涉及旧env寄存器存储的问题。但如果是由用户模式进入trap()函数时（trapframe上的cs表明是否来自于用户模式），可能会导致进程切换，因此在调用<code>trap_dispatch()</code>之前需要保存旧env的寄存器。具体做法是：<strong>curenv-&gt;env_tf = *tf;</strong>。之后如果切换到另一个进程，则会调用<code>env_run()</code>函数，并更新curenv变量。为什么这样子就可以保存呢？看一下变量的定义：1、<strong>#define curenv (thiscpu-&gt;cpu_env)</strong>，2、<strong>#define thiscpu (&amp;cpus[cpunum()])</strong>、3、thiscpu的<code>cpu_env</code>定义是：<strong>struct Env *cpu_env;</strong>。由上可知，<code>cpu_env</code>是一个指针，始终指向envs数组的一员，而它的更新时机在于调用<code>env_run()</code>函数的时候，实际上就是更新当前cpu执行的进程env。所以在trap()函数中通过执行<strong>curenv-&gt;env_tf = *tf;</strong>就可以将旧进程保存在栈上的trapframe值复制到<code>cpu_env</code>所指向envs数组的一员上，下次若调用到该进程，又可以恢复寄存器环境了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 将调度方式扩展为固定优先级调度，优先级高的进程将先于优先级低的进程被调度。编写测试程序测试调用顺序是正确的。</span><br></pre></td></tr></table></figure>
+<p>扩展Env数据结构，添加优先级变量，然后修改调度函数，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">// Choose a user environment to run and run it.</span><br><span class="line">void</span><br><span class="line">sched_yield(void)</span><br><span class="line">&#123;</span><br><span class="line">	struct Env *idle;</span><br><span class="line">		 </span><br><span class="line">	// Implement simple round-robin scheduling.</span><br><span class="line">	//</span><br><span class="line">	// Search through &apos;envs&apos; for an ENV_RUNNABLE environment in</span><br><span class="line">	// circular fashion starting just after the env this CPU was</span><br><span class="line">	// last running.  Switch to the first such environment found.</span><br><span class="line">	//</span><br><span class="line">	// If no envs are runnable, but the environment previously</span><br><span class="line">	// running on this CPU is still ENV_RUNNING, it&apos;s okay to</span><br><span class="line">	// choose that environment.</span><br><span class="line">	//</span><br><span class="line">	// Never choose an environment that&apos;s currently running on</span><br><span class="line">	// another CPU (env_status == ENV_RUNNING). If there are</span><br><span class="line">	// no runnable environments, simply drop through to the code</span><br><span class="line">	// below to halt the cpu.</span><br><span class="line">	// LAB 4: Your code here.  </span><br><span class="line">  	// use priority, lab4 challenge</span><br><span class="line">	enum EnvPriority priority;</span><br><span class="line">	int i = 0;;</span><br><span class="line">	int current_env_idx = curenv ? ENVX(curenv-&gt;env_id) : 0;</span><br><span class="line">	int idx = curenv ? (current_env_idx + 1) % NENV : 0; // start by looking at the next process</span><br><span class="line"> 	for (priority = ENV_PRIORITY_HIGH; priority &lt;= ENV_PRIORITY_LOW; priority++) &#123; </span><br><span class="line">		for (i = 0; i &lt; NENV; i++) &#123;</span><br><span class="line">			if (envs[idx].env_status == ENV_RUNNABLE &amp;&amp; envs[idx].priority == priority)&#123; </span><br><span class="line">				if (curenv != NULL &amp;&amp; curenv-&gt;env_status == ENV_RUNNING &amp;&amp; curenv-&gt;priority &lt; envs[idx].priority)&#123; </span><br><span class="line">					env_run(curenv);</span><br><span class="line">				&#125;else&#123;</span><br><span class="line">					env_run(&amp;envs[idx]);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			idx = (idx + 1) % NENV;</span><br><span class="line">		&#125; </span><br><span class="line"> 	&#125;</span><br><span class="line">	if (curenv != NULL &amp;&amp; curenv-&gt;env_status == ENV_RUNNING)&#123; </span><br><span class="line">		env_run(curenv);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// sched_halt never returns</span><br><span class="line">	sched_halt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>测试程序为user/envpriority.c，注意需要在kern/Makefrag中添加<strong>KERN_BINFILES += user/envpriority</strong>。测试程序使用到下面添加的系统调用，整体思路是由当前root进程fork多个子进程，每次fork之后设置子进程的优先级，然后调用<code>sys_yield()</code>系统调用放弃cpu，观察内核调度进程结果。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line">// test env priority</span><br><span class="line"></span><br><span class="line">#include &lt;inc/string.h&gt;</span><br><span class="line">#include &lt;inc/lib.h&gt;</span><br><span class="line"></span><br><span class="line">envid_t dumbfork_priority(uint32_t priority);</span><br><span class="line"></span><br><span class="line">void</span><br><span class="line">umain(int argc, char **argv)</span><br><span class="line">&#123;</span><br><span class="line">	envid_t who,root;</span><br><span class="line">	int i,p;</span><br><span class="line">	root = sys_getenvid();</span><br><span class="line">	for (p = 1; p &lt;= 5; ++p) &#123;</span><br><span class="line">		// fork a child process</span><br><span class="line">		if(root == sys_getenvid())&#123;</span><br><span class="line">        	who = dumbfork_priority(p); </span><br><span class="line"></span><br><span class="line">			// print a message and yield to the other a few times</span><br><span class="line">			for (i = 0; i &lt; 3; i++) &#123;</span><br><span class="line">				cprintf(&quot;%d: I am the %s! my env priority is %d\n&quot;, i, who ? &quot;parent&quot; : &quot;child&quot;, sys_env_get_priority());</span><br><span class="line">				sys_yield();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void</span><br><span class="line">duppage(envid_t dstenv, void *addr)</span><br><span class="line">&#123;</span><br><span class="line">	int r;</span><br><span class="line"></span><br><span class="line">	// This is NOT what you should do in your fork.</span><br><span class="line">	//alloc a page mapping at child&apos;s addr</span><br><span class="line">	if ((r = sys_page_alloc(dstenv, addr, PTE_P|PTE_U|PTE_W)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_page_alloc: %e&quot;, r);</span><br><span class="line">	//map child&apos;s new page(mapping at addr) at parent&apos;s UTEMP</span><br><span class="line">	if ((r = sys_page_map(dstenv, addr, 0, UTEMP, PTE_P|PTE_U|PTE_W)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line">	//copy page data mapping at parent&apos;s addr to page mapping at parent&apos;s UTEMP</span><br><span class="line">	//as a result, it fills in child&apos;s page</span><br><span class="line">	memmove(UTEMP, addr, PGSIZE);</span><br><span class="line">	if ((r = sys_page_unmap(0, UTEMP)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_page_unmap: %e&quot;, r);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">envid_t</span><br><span class="line">dumbfork_priority(uint32_t priority)</span><br><span class="line">&#123;</span><br><span class="line">	envid_t envid;</span><br><span class="line">	uint8_t *addr;</span><br><span class="line">	int r;</span><br><span class="line">	extern unsigned char end[];</span><br><span class="line"></span><br><span class="line">	// Allocate a new child environment.</span><br><span class="line">	// The kernel will initialize it with a copy of our register state,</span><br><span class="line">	// so that the child will appear to have called sys_exofork() too -</span><br><span class="line">	// except that in the child, this &quot;fake&quot; call to sys_exofork()</span><br><span class="line">	// will return 0 instead of the envid of the child.</span><br><span class="line">	envid = sys_exofork();</span><br><span class="line">	if (envid &lt; 0)</span><br><span class="line">		panic(&quot;sys_exofork: %e&quot;, envid);</span><br><span class="line">	if (envid == 0) &#123;</span><br><span class="line">		// We&apos;re the child.</span><br><span class="line">		// The copied value of the global variable &apos;thisenv&apos;</span><br><span class="line">		// is no longer valid (it refers to the parent!).</span><br><span class="line">		// Fix it and return 0.</span><br><span class="line">		thisenv = &amp;envs[ENVX(sys_getenvid())];</span><br><span class="line">		return 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	// We&apos;re the parent.</span><br><span class="line">	//set child&apos;s prioroty</span><br><span class="line">	sys_env_set_priority(envid,priority);</span><br><span class="line">	// Eagerly copy our entire address space into the child.</span><br><span class="line">	// This is NOT what you should do in your fork implementation.</span><br><span class="line">	for (addr = (uint8_t*) UTEXT; addr &lt; end; addr += PGSIZE)</span><br><span class="line">		duppage(envid, addr);</span><br><span class="line"></span><br><span class="line">	// Also copy the stack we are currently running on.</span><br><span class="line">	duppage(envid, ROUNDDOWN((void*)USTACKTOP - PGSIZE, PGSIZE)); </span><br><span class="line">	// Start the child environment running</span><br><span class="line">	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_env_set_status: %e&quot;, r);</span><br><span class="line"></span><br><span class="line">	return envid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>运行结果：<br><img src="/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/1.PNG" title="进程优先级运行结果"> </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! jos当前不支持应用使用x86处理器的x87 floating-point单元(FPU)、MMX指令或Streaming SIMD Extensions(SSE)。扩展Env数据结构，添加浮点状态成员（floating point state），并在进程切换代码中保存和恢复浮点状态。可使用FXSAVE和FXRSTOR指令，它们在最近的处理器才被介绍，在旧的i386用户手册中没有介绍。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">???</span><br></pre></td></tr></table></figure>
+<h2 id="System-Calls-for-Environment-Creation"><a href="#System-Calls-for-Environment-Creation" class="headerlink" title="System Calls for Environment Creation"></a>System Calls for Environment Creation</h2><p><code>sys_exofork</code>：创建一个进程，创建页目录（映射内核空间，UTOP以下部分在页目录中的映射为空）、填充trapframe（包括<code>env_alloc()</code>中用户栈指针指向<code>e-&gt;env_tf.tf_esp = USTACKTOP;</code>，请注意，子进程只有将esp指向USTACKTOP，并没有再次为栈分配空间，而根父进程的栈空间是在<code>env_create()</code>的时候通过调用<code>env_alloc()</code>之后调用<code>load_icode()</code>实现的）、复制父进程的trapframe…，没有用户程序地址映射到地址空间、状态为不可执行。新进程的寄存器状态与调用<code>sys_exofork</code>的进程一样。调用<code>sys_exofork</code>的父进程返回子进程id，子进程返回0（具体原因可参考x86的fork实现）。<br><code>sys_env_set_status</code>：设置进程状态为<code>ENV_RUNNABLE</code>或<code>ENV_NOT_RUNNABLE</code>，通常是进程的地址映射和寄存器状态设置完毕之后设置进程可被执行。<br><code>sys_page_alloc</code>：分配一页物理页，并在指定进程的地址空间上映射到给定的虚拟地址。<br><code>sys_page_map</code>：将A进程中映射到虚拟地址<code>va_a</code>的物理页映射到B进程的虚拟地址<code>va_b</code>，设置给出的权限。从而两个进程可以以不同的权限访问同一个物理页。<br><code>sys_page_unmap</code>：在指定进程的地址空间上解除给定的虚拟地址上的映射。  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 7.完成以上内容。jos的envid2env()函数可以根据id获取对应的进程结构，并且传入0可以获取当前进程。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">// Allocate a new environment.</span><br><span class="line">// Returns envid of new environment, or &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_NO_FREE_ENV if no free environment is available.</span><br><span class="line">//	-E_NO_MEM on memory exhaustion.</span><br><span class="line">static envid_t</span><br><span class="line">sys_exofork(void)</span><br><span class="line">&#123;</span><br><span class="line">	// Create the new environment with env_alloc(), from kern/env.c.</span><br><span class="line">	// It should be left as env_alloc created it, except that</span><br><span class="line">	// status is set to ENV_NOT_RUNNABLE, and the register set is copied</span><br><span class="line">	// from the current environment -- but tweaked so sys_exofork</span><br><span class="line">	// will appear to return 0.</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_exofork not implemented&quot;);</span><br><span class="line">	struct Env *newEnv; </span><br><span class="line">	//set kernal stack, page dir, trapframe...</span><br><span class="line">	int r = env_alloc(&amp;newEnv,curenv-&gt;env_id);</span><br><span class="line">	if(r&lt;0) return r;</span><br><span class="line">	newEnv-&gt;env_status = ENV_NOT_RUNNABLE; </span><br><span class="line">	newEnv-&gt;env_tf = curenv-&gt;env_tf; </span><br><span class="line">	//or : memmove((void *) &amp;newEnv-&gt;env_tf, (void *) &amp;curenv-&gt;env_tf, sizeof(struct Trapframe));</span><br><span class="line">	//clear child&apos;s eax,so it will return pid 0</span><br><span class="line">	newEnv-&gt;env_tf.tf_regs.reg_eax = 0;</span><br><span class="line">	return newEnv-&gt;env_id;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">// Set envid&apos;s env_status to status, which must be ENV_RUNNABLE</span><br><span class="line">// or ENV_NOT_RUNNABLE.</span><br><span class="line">//</span><br><span class="line">// Returns 0 on success, &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_BAD_ENV if environment envid doesn&apos;t currently exist,</span><br><span class="line">//		or the caller doesn&apos;t have permission to change envid.</span><br><span class="line">//	-E_INVAL if status is not a valid status for an environment.</span><br><span class="line">static int</span><br><span class="line">sys_env_set_status(envid_t envid, int status)</span><br><span class="line">&#123;</span><br><span class="line">	// Hint: You should set envid2env&apos;s third argument to 1, which will</span><br><span class="line">	// check whether the current environment has permission to set</span><br><span class="line">	// envid&apos;s status.</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_env_set_status not implemented&quot;);</span><br><span class="line">	struct Env *e; </span><br><span class="line">	// check whether the current environment has permission to set envid&apos;s status. </span><br><span class="line">	// i.e.,the specified environment must be either the</span><br><span class="line">	// current environment or an immediate child of the current environment.</span><br><span class="line">	int r = envid2env(envid,&amp;e,true);</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	if(status != ENV_RUNNABLE &amp;&amp; status != ENV_NOT_RUNNABLE) return -E_INVAL;</span><br><span class="line">	e-&gt;env_status = status;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">// Allocate a page of memory and map it at &apos;va&apos; with permission</span><br><span class="line">// &apos;perm&apos; in the address space of &apos;envid&apos;.</span><br><span class="line">// The page&apos;s contents are set to 0.</span><br><span class="line">// If a page is already mapped at &apos;va&apos;, that page is unmapped as a</span><br><span class="line">// side effect.</span><br><span class="line">//</span><br><span class="line">// perm -- PTE_U | PTE_P must be set, PTE_AVAIL | PTE_W may or may not be set,</span><br><span class="line">//         but no other bits may be set.  See PTE_SYSCALL in inc/mmu.h.</span><br><span class="line">//</span><br><span class="line">// Return 0 on success, &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_BAD_ENV if environment envid doesn&apos;t currently exist,</span><br><span class="line">//		or the caller doesn&apos;t have permission to change envid.</span><br><span class="line">//	-E_INVAL if va &gt;= UTOP, or va is not page-aligned.</span><br><span class="line">//	-E_INVAL if perm is inappropriate (see above).</span><br><span class="line">//	-E_NO_MEM if there&apos;s no memory to allocate the new page,</span><br><span class="line">//		or to allocate any necessary page tables.</span><br><span class="line">static int</span><br><span class="line">sys_page_alloc(envid_t envid, void *va, int perm)</span><br><span class="line">&#123; </span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_page_alloc not implemented&quot;);</span><br><span class="line">	struct Env *e; </span><br><span class="line">	// check whether the current environment has permission to change envid. </span><br><span class="line">	// i.e.,the specified environment must be either the</span><br><span class="line">	// current environment or an immediate child of the current environment.</span><br><span class="line">	int r = envid2env(envid,&amp;e,true); </span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	</span><br><span class="line">	if((uint32_t)va &gt;= UTOP || (uint32_t)va%PGSIZE != 0) return -E_INVAL;</span><br><span class="line">	</span><br><span class="line">	if((perm &amp; PTE_U) != PTE_U || (perm &amp; PTE_P) != PTE_P) return -E_INVAL;</span><br><span class="line">	//#define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)</span><br><span class="line">	if ((perm &amp; ~PTE_SYSCALL) != 0) //no other bits may be set</span><br><span class="line">		return -E_INVAL;</span><br><span class="line"></span><br><span class="line">	struct PageInfo *page = page_alloc(ALLOC_ZERO);</span><br><span class="line">	if(page == NULL) return -E_NO_MEM;</span><br><span class="line">	</span><br><span class="line">	//store page&apos;s mapping physical address and perm in va&apos;s mapping page table entry</span><br><span class="line">	r = page_insert(e-&gt;env_pgdir, page, va, perm);</span><br><span class="line">	if(r&lt;0) &#123;</span><br><span class="line">		page_remove(e-&gt;env_pgdir,va);</span><br><span class="line">		return r;//-E_NO_MEM</span><br><span class="line">	&#125;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">// Map the page of memory at &apos;srcva&apos; in srcenvid&apos;s address space</span><br><span class="line">// at &apos;dstva&apos; in dstenvid&apos;s address space with permission &apos;perm&apos;.</span><br><span class="line">// Perm has the same restrictions as in sys_page_alloc, except</span><br><span class="line">// that it also must not grant write access to a read-only</span><br><span class="line">// page.</span><br><span class="line">//</span><br><span class="line">// Return 0 on success, &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_BAD_ENV if srcenvid and/or dstenvid doesn&apos;t currently exist,</span><br><span class="line">//		or the caller doesn&apos;t have permission to change one of them.</span><br><span class="line">//	-E_INVAL if srcva &gt;= UTOP or srcva is not page-aligned,</span><br><span class="line">//		or dstva &gt;= UTOP or dstva is not page-aligned.</span><br><span class="line">//	-E_INVAL is srcva is not mapped in srcenvid&apos;s address space.</span><br><span class="line">//	-E_INVAL if perm is inappropriate (see sys_page_alloc).</span><br><span class="line">//	-E_INVAL if (perm &amp; PTE_W), but srcva is read-only in srcenvid&apos;s</span><br><span class="line">//		address space.</span><br><span class="line">//	-E_NO_MEM if there&apos;s no memory to allocate any necessary page tables.</span><br><span class="line">static int</span><br><span class="line">sys_page_map(envid_t srcenvid, void *srcva,</span><br><span class="line">	     envid_t dstenvid, void *dstva, int perm)</span><br><span class="line">&#123; </span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_page_map not implemented&quot;);</span><br><span class="line">	struct Env *srce,*dste; </span><br><span class="line">	// check whether the current environment has permission to change envid. </span><br><span class="line">	// i.e.,the specified environment must be either the</span><br><span class="line">	// current environment or an immediate child of the current environment.</span><br><span class="line">	int r = envid2env(srcenvid,&amp;srce,true);</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	r = envid2env(dstenvid,&amp;dste,true);//envid 0 means &quot;the current environment.&quot;</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	</span><br><span class="line">	if((uint32_t)srcva &gt;= UTOP || (uint32_t)srcva%PGSIZE != 0) return -E_INVAL;</span><br><span class="line">	if((uint32_t)dstva &gt;= UTOP || (uint32_t)dstva%PGSIZE != 0) return -E_INVAL;</span><br><span class="line">	</span><br><span class="line">	//return the page mapped at virtual address &apos;va&apos;</span><br><span class="line">	//pte_store stores the address of the page table entry for this page</span><br><span class="line">	pte_t *pte_store;</span><br><span class="line">	struct PageInfo *page = page_lookup(srce-&gt;env_pgdir, srcva, &amp;pte_store);</span><br><span class="line">	if(page == NULL) return -E_INVAL;//no page mapped at srcva</span><br><span class="line"></span><br><span class="line">	if((perm &amp; PTE_U) != PTE_U || (perm &amp; PTE_P) != PTE_P) return -E_INVAL;</span><br><span class="line">	//#define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)</span><br><span class="line">	if ((perm &amp; ~PTE_SYSCALL) != 0) //no other bits may be set</span><br><span class="line">		return -E_INVAL;</span><br><span class="line">	</span><br><span class="line">	if((*pte_store &amp; PTE_W) != PTE_W &amp;&amp; ((perm &amp; PTE_W) == PTE_W)) return -E_INVAL;//srcva is read-only but perm is writable</span><br><span class="line"></span><br><span class="line">	//store page&apos;s mapping physical address and perm in dstva&apos;s mapping page table entry</span><br><span class="line">	r = page_insert(dste-&gt;env_pgdir, page, dstva, perm);// allow to create page table</span><br><span class="line">	if(r&lt;0) &#123;</span><br><span class="line">		page_remove(dste-&gt;env_pgdir,dstva);</span><br><span class="line">		return r;//-E_NO_MEM</span><br><span class="line">	&#125;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// Unmap the page of memory at &apos;va&apos; in the address space of &apos;envid&apos;.</span><br><span class="line">// If no page is mapped, the function silently succeeds.</span><br><span class="line">//</span><br><span class="line">// Return 0 on success, &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_BAD_ENV if environment envid doesn&apos;t currently exist,</span><br><span class="line">//		or the caller doesn&apos;t have permission to change envid.</span><br><span class="line">//	-E_INVAL if va &gt;= UTOP, or va is not page-aligned.</span><br><span class="line">static int</span><br><span class="line">sys_page_unmap(envid_t envid, void *va)</span><br><span class="line">&#123; </span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_page_unmap not implemented&quot;);</span><br><span class="line">	struct Env *e; </span><br><span class="line">	// check whether the current environment has permission to change envid. </span><br><span class="line">	// i.e.,the specified environment must be either the</span><br><span class="line">	// current environment or an immediate child of the current environment.</span><br><span class="line">	int r = envid2env(envid,&amp;e,true);</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	</span><br><span class="line">	if((uint32_t)va &gt;= UTOP || (uint32_t)va%PGSIZE != 0) return -E_INVAL;</span><br><span class="line">	</span><br><span class="line">	page_remove(e-&gt;env_pgdir,va);</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 添加系统调用以读取某个进程的所有重要状态。实现一个用户程序，该程序fork一个子进程，运行该程序（即循环迭代sys_yield()），然后获取子进程的完整snapshot或checkpoint，然后执行子程序一段时间。最后，恢复子进程在检查点的状态，然后继续执行子进程。这相当于从某个中间状态replaying子进程的执行。使用sys_cgetc()或readline()函数保证子进程与用户之间进行交互，以便用户可以查看和改变其内部状态。确保子进程在检查点处恢复执行时，子进程&quot;forget&quot;了之前任何发生在检查点之后的内容。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">???</span><br></pre></td></tr></table></figure>
+<h1 id="Part-B-Copy-on-Write-Fork"><a href="#Part-B-Copy-on-Write-Fork" class="headerlink" title="Part B: Copy-on-Write Fork"></a>Part B: Copy-on-Write Fork</h1><p>xv6实现的fork()将父进程所有物理页的内容拷贝给了分配给子进程的新物理页，类似于jos的dumbfork()函数。fork()过程中最“昂贵”的操作就是将父进程的地址空间拷贝给子进程。然而在子进程中，通常是紧接着就执行exec()，以新程序替代子进程执行。在这种情况下，父进程拷贝地址空间给子进程所花时间将被大大浪费了，因为子进程在执行exec()之前只使用了一小部分内存。鉴于此，更新版本的unix利用虚拟内存硬件允许父子进程共享分别映射到它们各自地址空间的物理内存，直至其中一方修改物理内存，这种技术称为“写时复制”。fork()将父进程地址空间的映射情况复制到子进程中，而不是复制父进程映射的物理页内容，并将共享的物理页标记为“只读”。当父子进程其中一方尝试写入到任一页共享的内存页，该进程将触发页错误。在这种情况下，内核识别出该页是“写时复制”副本，并为触发页错误的进程创建新的私有的可写入页。</p>
+<h2 id="User-level-page-fault-handling"><a href="#User-level-page-fault-handling" class="headerlink" title="User-level page fault handling"></a>User-level page fault handling</h2><p>将Copy-on-Write Fork实现为一个用户空间库例程有以下优点：1、内核更为简单，更为正确；2、允许用户进程定义fork()的语义，用户程序可以很容易地提供一个稍有不同的实现版本，例如dumbfork()这种昂贵的always-copy版本，或者父子进程共享内存的版本。用户级别的Copy-on-Write Fork需要能够识别出在写保护页上触发的页错误。</p>
+<p>典型的unix内核需要知道在进程地址空间的每一个区域上触发页错误时应该采取什么方法，例如：栈空间触发页错误时应该分配和映射新的物理页，在大多数unix内核中，一开始只给新进程分配一页的栈空间，用户程序在栈空间不足的情况下访问未映射的栈地址会触发页错误，从而导致内核分配并映射新物理页到栈空间；BSS空间触发页错误时应该分配新的一页、填充0并映射到地址空间；如果系统支持按需分配物理页的可执行文件，text region触发页错误时将从磁盘读取相应二进制页并映射到地址空间。</p>
+<p>上述情况中内核需要跟踪许多信息。我们不采取传统的unix方法，而是在用户空间中决定对每个页错误所采取的行动。这种设计的好处是用户程序在定义内存区域时有极大的灵活性，我们将在后续使用用户级页错误处理程序来映射和访问基于硬盘的文件系统上的文件。</p>
+<h2 id="Setting-the-Page-Fault-Handler"><a href="#Setting-the-Page-Fault-Handler" class="headerlink" title="Setting the Page Fault Handler"></a>Setting the Page Fault Handler</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 8. 实现sys_env_set_pgfault_upcall系统调用，该系统调用用于注册用户程序触发页错误时的处理函数入口。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">// Set the page fault upcall for &apos;envid&apos; by modifying the corresponding struct</span><br><span class="line">// Env&apos;s &apos;env_pgfault_upcall&apos; field.  When &apos;envid&apos; causes a page fault, the</span><br><span class="line">// kernel will push a fault record onto the exception stack, then branch to</span><br><span class="line">// &apos;func&apos;.</span><br><span class="line">//</span><br><span class="line">// Returns 0 on success, &lt; 0 on error.  Errors are:</span><br><span class="line">//	-E_BAD_ENV if environment envid doesn&apos;t currently exist,</span><br><span class="line">//		or the caller doesn&apos;t have permission to change envid.</span><br><span class="line">static int</span><br><span class="line">sys_env_set_pgfault_upcall(envid_t envid, void *func)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_env_set_pgfault_upcall not implemented&quot;); </span><br><span class="line">	struct Env *e; </span><br><span class="line">	// check whether the current environment has permission to change envid. </span><br><span class="line">	// i.e.,the specified environment must be either the</span><br><span class="line">	// current environment or an immediate child of the current environment.</span><br><span class="line">	int r = envid2env(envid,&amp;e,true);</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	e-&gt;env_pgfault_upcall = func;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Normal-and-Exception-Stacks-in-User-Environments"><a href="#Normal-and-Exception-Stacks-in-User-Environments" class="headerlink" title="Normal and Exception Stacks in User Environments"></a>Normal and Exception Stacks in User Environments</h2><p>jos正常执行进程过程中，用户进程所使用的用户栈是[USTACKTOP-PGSIZE,USTACKTOP-1]。然而，当用户程序触发页错误时，内核将在另一个栈[UXSTACKTOP-PGSIZE,UXSTACKTOP-1]上执行设计好的页错误处理函数，这个栈称为user exception stack。类似于x86为jos设计的由用户模式切换到内核模式时的栈切换，我们将在jos内核为用户程序设计自动栈切换。<br>当执行用户设计的页错误处理函数时，可以根据页错误原因使用jos的系统调用来映射新物理页或调整映射情况。之后页错误处理函数返回，通过汇编语言返回到原先触发页错误的代码。<br>每一个需要使用用户级别页错误处理流程的用户程序需要自行为user exception stack申请内存空间。</p>
+<h2 id="Invoking-the-User-Page-Fault-Handler"><a href="#Invoking-the-User-Page-Fault-Handler" class="headerlink" title="Invoking the User Page Fault Handler"></a>Invoking the User Page Fault Handler</h2><p>用户程序触发页错误时，用户进程的状态称为“the trap-time state”。如果没有注册页错误处理程序，内核将销毁进程。否则，内核在异常栈上设置struct UTrapframe（见inc/trap.h），UTrapframe的值主要来源于内核栈的trap frame。之后，内核安排用户级页错误处理程序在异常栈上执行。<br>如果发生页错误的时候用户进程已经在异常栈上执行（<code>tf-&gt;tf_esp</code>在[UXSTACKTOP-PGSIZE, UXSTACKTOP-1]内），说明页错误处理程序本身触发了页错误。这种时候应该在<code>tf-&gt;tf_esp</code>而不是<code>UXSTACKTOP</code>的以下部分存储UTrapframe，而且需要先留空4个字节，再存储UTrapframe，具体原因下面讲。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 9. 完成kern/trap.c的page_fault_handler函数，该函数主要负责处理页错误，如果触发页错误的是用户进程，则检查页错误处理程序是否已设置、页错误处理程序地址是否合法、异常栈指针是否越界、是否递归触发页错误、是否已为异常栈分配物理页，然后在异常栈上存储UTrapframe，将栈指针指向异常栈，并跳转执行用户级页错误处理程序入口。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">page_fault_handler(struct Trapframe *tf)</span><br><span class="line">&#123;</span><br><span class="line">    uint32_t fault_va;</span><br><span class="line"></span><br><span class="line">    // Read processor&apos;s CR2 register to find the faulting address</span><br><span class="line">    fault_va = rcr2();</span><br><span class="line"></span><br><span class="line">    // Handle kernel-mode page faults.</span><br><span class="line"></span><br><span class="line">    // LAB 3: Your code here.</span><br><span class="line">    if ((tf-&gt;tf_cs&amp;3) == 0)</span><br><span class="line">        panic(&quot;Kernel page fault!&quot;);</span><br><span class="line">    // We&apos;ve already handled kernel-mode exceptions, so if we get here,</span><br><span class="line">    // the page fault happened in user mode.</span><br><span class="line"> </span><br><span class="line">    // LAB 4: Your code here. </span><br><span class="line">    //1. test if has page fault upcall</span><br><span class="line">    if (curenv-&gt;env_pgfault_upcall == NULL ||</span><br><span class="line">        //2. test if the exception stack overflows</span><br><span class="line">        tf-&gt;tf_esp &gt; UXSTACKTOP || (tf-&gt;tf_esp &gt; USTACKTOP &amp;&amp; tf-&gt;tf_esp &lt; (UXSTACKTOP - PGSIZE)))&#123;</span><br><span class="line">        // Destroy the environment that caused the fault.</span><br><span class="line">        cprintf(&quot;[%08x] user fault va %08x ip %08x\n&quot;,</span><br><span class="line">            curenv-&gt;env_id, fault_va, tf-&gt;tf_eip);</span><br><span class="line">        print_trapframe(tf);</span><br><span class="line">        env_destroy(curenv);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 1. test if page fault upcall valid</span><br><span class="line">    user_mem_assert(curenv, (void *)curenv-&gt;env_pgfault_upcall, 1, 0);</span><br><span class="line">	</span><br><span class="line">    //determine user exception stack pointer</span><br><span class="line">    uint32_t exception_stack_top = 0;</span><br><span class="line">    if(tf-&gt;tf_esp &lt;= USTACKTOP)&#123;</span><br><span class="line">        exception_stack_top = UXSTACKTOP - sizeof(struct UTrapframe);</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">        //+4 : leave an extra word between the current top of the exception stack</span><br><span class="line">        exception_stack_top = tf-&gt;tf_esp - sizeof(struct UTrapframe) - 4;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //2. test if the exception stack overflows</span><br><span class="line">    if(exception_stack_top &lt; (UXSTACKTOP - PGSIZE))&#123;</span><br><span class="line">        // Destroy the environment that caused the fault.</span><br><span class="line">        cprintf(&quot;[%08x] user fault va %08x ip %08x\n&quot;,</span><br><span class="line">            curenv-&gt;env_id, fault_va, tf-&gt;tf_eip);</span><br><span class="line">        print_trapframe(tf);</span><br><span class="line">        env_destroy(curenv);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //3. test if allocate a page for its exception stack or if can write to it</span><br><span class="line">    user_mem_assert(curenv, (void *) exception_stack_top, 1, PTE_W | PTE_U);//1 is enough, may not return</span><br><span class="line">	 </span><br><span class="line">    //write UTrapframe in the stack</span><br><span class="line">    struct UTrapframe* utf = (struct UTrapframe*)exception_stack_top;</span><br><span class="line">    utf-&gt;utf_fault_va = fault_va;</span><br><span class="line">    utf-&gt;utf_err = tf-&gt;tf_err;</span><br><span class="line">    utf-&gt;utf_regs = tf-&gt;tf_regs;</span><br><span class="line">    utf-&gt;utf_eip = tf-&gt;tf_eip;</span><br><span class="line">    utf-&gt;utf_eflags = tf-&gt;tf_eflags;</span><br><span class="line">    utf-&gt;utf_esp = tf-&gt;tf_esp;</span><br><span class="line"></span><br><span class="line">    //branch to curenv-&gt;env_pgfault_upcall, that means we should change trapframe&apos;s esp and eip</span><br><span class="line">    tf-&gt;tf_esp = (uintptr_t) exception_stack_top;</span><br><span class="line">    tf-&gt;tf_eip = (uintptr_t) curenv-&gt;env_pgfault_upcall;</span><br><span class="line">    env_run(curenv);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="User-mode-Page-Fault-Entrypoint"><a href="#User-mode-Page-Fault-Entrypoint" class="headerlink" title="User-mode Page Fault Entrypoint"></a>User-mode Page Fault Entrypoint</h2><p>xv6的定时函数是在内核trap时将esp所指单元向下移动一个单元，然后存储tf的eip（触发中断的下一条指令），然后将tf的eip指向处理函数，然后弹出tf寄存器执行定时函数，定时函数返回时弹出trap设置的eip，进而执行用户函数。这种情况下esp仍然指向用户栈。<br>jos的用户级页错误处理程序入口是<code>_pgfault_upcall</code>，包括调用执行真正的处理程序和恢复执行用户函数。<code>_pgfault_upcall</code>将通过系统调用设置为页错误处理程序入口，内核trap时将tf的相关值复制到异常栈上，将tf的esp指向异常栈，然后弹出tf寄存器执行页错误处理程序入口。这种情况下执行处理函数的时候esp指向的是异常栈，设置异常栈可以方便传递参数。<br>用户级页错误处理程序执行完后，将返回执行原先触发页错误的用户代码（如果是页错误处理程序触发页错误，则应返回执行原先触发页错误的页错误处理程序）。lib/pfentry.S完成这个任务。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 10. 完成lib/pfentry.S。触发页错误时内核实际上是跳转执行该文件声明的入口_pgfault_upcall。pfentry.S主要是在用户态的page_fault_handler结束后如何恢复现场并跳回原程序执行。</span><br></pre></td></tr></table></figure></p>
+<p>内核在异常栈上存储UTrapframe之后安排用户级页错误处理程序在异常栈上执行。异常栈上的UTrapframe布局如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">                    &lt;-- UXSTACKTOP or tf-&gt;tf_esp</span><br><span class="line">trap-time esp</span><br><span class="line">trap-time eflags</span><br><span class="line">trap-time eip</span><br><span class="line">trap-time eax       start of struct PushRegs</span><br><span class="line">trap-time ecx</span><br><span class="line">trap-time edx</span><br><span class="line">trap-time ebx</span><br><span class="line">trap-time oesp</span><br><span class="line">trap-time ebp</span><br><span class="line">trap-time esi</span><br><span class="line">trap-time edi       end of struct PushRegs</span><br><span class="line">tf_err (error code)</span><br><span class="line">fault_va            &lt;-- %esp when handler is run</span><br></pre></td></tr></table></figure></p>
+<p>分两种情况分析：<br>1、非递归触发页错误。由于此时是在异常栈上，想要恢复执行触发页错误的用户代码时，需要弹出通用寄存器，并由异常栈跳转到用户栈，最后执行ret恢复执行。因此，关键点是如何在弹出通用寄存器和eflags之前将eip存储到用户栈上。需要借助通用寄存器存储PushRegs的位置和eip的值，再跳到用户栈，存储eip，然后再跳回PushRegs位置，弹出通用寄存器和eflags，最后跳回用户栈执行ret（实验发现最后跳回用户栈之后，此时已经存了eip，如果执行subl向下跳到存eip的位置会改变eflags，因此在跳到用户栈存储eip之后，将最新的esp位置存到异常栈上，最后由异常栈直接跳到用户栈执行ret）。<br>2、递归触发页错误。与情况1不同的是，“用户栈”其实就是异常栈本身。因此，在跳到“用户栈”存储eip的时候，由于弹出的trap-time esp值恰好就是存储trap-time esp所在的位置（trap的时候esp指向异常栈该位置，然后跳到内核栈，内核再从异常栈该位置开始存储UTrapframe），存储eip会将trap-time esp覆盖，从而导致最后不能成功再跳回用户栈。这就是为什么如果是递归触发页错误的话，需要先留空4个字节，再存储UTrapframe，主要是为了防止存储eip的时候覆盖了原先的esp值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;inc/mmu.h&gt;</span><br><span class="line">#include &lt;inc/memlayout.h&gt;</span><br><span class="line"></span><br><span class="line">// Page fault upcall entrypoint.</span><br><span class="line"> </span><br><span class="line">.text</span><br><span class="line">.globl _pgfault_upcall</span><br><span class="line">_pgfault_upcall:</span><br><span class="line">    // Call the C page fault handler.</span><br><span class="line">    pushl %esp          // function argument: pointer to UTF</span><br><span class="line">    movl _pgfault_handler, %eax</span><br><span class="line">    call *%eax</span><br><span class="line">    addl $4, %esp           // pop function argument</span><br><span class="line">    </span><br><span class="line">    // Now the C page fault handler has returned and you must return</span><br><span class="line">    // to the trap time state.</span><br><span class="line">    // Push trap-time %eip onto the trap-time stack.</span><br><span class="line">    //</span><br><span class="line">    // Explanation:</span><br><span class="line">    //   We must prepare the trap-time stack for our eventual return to</span><br><span class="line">    //   re-execute the instruction that faulted.</span><br><span class="line">    //   Unfortunately, we can&apos;t return directly from the exception stack:</span><br><span class="line">    //   We can&apos;t call &apos;jmp&apos;, since that requires that we load the address</span><br><span class="line">    //   into a register, and all registers must have their trap-time</span><br><span class="line">    //   values after the return.</span><br><span class="line">    //   We can&apos;t call &apos;ret&apos; from the exception stack either, since if we</span><br><span class="line">    //   did, %esp would have the wrong value.</span><br><span class="line">    //   So instead, we push the trap-time %eip onto the *trap-time* stack!</span><br><span class="line">    //   Below we&apos;ll switch to that stack and call &apos;ret&apos;, which will</span><br><span class="line">    //   restore %eip to its pre-fault value.</span><br><span class="line">    //</span><br><span class="line">    //   In the case of a recursive fault on the exception stack,</span><br><span class="line">    //   note that the word we&apos;re pushing now will fit in the</span><br><span class="line">    //   blank word that the kernel reserved for us.</span><br><span class="line">    //</span><br><span class="line">    // Throughout the remaining code, think carefully about what</span><br><span class="line">    // registers are available for intermediate calculations.  You</span><br><span class="line">    // may find that you have to rearrange your code in non-obvious</span><br><span class="line">    // ways as registers become unavailable as scratch space.</span><br><span class="line">    //</span><br><span class="line">    // LAB 4: Your code here.</span><br><span class="line"></span><br><span class="line">    // Restore the trap-time registers.  After you do this, you</span><br><span class="line">    // can no longer modify any general-purpose registers.</span><br><span class="line">    // LAB 4: Your code here.</span><br><span class="line"></span><br><span class="line">    // Restore eflags from the stack.  After you do this, you can</span><br><span class="line">    // no longer use arithmetic operations or anything else that</span><br><span class="line">    // modifies eflags.</span><br><span class="line">    // LAB 4: Your code here.</span><br><span class="line"></span><br><span class="line">    // Switch back to the adjusted trap-time stack.</span><br><span class="line">    // LAB 4: Your code here.</span><br><span class="line"></span><br><span class="line">    // Return to re-execute the instruction that faulted.</span><br><span class="line">    // LAB 4: Your code here.</span><br><span class="line"> </span><br><span class="line">    addl $8, %esp  </span><br><span class="line">    movl %esp,%eax  </span><br><span class="line">    addl $32,%esp  </span><br><span class="line">    popl %ebx  </span><br><span class="line">    addl $4,%esp  </span><br><span class="line">    movl %esp, %ebp </span><br><span class="line">    popl %esp  </span><br><span class="line">    pushl %ebx  </span><br><span class="line">    movl %esp, 0x0(%ebp) </span><br><span class="line">    movl %eax,%esp  </span><br><span class="line">    popal  </span><br><span class="line">    addl $4,%esp  </span><br><span class="line">    popf  </span><br><span class="line">    popl %esp  </span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">//  do not use the following, cause I find that &apos;subl $4,%esp&apos; will change eflags!</span><br><span class="line"></span><br><span class="line">//	addl $8, %esp  </span><br><span class="line">//	movl %esp,%eax  </span><br><span class="line">//	addl $32,%esp  </span><br><span class="line">//	popl %ebx  </span><br><span class="line">//	addl $4,%esp  </span><br><span class="line">//	popl %esp  </span><br><span class="line">//	pushl %ebx  </span><br><span class="line">//	movl %eax,%esp  </span><br><span class="line">//	popal  </span><br><span class="line">//	addl $4,%esp  </span><br><span class="line">//	popf  </span><br><span class="line">//	popl %esp  </span><br><span class="line">//	subl $4,%esp  </span><br><span class="line">//	ret</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 11. 完成lib/pgfault.c的set_pgfault_handler()。该函数主要完成页错误处理程序的注册工作。如果是第一次注册，则申请分配并映射异常栈。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">set_pgfault_handler(void (*handler)(struct UTrapframe *utf))</span><br><span class="line">&#123;</span><br><span class="line">	int r;</span><br><span class="line"></span><br><span class="line">	if (_pgfault_handler == 0) &#123;</span><br><span class="line">		// First time through!</span><br><span class="line">		// LAB 4: Your code here.</span><br><span class="line">		//panic(&quot;set_pgfault_handler not implemented&quot;);</span><br><span class="line">		if (sys_page_alloc(sys_getenvid(), (void *)(UXSTACKTOP-PGSIZE), PTE_P|PTE_U|PTE_W) &lt; 0)</span><br><span class="line">			panic(&quot;in set_pgfault_handler, sys_page_alloc failed&quot;);</span><br><span class="line">		sys_env_set_pgfault_upcall(0, (void*) _pgfault_upcall);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// Save handler pointer for assembly to call.</span><br><span class="line">	_pgfault_handler = handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>综上所述，用户级别的页错误处理流程如下：<br>1、用户程序通过<code>lib/pgfault.c</code>的<code>set_pgfault_handler()</code>函数注册页错误处理函数入口<code>_pgfault_upcall</code>（见lib/pfentry.S），并指定页错误处理函数<code>_pgfault_handler</code>，该函数指针将在<code>_pgfault_upcall</code>中被使用。第一次注册<code>_pgfault_upcall</code>时将申请分配并映射异常栈。<br>2、用户程序触发页错误，切换到内核模式。<br>3、内核检查页错误处理程序是否已设置、异常栈指针是否越界、是否递归触发页错误、是否已为异常栈分配物理页，然后在异常栈上存储UTrapframe，将栈指针指向异常栈，并跳转执行当前进程的<code>env_pgfault_upcall</code>（被设为用户级页错误处理程序入口<code>_pgfault_upcall</code>）。<br>4、用户模式下<code>_pgfault_upcall</code>调用<code>_pgfault_upcall</code>，执行用户级别页错误处理函数，在用户态的<code>page_fault_handler</code>结束后恢复现场并跳回原程序执行。</p>
+<h2 id="Testing"><a href="#Testing" class="headerlink" title="Testing"></a>Testing</h2><p>user/faultalloc.c涉及了递归触发页错误。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// test user-level fault handler -- alloc pages to fix faults</span><br><span class="line"></span><br><span class="line">#include &lt;inc/lib.h&gt;</span><br><span class="line"></span><br><span class="line">void</span><br><span class="line">handler(struct UTrapframe *utf)</span><br><span class="line">&#123;</span><br><span class="line">	int r;</span><br><span class="line">	void *addr = (void*)utf-&gt;utf_fault_va;</span><br><span class="line"></span><br><span class="line">	cprintf(&quot;fault %x\n&quot;, addr);</span><br><span class="line">	if ((r = sys_page_alloc(0, ROUNDDOWN(addr, PGSIZE),</span><br><span class="line">				PTE_P|PTE_U|PTE_W)) &lt; 0)</span><br><span class="line">		panic(&quot;allocating at %x in page fault handler: %e&quot;, addr, r);</span><br><span class="line">	snprintf((char*) addr, 100, &quot;this string was faulted in at %x&quot;, addr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void</span><br><span class="line">umain(int argc, char **argv)</span><br><span class="line">&#123;</span><br><span class="line">	set_pgfault_handler(handler);</span><br><span class="line">	cprintf(&quot;%s\n&quot;, (char*)0xDeadBeef);</span><br><span class="line">	cprintf(&quot;%s\n&quot;, (char*)0xCafeBffe);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/2.PNG" title="user/faultalloc.c递归触发页错误">
+<p>首先，snprintf的定义是<code>int snprintf(char *buf, int n, const char *fmt, ...)</code>，向buf缓存区中按照格式填充字符串。<br>出错的原因是：当执行<code>cprintf(&quot;%s\n&quot;, (char*)0xCafeBffe);</code>时，触发了页错误。页错误处理函数在虚拟地址<code>ROUNDDOWN(addr, PGSIZE)</code>即cafeb000上分配和映射物理页，此时可访问的虚拟地址空间为[0xcafeb000,0xcafec000-1]。之后，调用snprintf向0xCafeBffe内存地址上填充字符串，由于字符串过长，导致越界访问0xcafec000，再次触发页错误。第二次页错误处理程序往0xcafec000填充字符串，返回到第一次页错误处理程序，第一次页错误处理程序往0xCafeBffe填充字符串，返回到用户程序，执行cprintf进行输出。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 扩展jos内核，对运行用户程序代码时能触发的所有类型的处理器异常，都能重定向到用户模式的异常处理程序。编写用户模式的测试程序，测试divide-by-zero、general protection fault、illegal opcode等。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">???</span><br></pre></td></tr></table></figure>
+<h2 id="Implementing-Copy-on-Write-Fork"><a href="#Implementing-Copy-on-Write-Fork" class="headerlink" title="Implementing Copy-on-Write Fork"></a>Implementing Copy-on-Write Fork</h2><p>jos使用Copy-on-Write Fork时，将会扫描父进程的整个地址空间，并设置子进程的相关页映射，但不会复制页内容（dumpfork()复制页内容）。当父/子进程尝试写入某一页时，将申请新的一页并拷贝页内容到该页上。<br>fork()的基本流程如下：<br>1、父进程调用<code>set_pgfault_handler()</code>注册页错误处理函数<code>pgfault()</code>。<br>2、父进程调用<code>sys_exofork()</code>创建子进程。<br>3、对于[UTEXT,UTOP)每一个可写或写时复制的页，父进程调用duppage分别在子进程和自身的地址空间内映射该页为写时复制<code>PTE_COW</code>。<br>注意：不能将user exception stack映射为写时复制，而是应该为父子进程分别映射对应的物理页。这是因为页错误处理程序将在user exception stack上执行，当将user exception stack设为写时复制时，一旦发生页错误，内核将尝试往user exception stack写数据，由于user exception stack不可写而导致失败。<br>4、父进程为子进程注册页错误处理函数。<br>注意：我们不在子进程中注册页错误处理函数。首先，我们不在子进程中调用<code>set_pgfault_handler()</code>（该函数注册页错误处理函数，并在页错误处理函数未注册的情况下申请user exception stack），因为子进程是由父进程fork而来的，而父进程已经注册过页错误处理函数，所以在子进程中注册页错误处理函数的话子进程不会再申请user exception stack（<code>if (_pgfault_handler == 0)</code>条件判断失败）。其次，我们不在子进程中调用<code>sys_page_alloc()</code>和<code>sys_env_set_pgfault_upcall()</code>申请user exception stack，这是因为这涉及了函数调用，而父进程将子进程的用户栈映射为写时复制了，所以会触发页错误，但是此时还没有分配user exception stack，因此出错。<br>5、设置子进程状态为runnable。</p>
+<p>页错误处理函数的处理流程如下：<br>1、内核跳转执行<code>_pgfault_upcall</code>，<code>_pgfault_upcall</code>将调用页错误处理函数pgfault()。<br>2、pgfault()确认fault是可写的（错误码的FEC_WR），并且引起页错误的虚拟地址对应的页表项权限为<code>PTE_COW</code>。<br>3、pgfault()为申请新的一页，映射到一个临时地址，将faulting page的内容复制到该新页，调用<code>sys_page_map</code>将映射到临时地址的物理页映射到引起页错误的虚拟地址，设置权限为可写。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 12.实现lib/fork.c的fork、duppage、pgfault。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br></pre></td><td class="code"><pre><span class="line">// PTE_COW marks copy-on-write page table entries.</span><br><span class="line">// It is one of the bits explicitly allocated to user processes (PTE_AVAIL).</span><br><span class="line">#define PTE_COW		0x800</span><br><span class="line">extern void _pgfault_upcall(void);</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// Custom page fault handler - if faulting page is copy-on-write,</span><br><span class="line">// map in our own private writable copy.</span><br><span class="line">//</span><br><span class="line">static void</span><br><span class="line">pgfault(struct UTrapframe *utf)</span><br><span class="line">&#123;</span><br><span class="line">	void *addr = (void *) utf-&gt;utf_fault_va;</span><br><span class="line">	uint32_t err = utf-&gt;utf_err;</span><br><span class="line">	int r;</span><br><span class="line">	// Check that the faulting access was (1) a write, and (2) to a</span><br><span class="line">	// copy-on-write page.  If not, panic.</span><br><span class="line">	// Hint:</span><br><span class="line">	//   Use the read-only page table mappings at uvpt</span><br><span class="line">	//   (see &lt;inc/memlayout.h&gt;).</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	if ((err &amp; FEC_WR) == 0)</span><br><span class="line">		panic(&quot;pgfault: faulting address [%08x] not a write\n&quot;, addr);</span><br><span class="line"></span><br><span class="line">	if( (uvpd[PDX(addr)] &amp; PTE_P) != PTE_P || </span><br><span class="line">	    (uvpt[PGNUM(addr)] &amp; PTE_P) != PTE_P || </span><br><span class="line">	    (uvpt[PGNUM(addr)] &amp; PTE_COW) != PTE_COW)&#123; </span><br><span class="line">		//cprintf(&quot;(uvpt[PTX(addr)] &amp; PTE_P)=%x,PTE_P=%x\n&quot;,(uvpt[PGNUM(addr)] &amp; PTE_P),PTE_P);</span><br><span class="line">		panic(&quot;not copy-on-write&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">	// Allocate a new page, map it at a temporary location (PFTEMP),</span><br><span class="line">	// copy the data from the old page to the new page, then move the new</span><br><span class="line">	// page to the old page&apos;s address.</span><br><span class="line">	// Hint:</span><br><span class="line">	//   You should make three system calls.</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line"></span><br><span class="line">	//panic(&quot;pgfault not implemented&quot;);</span><br><span class="line">	addr = ROUNDDOWN(addr, PGSIZE);</span><br><span class="line">	if ((r = sys_page_alloc(0, PFTEMP, PTE_P|PTE_U|PTE_W)) &lt; 0)</span><br><span class="line">		panic(&quot;allocating at %x in page fault handler: %e&quot;, addr, r);</span><br><span class="line">	memmove(PFTEMP, addr, PGSIZE);</span><br><span class="line">	//cprintf(&quot;in user pgfault,envid = %x\n&quot;,thisenv-&gt;env_id);</span><br><span class="line">	if ((r = sys_page_map(0, PFTEMP, 0, addr, PTE_P|PTE_U|PTE_W)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line">	if ((r = sys_page_unmap(0, PFTEMP)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_page_unmap: %e&quot;, r);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// Map our virtual page pn (address pn*PGSIZE) into the target envid</span><br><span class="line">// at the same virtual address.  If the page is writable or copy-on-write,</span><br><span class="line">// the new mapping must be created copy-on-write, and then our mapping must be</span><br><span class="line">// marked copy-on-write as well.  (Exercise: Why do we need to mark ours</span><br><span class="line">// copy-on-write again if it was already copy-on-write at the beginning of</span><br><span class="line">// this function?)</span><br><span class="line">//</span><br><span class="line">// Returns: 0 on success, &lt; 0 on error.</span><br><span class="line">// It is also OK to panic on error.</span><br><span class="line">//</span><br><span class="line">static int</span><br><span class="line">duppage(envid_t envid, unsigned pn)</span><br><span class="line">&#123;</span><br><span class="line">	int r;</span><br><span class="line"></span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;duppage not implemented&quot;); </span><br><span class="line">	void *addr = (void *)(pn*PGSIZE);</span><br><span class="line">	if( (uvpt[pn] &amp; PTE_W) == PTE_W || </span><br><span class="line">	    (uvpt[pn] &amp; PTE_COW) == PTE_COW)&#123; </span><br><span class="line"> 		if ((r = sys_page_map(0, (void *)addr, envid, (void *)addr, PTE_P|PTE_U|PTE_COW)) &lt; 0)&#123;</span><br><span class="line">			panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line"> 		&#125; </span><br><span class="line"> 		if ((r = sys_page_map(0, (void *)addr, 0, (void *)addr, PTE_P|PTE_U|PTE_COW)) &lt; 0)&#123;</span><br><span class="line">			panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line"> 		&#125; </span><br><span class="line">	&#125;else&#123;</span><br><span class="line">		if ((r = sys_page_map(0, (void *)addr, envid, (void *)addr, PTE_P|PTE_U)) &lt; 0)&#123;</span><br><span class="line">			panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line"> 		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//</span><br><span class="line">// User-level fork with copy-on-write.</span><br><span class="line">// Set up our page fault handler appropriately.</span><br><span class="line">// Create a child.</span><br><span class="line">// Copy our address space and page fault handler setup to the child.</span><br><span class="line">// Then mark the child as runnable and return.</span><br><span class="line">//</span><br><span class="line">// Returns: child&apos;s envid to the parent, 0 to the child, &lt; 0 on error.</span><br><span class="line">// It is also OK to panic on error.</span><br><span class="line">//</span><br><span class="line">// Hint:</span><br><span class="line">//   Use uvpd, uvpt, and duppage.</span><br><span class="line">//   Remember to fix &quot;thisenv&quot; in the child process.</span><br><span class="line">//   Neither user exception stack should ever be marked copy-on-write,</span><br><span class="line">//   so you must allocate a new page for the child&apos;s user exception stack.</span><br><span class="line">//</span><br><span class="line">envid_t</span><br><span class="line">fork(void)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;fork not implemented&quot;);</span><br><span class="line">	set_pgfault_handler(pgfault);</span><br><span class="line"></span><br><span class="line">	envid_t envid;</span><br><span class="line">	unsigned addr;</span><br><span class="line">	int r;</span><br><span class="line">	extern unsigned char end[]; </span><br><span class="line"></span><br><span class="line">	envid = sys_exofork();</span><br><span class="line">	if (envid &lt; 0)</span><br><span class="line">		panic(&quot;sys_exofork: %e&quot;, envid);</span><br><span class="line">	if (envid == 0) &#123;</span><br><span class="line">		// We&apos;re the child. </span><br><span class="line">		// DO NOT CALL set_pgfault_handler DIRECTLY! Cause we are forked from parent who has</span><br><span class="line">		// called &quot;set_pgfault_handler&quot;, so the variable named &quot;_pgfault_handler&quot; in pgfault.c has been set,</span><br><span class="line">		// and child-env will not call &quot;sys_page_alloc&quot; and &quot;sys_env_set_pgfault_upcall&quot;</span><br><span class="line">		// do not call: set_pgfault_handler(pgfault); </span><br><span class="line">		</span><br><span class="line">		// DO NOT SET USER EXCEPTION STACK IN CHILD! Cause we set COW on user stack(not user exception stack), so function call</span><br><span class="line">		// like &quot;sys_page_alloc&quot; and &quot;sys_env_set_pgfault_upcall&quot;(which want to stack user excettion stack) </span><br><span class="line">		// will cause page fault, and kern will use user excettion stack, but it has not been set!!</span><br><span class="line">		// do not call:</span><br><span class="line">	  	// if (sys_page_alloc(0, (void *)(UXSTACKTOP-PGSIZE), PTE_P|PTE_U|PTE_W) &lt; 0)</span><br><span class="line">		//	 panic(&quot;in fork, sys_page_alloc failed&quot;);</span><br><span class="line">		// if (sys_env_set_pgfault_upcall(0, (void*) _pgfault_upcall) &lt; 0) </span><br><span class="line">		// 	 panic(&quot;in fork, sys_env_set_pgfault_upcall failed&quot;);</span><br><span class="line">		//  </span><br><span class="line"></span><br><span class="line">		thisenv = &amp;envs[ENVX(sys_getenvid())];</span><br><span class="line">		return 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// We&apos;re the parent. </span><br><span class="line">	// map the page copy-on-write into the address space of the child </span><br><span class="line">	// and then remap the page copy-on-write in its own address space</span><br><span class="line">	for (addr = UTEXT; addr &lt; (unsigned)end; addr += PGSIZE)&#123;</span><br><span class="line">		duppage(envid, PGNUM(addr)); </span><br><span class="line">	&#125; </span><br><span class="line">	// map the stack we are currently running on.</span><br><span class="line">	duppage(envid, PGNUM(USTACKTOP - PGSIZE));    </span><br><span class="line">    // also can:</span><br><span class="line">  	/*</span><br><span class="line">	for (addr = 0; addr &lt; USTACKTOP; addr += PGSIZE)</span><br><span class="line">		if ((uvpd[PDX(addr)] &amp; PTE_P) &amp;&amp; (uvpt[PGNUM(addr)] &amp; PTE_P)</span><br><span class="line">		    &amp;&amp; (uvpt[PGNUM(addr)] &amp; PTE_U)) &#123;</span><br><span class="line">		    duppage(envid, PGNUM(addr)); </span><br><span class="line">	&#125;</span><br><span class="line">	*/</span><br><span class="line"></span><br><span class="line">	if (sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE), PTE_P|PTE_U|PTE_W) &lt; 0)</span><br><span class="line">		panic(&quot;in fork, sys_page_alloc failed&quot;);</span><br><span class="line">	if (sys_env_set_pgfault_upcall(envid, (void*) _pgfault_upcall) &lt; 0)</span><br><span class="line">		panic(&quot;in fork, sys_env_set_pgfault_upcall failed&quot;);</span><br><span class="line"></span><br><span class="line">	// Start the child environment running</span><br><span class="line">	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_env_set_status: %e&quot;, r);</span><br><span class="line"> </span><br><span class="line">	return envid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="关于uvpd和uvpt数组"><a href="#关于uvpd和uvpt数组" class="headerlink" title="关于uvpd和uvpt数组"></a>关于uvpd和uvpt数组</h2><p>为了能通过虚拟地址访问到页表和页目录，jos设计了UVPT和UVPD（见Lab3笔记）。一旦设置uvpt数组并指向UVPT，uvpt相当于包含1M个页表项的数组。对于[0, 4G)的线性地址，其在通过地址转换过程中找到的页表项，刚好是以线性地址前20位为索引在uvpt中的项，即uvpt[PGNUM(线性地址)]。对于[UVPT, UVPT+4M)的线性地址，其在uvpt数组中索引到的刚好是页目录这张页表中的项。<br>一旦设置uvpd数组并指向(UVPT+(UVPT&gt;&gt;12)*4)，则uvpd相当于包含1K个页目录项的数组。<br><img src="/2017/08/20/笔记016-Lab4-Preemptive-Multitasking/3.png" title="关于uvpd和uvpt数组"><br>另外，注意到每个进程访问uvpt[]和uvpd[]时，都是彼此独立的。这是因为：如访问uvpt[i]，最终是访问uvpt[i]相关联的UVPT之上的一个虚拟地址，每个进程的页目录和页表都是根据自身情况请求分配页之后的映射结果，如果进程A在该虚拟地址上没有映射页，则uvpt[i]为空，而如果进程B在该虚拟地址上有映射页，则uvpt[i]不为空。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 完成sfork，使父子进程能共享内存，除了用户栈和用户异常栈。</span><br></pre></td></tr></table></figure>
+<p>请注意，<code>sys_exofork</code>创建的子进程页目录只映射了内核空间，我们需要自行映射子进程的地址空间。另一方面，页表项低12位表示权限，但是<code>sys_page_map</code>中不支持设置<code>PTE_AVAIL | PTE_P | PTE_W | PTE_U</code>以外的权限位，因此需要对页表项权限提取进行&amp;处理。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">sfork(void)</span><br><span class="line">&#123; </span><br><span class="line">	set_pgfault_handler(pgfault);</span><br><span class="line"></span><br><span class="line">	envid_t envid;</span><br><span class="line">	unsigned addr;</span><br><span class="line">	int r;</span><br><span class="line">	extern unsigned char end[]; </span><br><span class="line"></span><br><span class="line">	envid = sys_exofork();</span><br><span class="line">	if (envid &lt; 0)</span><br><span class="line">		panic(&quot;sys_exofork: %e&quot;, envid);</span><br><span class="line">	if (envid == 0) &#123; </span><br><span class="line">		thisenv = &amp;envs[ENVX(sys_getenvid())];</span><br><span class="line">		return 0;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// We&apos;re the parent. </span><br><span class="line">	// share memory</span><br><span class="line">	for (addr = UTEXT; addr &lt; (unsigned)end; addr += PGSIZE)&#123;</span><br><span class="line">		// pte&apos;s low 12 bits,that means perm,</span><br><span class="line">		// however, in sys_page_map, no other bits may be set except PTE_SYSCALL</span><br><span class="line">		// #define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)</span><br><span class="line">		int perm = uvpt[PGNUM(addr)] &amp; PTE_SYSCALL;</span><br><span class="line">		if ((r = sys_page_map(0, (void *)addr, envid, (void *)addr, perm)) &lt; 0)&#123;</span><br><span class="line">			panic(&quot;sys_page_map: %e&quot;, r);</span><br><span class="line"> 		&#125; </span><br><span class="line">	&#125; </span><br><span class="line">	// map the stack we are currently running on, set copy-on-write.</span><br><span class="line">	duppage(envid, PGNUM(USTACKTOP - PGSIZE));   </span><br><span class="line"></span><br><span class="line">	if (sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE), PTE_P|PTE_U|PTE_W) &lt; 0)</span><br><span class="line">		panic(&quot;in fork, sys_page_alloc failed&quot;);</span><br><span class="line">	if (sys_env_set_pgfault_upcall(envid, (void*) _pgfault_upcall) &lt; 0)</span><br><span class="line">		panic(&quot;in fork, sys_env_set_pgfault_upcall failed&quot;);</span><br><span class="line"></span><br><span class="line">	// Start the child environment running</span><br><span class="line">	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) &lt; 0)</span><br><span class="line">		panic(&quot;sys_env_set_status: %e&quot;, r);</span><br><span class="line"> </span><br><span class="line">	return envid; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! fork()使用了大量的系统调用接口。为了降低成本，扩展jos的系统调用接口，使之支持批量调用系统调用，并让fork使用该接口。可参考IA32的RDTSC指令。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">???</span><br></pre></td></tr></table></figure>
+<h1 id="Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC"><a href="#Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC" class="headerlink" title="Part C: Preemptive Multitasking and Inter-Process communication (IPC)"></a>Part C: Preemptive Multitasking and Inter-Process communication (IPC)</h1><h2 id="Clock-Interrupts-and-Preemption"><a href="#Clock-Interrupts-and-Preemption" class="headerlink" title="Clock Interrupts and Preemption"></a>Clock Interrupts and Preemption</h2><p>user/spin程序中子进程一旦获取CPU将永远嵌入循环。为了保证内核能够抢占正在运行的进程，需要扩展内核以支持时钟硬件的外部硬件中断。</p>
+<h2 id="Interrupt-discipline"><a href="#Interrupt-discipline" class="headerlink" title="Interrupt discipline"></a>Interrupt discipline</h2><p>外部中断被称为IRQs，共有16个，编号为0-15。IRQs到IDT表项的映射不是固定的，<code>picirq.c</code>的<code>pic_init</code>通过<code>IRQ_OFFSET</code>-<code>IRQ_OFFSET+15</code>将IRQs 0-15映射到IDT项中。在inc/trap.h，<code>IRQ_OFFSET</code>被定义为32，所以IDT的32-47项映射到IRQs 0-15。<br>在jos中，一个关键的简化是一旦处于内核模式就禁用了外部设备中断。外部中断由eflags的<code>FL_IF</code>位控制。虽然有多种方式可以修改该位，但由于jos的简化处理，我们仅需要在进入和退出用户模式的时候通过保存和恢复eflags寄存器来处理它即可。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 13. 修改kern/trapentry.S和kern/trap.c，初始化相关的IDT项，并提供IRQs 0-15的处理函数。然后修改kern/env.c的env_alloc()，在允许外部中断的情况下执行用户进程。当调用硬件中断处理函数的时候，处理器不会将错误码进栈，也不会检查IDT项的DPL。</span><br></pre></td></tr></table></figure></p>
+<p>相关资料可查询 <a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/toc.htm" target="_blank" rel="noopener">section 9.2 of the 80386 Reference Manual</a> 或 <a href="https://pdos.csail.mit.edu/6.828/2014/readings/ia32/IA32-3A.pdf" target="_blank" rel="noopener">section 5.8 of the IA-32 Intel Architecture Software Developer’s Manual, Volume 3</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// kern/trapentry.S</span><br><span class="line">// 处理器不会将错误码进栈</span><br><span class="line"># IRQs 0    </span><br><span class="line">TRAPHANDLER_NOEC(entry_point32,IRQ_OFFSET+IRQ_TIMER) </span><br><span class="line"># IRQs 1</span><br><span class="line">TRAPHANDLER_NOEC(entry_point33,IRQ_OFFSET+IRQ_KBD) </span><br><span class="line"># IRQs 4</span><br><span class="line">TRAPHANDLER_NOEC(entry_point36,IRQ_OFFSET+IRQ_SERIAL) </span><br><span class="line"># IRQs 7</span><br><span class="line">TRAPHANDLER_NOEC(entry_point39,IRQ_OFFSET+IRQ_SPURIOUS) </span><br><span class="line"># IRQs 14</span><br><span class="line">TRAPHANDLER_NOEC(entry_point46,IRQ_OFFSET+IRQ_IDE) </span><br><span class="line"></span><br><span class="line">// kern/trap.c, trap_init()</span><br><span class="line">for (i = 0; i &lt; 16; ++i)&#123;</span><br><span class="line">	SETGATE(idt[IRQ_OFFSET+i], 0, GD_KT, entry_points[IRQ_OFFSET+i], 0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// kern/env.c, env_alloc()</span><br><span class="line">// 创建用户进程的时候设置允许中断标志，这样就可以在运行用户进程的时候通过中断来控制进程。</span><br><span class="line">	e-&gt;env_tf.tf_eflags |= FL_IF;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Handling-Clock-Interrupts"><a href="#Handling-Clock-Interrupts" class="headerlink" title="Handling Clock Interrupts"></a>Handling Clock Interrupts</h2><p><code>lapic_init</code>和<code>pic_init</code>进行了时钟和中断的相关设置，以生成中断。需要对中断进行相关处理。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 14. 修改trap_dispatch()函数，在每次触发时间中断的时候调用sched_yield()函数切换执行其他进程。测试案例为user/spin。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// trap_dispatch() </span><br><span class="line">	switch(tf-&gt;tf_trapno) &#123;</span><br><span class="line">	... </span><br><span class="line">	// Handle clock interrupts. Don&apos;t forget to acknowledge the</span><br><span class="line">	// interrupt using lapic_eoi() before calling the scheduler!</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line"> 	case (IRQ_OFFSET + IRQ_TIMER):</span><br><span class="line"> 		lapic_eoi();</span><br><span class="line"> 		sched_yield();</span><br><span class="line">		break;</span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+<h2 id="Inter-Process-communication-IPC"><a href="#Inter-Process-communication-IPC" class="headerlink" title="Inter-Process communication (IPC)"></a>Inter-Process communication (IPC)</h2><p>进程隔离和进程通信是两个重要课题，Unix的管道模型是典型的进程通信例子。进程间有许多通信模型，jos将实现一种简单的IPC机制。</p>
+<h2 id="IPC-in-JOS"><a href="#IPC-in-JOS" class="headerlink" title="IPC in JOS"></a>IPC in JOS</h2><p>jos实现的IPC机制是扩展系统调用接口<code>sys_ipc_recv</code>和<code>sys_ipc_try_send</code>，并实现库函数<code>ipc_recv</code>和<code>ipc_send</code>。jos的进程间通信信息包括两个部分：一个32位数和一个可选的页面映射。允许传递页面映射的做法一方面可以传递更多数据，一方面进程可以更方便地设置和安排内存共享。</p>
+<h2 id="Sending-and-Receiving-Messages"><a href="#Sending-and-Receiving-Messages" class="headerlink" title="Sending and Receiving Messages"></a>Sending and Receiving Messages</h2><p>进程希望接收消息时，调用<code>sys_ipc_recv</code>。该系统调用取消进程的执行，直到接收到消息。如果一个进行在等待接收消息，任何进程都可以发消息给它，而不局限于特定进程或有父子关系的进程。因此，Part A的权限检查不适用于IPC，因为IPC的设计确保进程A发送消息给进程B不能导致进程B发生故障。<br>进程希望发送消息时，调用<code>sys_ipc_try_send</code>，并传递目标进程号和参数。如果目标进程调用了<code>sys_ipc_recv</code>并且还没收到消息，系统调用将递交消息并返回0，否则返回<code>-E_IPC_NOT_RECV</code>。<br>库函数<code>ipc_recv</code>主要负责调用<code>sys_ipc_recv</code>和查找接收到的信息中所需要的部分。<br>库函数<code>ipc_send</code>主要负责重复调用<code>sys_ipc_try_send</code>，直至发送成功。</p>
+<h2 id="Transferring-Pages"><a href="#Transferring-Pages" class="headerlink" title="Transferring Pages"></a>Transferring Pages</h2><p>当进程携带<code>dstva</code>参数调用<code>sys_ipc_recv</code>时，表明它希望收到一个页映射。这样当发送者发送一个页时，接收者需要将<code>dstva</code>映射到自己的地址空间（如果原来已经有了页映射，则解除原来的映射）。<br>当进程携带<code>srcva</code>参数调用<code>sys_ipc_try_send</code>时，表明它希望将当前映射到<code>srcva</code>的页发送出去，权限是<code>perm</code>。发送成功后，发送者保持<code>srcva</code>的原有映射，接收者则有了新的页映射。从而达到共享页的目的。<br>如果发送者和接收者都没有指明要传递页，则没有页被传递。对于任何一个IPC，内核都会在接收者的Env结构体中的<code>env_ipc_perm</code>上设置接收页的权限。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Exercise 15. 实现kern/syscall.c的sys_ipc_recv和sys_ipc_try_send。调用envid2env的时候将checkperm设为0，表示任何进程都可以发送IPC消息。实现lib/ipc.c的ipc_recv和ipc_send。测试案例为user/pingpong和user/primes。</span><br></pre></td></tr></table></figure></p>
+<p>大体上的思路是：<code>ipc_send</code>负责调用<code>sys_ipc_try_send</code>，如果调用失败（如目标进程尚未准备好接收）则循环尝试，但为了不霸占资源，在循环体内调用<code>sys_yield</code>由内核选择进程的执行。目标进程尚未准备好接收的情况下尝试循环send，对其他返回的错误直接panic。原型为<code>void ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)</code>，表示发送参数val，并将映射到pg的物理页映射到目标进程地址空间上，权限设为perm。<br><code>sys_ipc_try_send</code>负责检查目标进程是否存在、目标进程是否准备好接收信息、目标进程是否要求接收页映射。如果目标进程要求接收页映射，则检查发送者提供的虚拟地址是否有效并页对齐、发送者提供的映射权限是否合理、发送者提供的虚拟地址是否有映射页、是否尝试将只读页映射为可写、是否尚有物理页可供接收者分配和映射，检查通过后将物理页映射到目标进程指定的虚拟地址上。最后设置目标进程env结构体相关参数，以说明由谁发送、接收的值是什么，更改目标进程接收信息标识为已接收，将目标进程设为可执行，解除其阻塞状态。原型为<code>static int sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)</code>。<br><code>ipc_recv</code>负责调用<code>sys_ipc_recv</code>，原型为<code>int32_t ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)</code>，如果pg为空，代表接收者不希望接收页映射，否则表示希望发送者将页映射到pg上。调用<code>sys_ipc_recv</code>之后进程状态被更改为不可执行、阻塞，直至有进程发送消息给它并将其状态更改为可执行。接收到消息之后，存储发送者进程id以及映射权限，然后返回接收到的32位的ipc值。<br><code>sys_ipc_recv</code>负责将给定的虚拟地址设置到env结构体的<code>env_ipc_dstva</code>上，表示希望发送者将页映射到其上，然后更改接收信息标识为等待接收，并更改进程的运行状态为不可执行。该系统调用将不会返回到用户模式，直至有发送者发送消息给它并解除其阻塞状态。</p>
+<p>如果接收者要求接收页映射而发送者没有发送页映射，则出错；如果接收者不要求接收页映射而发送者发送页映射，不会出错。<br>接收者期望映射的虚拟地址不必与发送者发送的虚拟地址一致。<br>无需指定<code>ipc_recv</code>和<code>ipc_send</code>的先后调用顺序，因为即使接收者未准备好接收，发送者仍会判断<code>sys_ipc_recv</code>的返回结果，一旦是由于接收者未准备好接收而引起的错误，发送者会循环尝试发送。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;ipc_send not implemented&quot;); </span><br><span class="line">	int r; </span><br><span class="line">	if (!pg)&#123;</span><br><span class="line">		pg = (void *)IPC_NOPAGE;</span><br><span class="line">	&#125;</span><br><span class="line">	while((r = sys_ipc_try_send(to_env, val, pg, perm)))&#123; </span><br><span class="line">		if(r == 0)&#123;</span><br><span class="line">			break;</span><br><span class="line">		&#125;</span><br><span class="line">		if(r != -E_IPC_NOT_RECV)&#123;</span><br><span class="line">			panic(&quot;sys_ipc_try_send error, not -E_IPC_NOT_RECV, result: %d&quot;,r);</span><br><span class="line">		&#125;</span><br><span class="line">		sys_yield();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">static int</span><br><span class="line">sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	// panic(&quot;sys_ipc_try_send not implemented&quot;);</span><br><span class="line">	struct Env *e; </span><br><span class="line">	int r = envid2env(envid,&amp;e, 0);</span><br><span class="line">	if(r&lt;0) return r;//-E_BAD_ENV </span><br><span class="line">	// target is not blocked, waiting for an IPC.</span><br><span class="line">	if(!e-&gt;env_ipc_recving) return -E_IPC_NOT_RECV;</span><br><span class="line">	// if receiver asking for one page</span><br><span class="line">	if ((uint32_t)e-&gt;env_ipc_dstva != IPC_NOPAGE &amp;&amp; (uint32_t)e-&gt;env_ipc_dstva &lt; UTOP) &#123; </span><br><span class="line">		// if srcva &lt; UTOP but srcva is not page-aligned.</span><br><span class="line">		if((uint32_t)srcva &gt;= UTOP || (uint32_t)srcva%PGSIZE != 0) return -E_INVAL;</span><br><span class="line">		// if srcva &lt; UTOP and perm is inappropriate</span><br><span class="line">		if((perm &amp; PTE_U) != PTE_U || (perm &amp; PTE_P) != PTE_P) return -E_INVAL;</span><br><span class="line">		//#define PTE_SYSCALL	(PTE_AVAIL | PTE_P | PTE_W | PTE_U)</span><br><span class="line">		if ((perm &amp; ~PTE_SYSCALL) != 0) //no other bits may be set</span><br><span class="line">			return -E_INVAL;</span><br><span class="line">		// if srcva &lt; UTOP but srcva is not mapped in the caller&apos;s address space</span><br><span class="line">		pte_t *pte_store;</span><br><span class="line">		struct PageInfo *page = page_lookup(curenv-&gt;env_pgdir, srcva, &amp;pte_store);</span><br><span class="line">		if(page == NULL) return -E_INVAL;//no page mapped at srcva </span><br><span class="line">		// if (perm &amp; PTE_W), but srcva is read-only in the current environment&apos;s address space</span><br><span class="line">		if((perm &amp; PTE_W) == PTE_W &amp;&amp; (*pte_store &amp; PTE_W) == 0) return -E_INVAL;</span><br><span class="line"></span><br><span class="line">		// if there&apos;s not enough memory to map srcva in envid&apos;s address space</span><br><span class="line">		// or if e-&gt;env_ipc_dstva invalid</span><br><span class="line">        r = page_insert(e-&gt;env_pgdir, page, e-&gt;env_ipc_dstva, perm);</span><br><span class="line">        if (r &lt; 0) return r;// -E_NO_MEM</span><br><span class="line">        e-&gt;env_ipc_perm = perm;</span><br><span class="line">    &#125;else&#123;</span><br><span class="line">    	e-&gt;env_ipc_perm = 0;</span><br><span class="line">    &#125; </span><br><span class="line">    e-&gt;env_ipc_recving = 0;</span><br><span class="line">    e-&gt;env_ipc_from = curenv-&gt;env_id;</span><br><span class="line">    e-&gt;env_ipc_value = value;</span><br><span class="line">    e-&gt;env_status = ENV_RUNNABLE;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int32_t</span><br><span class="line">ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;ipc_recv not implemented&quot;); </span><br><span class="line">	if(!pg) pg = (void *)IPC_NOPAGE;</span><br><span class="line">	int r = sys_ipc_recv(pg);</span><br><span class="line">	if(r &lt; 0) return r;</span><br><span class="line">	if(from_env_store) *from_env_store = thisenv-&gt;env_ipc_from; </span><br><span class="line">	if(perm_store) *perm_store = thisenv-&gt;env_ipc_perm;</span><br><span class="line">	return thisenv-&gt;env_ipc_value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">static int</span><br><span class="line">sys_ipc_recv(void *dstva)</span><br><span class="line">&#123;</span><br><span class="line">	// LAB 4: Your code here.</span><br><span class="line">	//panic(&quot;sys_ipc_recv not implemented&quot;);</span><br><span class="line">	// if dstva &lt; UTOP but dstva is not page-aligned.</span><br><span class="line">	if((uint32_t)dstva == IPC_NOPAGE)&#123;</span><br><span class="line">		curenv-&gt;env_ipc_dstva = (void*)IPC_NOPAGE; </span><br><span class="line">	&#125;else if((uint32_t)dstva &gt;= UTOP || (uint32_t)dstva%PGSIZE != 0) &#123;</span><br><span class="line">		return -E_INVAL;</span><br><span class="line">	&#125;else&#123;</span><br><span class="line">		curenv-&gt;env_ipc_dstva = dstva;</span><br><span class="line">	&#125;</span><br><span class="line">	curenv-&gt;env_ipc_recving = 1;</span><br><span class="line">	curenv-&gt;env_status = ENV_NOT_RUNNABLE;</span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 为何ipc_send需要循环尝试发送?</span><br></pre></td></tr></table></figure>
+<p>原因见上分析。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! prime sieve只是大量并发程序之间消息传递的一种灵巧应用。阅读 C. A. R. Hoare, ``Communicating Sequential Processes,&apos;&apos; Communications of the ACM 21(8) (August 1978), 666-667 ，实现矩阵乘法的例子。</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! Doug McIlroy开发的幂级数计算器是典型的消息传递例子，阅读  M. Douglas McIlroy, ``Squinting at Power Series,&apos;&apos; Software--Practice and Experience, 20(7) (July 1990), 661-683 (http://plan9.bell-labs.com/who/rsc/thread/squint.pdf)，实现该计算器并计算sin(x+x^3)的幂级数。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Challenge! 阅读 Improving IPC by Kernel Design (http://dl.acm.org/citation.cfm?id=168633)，改进jos的IPC效率。可扩展系统调用接口。</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记015-HW7-Locking/" rel="next" title="笔记015 - HW7: Locking">
+                <i class="fa fa-chevron-left"></i> 笔记015 - HW7: Locking
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记017-HW8-User-level-threads/" rel="prev" title="笔记017 - HW8: User-level threads">
+                笔记017 - HW8: User-level threads <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-A-Multiprocessor-Support-and-Cooperative-Multitasking"><span class="nav-number">1.</span> <span class="nav-text">Part A: Multiprocessor Support and Cooperative Multitasking</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Multiprocessor-Support"><span class="nav-number">1.1.</span> <span class="nav-text">Multiprocessor Support</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Application-Processor-Bootstrap"><span class="nav-number">1.2.</span> <span class="nav-text">Application Processor Bootstrap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Per-CPU-State-and-Initialization"><span class="nav-number">1.3.</span> <span class="nav-text">Per-CPU State and Initialization</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多处理器总结要点"><span class="nav-number">1.4.</span> <span class="nav-text">多处理器总结要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Locking"><span class="nav-number">1.5.</span> <span class="nav-text">Locking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Round-Robin-Scheduling"><span class="nav-number">1.6.</span> <span class="nav-text">Round-Robin Scheduling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Calls-for-Environment-Creation"><span class="nav-number">1.7.</span> <span class="nav-text">System Calls for Environment Creation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-B-Copy-on-Write-Fork"><span class="nav-number">2.</span> <span class="nav-text">Part B: Copy-on-Write Fork</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#User-level-page-fault-handling"><span class="nav-number">2.1.</span> <span class="nav-text">User-level page fault handling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Setting-the-Page-Fault-Handler"><span class="nav-number">2.2.</span> <span class="nav-text">Setting the Page Fault Handler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Normal-and-Exception-Stacks-in-User-Environments"><span class="nav-number">2.3.</span> <span class="nav-text">Normal and Exception Stacks in User Environments</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Invoking-the-User-Page-Fault-Handler"><span class="nav-number">2.4.</span> <span class="nav-text">Invoking the User Page Fault Handler</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#User-mode-Page-Fault-Entrypoint"><span class="nav-number">2.5.</span> <span class="nav-text">User-mode Page Fault Entrypoint</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Testing"><span class="nav-number">2.6.</span> <span class="nav-text">Testing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementing-Copy-on-Write-Fork"><span class="nav-number">2.7.</span> <span class="nav-text">Implementing Copy-on-Write Fork</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于uvpd和uvpt数组"><span class="nav-number">2.8.</span> <span class="nav-text">关于uvpd和uvpt数组</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-C-Preemptive-Multitasking-and-Inter-Process-communication-IPC"><span class="nav-number">3.</span> <span class="nav-text">Part C: Preemptive Multitasking and Inter-Process communication (IPC)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Clock-Interrupts-and-Preemption"><span class="nav-number">3.1.</span> <span class="nav-text">Clock Interrupts and Preemption</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interrupt-discipline"><span class="nav-number">3.2.</span> <span class="nav-text">Interrupt discipline</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-Clock-Interrupts"><span class="nav-number">3.3.</span> <span class="nav-text">Handling Clock Interrupts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Inter-Process-communication-IPC"><span class="nav-number">3.4.</span> <span class="nav-text">Inter-Process communication (IPC)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IPC-in-JOS"><span class="nav-number">3.5.</span> <span class="nav-text">IPC in JOS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sending-and-Receiving-Messages"><span class="nav-number">3.6.</span> <span class="nav-text">Sending and Receiving Messages</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transferring-Pages"><span class="nav-number">3.7.</span> <span class="nav-text">Transferring Pages</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

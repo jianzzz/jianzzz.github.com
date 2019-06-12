@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="以下是 JOS 内核控制台输出代码关于 kern/printf.c、 lib/printfmt.c、 kern/console.c 的解析。摘抄自【系统的启动和初始化】一文。   C 语言中解决变参问题的一组宏1) 用 va_list 可以定义一个 va_list 型的变量，这个变量是指向参数的指针。2) 用 va_start 宏可以初始化一个 va_list 变量，这个宏有两个参数，第一个是 v">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记03.4 - Lab 1:控制台输出函数">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="以下是 JOS 内核控制台输出代码关于 kern/printf.c、 lib/printfmt.c、 kern/console.c 的解析。摘抄自【系统的启动和初始化】一文。   C 语言中解决变参问题的一组宏1) 用 va_list 可以定义一个 va_list 型的变量，这个变量是指向参数的指针。2) 用 va_start 宏可以初始化一个 va_list 变量，这个宏有两个参数，第一个是 v">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/3.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.198Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记03.4 - Lab 1:控制台输出函数">
+<meta name="twitter:description" content="以下是 JOS 内核控制台输出代码关于 kern/printf.c、 lib/printfmt.c、 kern/console.c 的解析。摘抄自【系统的启动和初始化】一文。   C 语言中解决变参问题的一组宏1) 用 va_list 可以定义一个 va_list 型的变量，这个变量是指向参数的指针。2) 用 va_start 宏可以初始化一个 va_list 变量，这个宏有两个参数，第一个是 v">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/">
+
+
+
+
+
+  <title>笔记03.4 - Lab 1:控制台输出函数 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记03-4-Lab-1-控制台输出函数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记03.4 - Lab 1:控制台输出函数</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:06:18+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>以下是 JOS 内核控制台输出代码关于 kern/printf.c、 lib/printfmt.c、 kern/console.c 的解析。摘抄自【系统的启动和初始化】一文。  </p>
+<h1 id="C-语言中解决变参问题的一组宏"><a href="#C-语言中解决变参问题的一组宏" class="headerlink" title="C 语言中解决变参问题的一组宏"></a>C 语言中解决变参问题的一组宏</h1><p>1) 用 <code>va_list</code> 可以定义一个 <code>va_list</code> 型的变量，这个变量是指向参数的指针。<br>2) 用 <code>va_start</code> 宏可以初始化一个 <code>va_list</code> 变量，这个宏有两个参数，第一个是 <code>va_list</code> 变量本身，第二个是可变的参数的前一个参数，是一个固定的参数。<br>3) 用 <code>va_arg</code> 宏可以返回可变的参数，这个宏也有两个参数，第一个是 <code>va_list</code> 变量，即指向参数的指针，第二个是返回的参数类型。<br>4) 用 <code>va_end</code> 宏结束可变参数的获取。</p>
+<h1 id="cprintf-函数原型"><a href="#cprintf-函数原型" class="headerlink" title="cprintf()函数原型"></a>cprintf()函数原型</h1><p>kern/printf.c 之 cprintf()函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">第一个参数 fmt 代表的是显示字符串的指针，诸如 “%d %c”。之后的参数值用来在显示的时候替代 %d、 %c,可以是常数、整形变量、浮点变量、字符、字符串指针。</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">int</span><br><span class="line">cprintf(const char *fmt, ...)</span><br><span class="line">&#123;</span><br><span class="line">	va_list ap;</span><br><span class="line">	int cnt;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">定义了 va_list 变量 ap 后马上就用 va_start 宏对其进行了初始化，用 va_start 宏进行初始化的时候第二个参数是 fmt，也就是 cprintf 函数的第一个参数，即可变参数之前的固定参数，于是这时 ap 便指向了后面的可变参数。函数的参数实际上都是存放在内存的堆栈中的，而且参数会按照先后顺序依次存放，靠前的参数会存放在较低的地址处，其中每个参数会根据其类型被分配相应大小的空间。于是 ap 在这个时候便指向了可变参数 1 的存放地址，这样我们就可以用 va_arg 宏依次读取之后的可变参数。</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">	va_start(ap, fmt);</span><br><span class="line">	cnt = vcprintf(fmt, ap);</span><br><span class="line">	va_end(ap);</span><br><span class="line"></span><br><span class="line">	return cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="vcprintf函数原型"><a href="#vcprintf函数原型" class="headerlink" title="vcprintf函数原型"></a>vcprintf函数原型</h1><p>kern/printf.c 之 cprintf 函数所调用的 vcprintf 函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">vcprintf(const char *fmt, va_list ap)</span><br><span class="line">&#123;</span><br><span class="line">	int cnt = 0;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">第一个参数实际上是一个函数指针， putch 函数被当做成了一个参数， putch 函数的功能是输出一个字符在屏幕上</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">	vprintfmt((void*)putch, &amp;cnt, fmt, ap);</span><br><span class="line">	return cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="putch函数原型"><a href="#putch函数原型" class="headerlink" title="putch函数原型"></a>putch函数原型</h1><p>kern/printf.c 之 putch 函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">整形变量 ch 代表的是要输出的字符，因为 int 的变量是 32 位的，而一个字符的 ASCII 码只需要有 8 位，所以实际上 32 位整形变量的低八位代表的是字符的 ASCII 码，而第 8 位到 15 位代表的是输出字符的格式，因此 int 变量的高 16 位实际上没有用的；而 cnt 指针指向一个整形变量，这个整形变量每当用 putch 函数输出一个字符后就加 1。</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">static void</span><br><span class="line">putch(int ch, int *cnt)</span><br><span class="line">&#123;</span><br><span class="line">	cputchar(ch); /*见 kern/console.c */</span><br><span class="line">	*cnt++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="cputchar函数原型"><a href="#cputchar函数原型" class="headerlink" title="cputchar函数原型"></a>cputchar函数原型</h1><p>kern/console.c 之 cputchar 函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">cputchar(int c)</span><br><span class="line">&#123;</span><br><span class="line">	cons_putc(c);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="cons-putc函数原型"><a href="#cons-putc函数原型" class="headerlink" title="cons_putc函数原型"></a>cons_putc函数原型</h1><p>kern/console.c 之 cons_putc 函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/*将一个字符输出到控制台*/</span><br><span class="line">static void</span><br><span class="line">cons_putc(int c)</span><br><span class="line">&#123;</span><br><span class="line">	serial_putc(c);</span><br><span class="line">	lpt_putc(c); /*进行一些硬件初始化的工作*/</span><br><span class="line">	cga_putc(c);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>下图表示的是整形参数的 8 到 15 位是如何确定字符输出的格式的：<br><img src="/2017/08/20/笔记03-4-Lab-1-控制台输出函数/1.PNG" title="字符显示属性字节"><br>可以看到高 4 位决定了字符的背景色，可以有 16 种颜色，同样低四位则决定了字符本<br>身的颜色，在这里， R 代表红色的色素， G 代表绿色的色素， B 代表蓝色的色素，这三个色素的组合就可以组成 8 种不同的颜色，而 I 则表示颜色是否是高亮的，于是这样便可以有 16 种颜色。<br>下图表示的是显存与显示屏的对应关系：<br><img src="/2017/08/20/笔记03-4-Lab-1-控制台输出函数/2.PNG" title="显存与显示屏的对应关系"></p>
+<h1 id="cga-putc函数原型"><a href="#cga-putc函数原型" class="headerlink" title="cga_putc函数原型"></a>cga_putc函数原型</h1><p>kern/console.c 之 cga_putc 函数的原型<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">static void</span><br><span class="line">cga_putc(int c)</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">整形参数 c 的低 8 位是字符的 ASCII 码，而 8 到 15 位则是字符输出的格式，函数首先判断字符的格式有没有事先设定，如果没有，即 8 到 15 位皆为 0，则系统将会将这个字符的设定为默认格式。</span><br><span class="line">*/</span><br><span class="line">	// if no attribute given, then use black on white</span><br><span class="line">	if (!(c &amp; ~0xFF))</span><br><span class="line">		c |= 0x0700;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">crt_buf 是一个指向 16 位无符号整形数的静态指针，它实际上指向的是内存中</span><br><span class="line">物理地址为 0xb8000 的位置，(物理内存的 0xa0000 到 0xc0000 这 128KB 的空间是留给 VGA 显示缓存的，实际上在我们的试验中从 0xb8000 这个位置开始的一部分内存空间便是可以直接与显示屏相关联的显存)</span><br><span class="line">在本实验中，显示屏规定为 CRT_ROWS = 25 行，每行可以输出 CRT_COLS = 80 个字符，由于每个字符实际上占据显存中的两个字节，于是物理内存中从 0xb8000 到 0xb8fa0 之间的内容都会以字符的形式在屏幕上显示出来。 crt_pos 是一个静态的 16 位无符号整形变量，如果把 crt_buf 指向的内存空间看做 16 位整形数的数组，则 crt_pos 则是数组的下标，在这里它实际上表示的是光标的位置，而 CRT_COLS 则是一个常量，表示一行可以输出的字符数，即为 25。</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">	switch (c &amp; 0xff) &#123;</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">把 crt_pos 减 1 表示光标向后退一格，并且将光标</span><br><span class="line">当前指向位置对应的显存中的两个字节的值置为(c &amp; ~0xff) | &apos; &apos;， 即把原来的字符替换为了一个空格，这样便完成了退格的操作。</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">	case &apos;\b&apos;: // 表示退格</span><br><span class="line">		if (crt_pos &gt; 0) &#123;</span><br><span class="line">			crt_pos--;</span><br><span class="line">			crt_buf[crt_pos] = (c &amp; ~0xff) | &apos; &apos;;</span><br><span class="line">		&#125;</span><br><span class="line">		break;</span><br><span class="line"></span><br><span class="line">/*把 crt_pos 加上 25，即将光标的位置换到下一行相同的位置。*/</span><br><span class="line"></span><br><span class="line">	case &apos;\n&apos;:  // 表示换行</span><br><span class="line">		crt_pos += CRT_COLS;</span><br><span class="line">		/* fallthru */</span><br><span class="line"></span><br><span class="line">/*将 crt_pos 减去 (crt_pos % CRT_COLS)。*/</span><br><span class="line"></span><br><span class="line">	case &apos;\r&apos;: // 表示光标退到这一行的开头处</span><br><span class="line">		crt_pos -= (crt_pos % CRT_COLS);</span><br><span class="line">		break;</span><br><span class="line"></span><br><span class="line">/*递归的调用 cons_putc 函数连续打印 5 个空格。*/</span><br><span class="line"></span><br><span class="line">	case &apos;\t&apos;: // 光标向前移动 5 格</span><br><span class="line">		cons_putc(&apos; &apos;);</span><br><span class="line">		cons_putc(&apos; &apos;);</span><br><span class="line">		cons_putc(&apos; &apos;);</span><br><span class="line">		cons_putc(&apos; &apos;);</span><br><span class="line">		cons_putc(&apos; &apos;);</span><br><span class="line">		break;</span><br><span class="line"></span><br><span class="line">/*不是以上的这些特殊字符时，程序便将其直接写入显存中，并且将光标的位置加 1，值得注意的是在这里 crt_buf[crt_pos++]表示的是内存中 16 位的空间，然而整形变量 c 是 32 位的，于是在写入内存的时候只取 c 的低 16 位。*/</span><br><span class="line"></span><br><span class="line">	default: // 往屏幕上打印一个字符</span><br><span class="line">		crt_buf[crt_pos++] = c;	 /* write the character */</span><br><span class="line">		break;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// What is the purpose of this?</span><br><span class="line"></span><br><span class="line">/*</span><br><span class="line">在物理地址超过 0xb8fa0 的内存部分中存储字符数据，此时实际上显示屏就无法显示超过的部分，这个时候通常下显示屏都会滚屏好让最新输出的字符能够显示出来。在每输出一个字符后都先判断 crt_pos 是否大于或等于 CRT_SIZE，而 CRT_SIZE 实际上就是一个屏幕可以输出的字符数，即 80*25。当等于 CRT_SIZE 时，说明此时已经满屏，当大于 CRT_SIZE 时，说明有字符没有显示出来。当满足这两种情况的中的一种时，程序所做的处理是将屏幕上第二行到最后一行的的字符数据复制到第一行到倒数第二行去，然后将屏幕的最后一行输出为空格。</span><br><span class="line">*/</span><br><span class="line">	if (crt_pos &gt;= CRT_SIZE) &#123; // CRT_SIZE = (CRT_ROWS * CRT_COLS)</span><br><span class="line">		int i;</span><br><span class="line"></span><br><span class="line">		memmove(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t)); // 执行滚屏操作</span><br><span class="line">		for (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++)</span><br><span class="line">			crt_buf[i] = 0x0700 | &apos; &apos;;</span><br><span class="line">		crt_pos -= CRT_COLS;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	/* move that little blinky thing */</span><br><span class="line">	outb(addr_6845, 14);</span><br><span class="line">	outb(addr_6845 + 1, crt_pos &gt;&gt; 8);</span><br><span class="line">	outb(addr_6845, 15);</span><br><span class="line">	outb(addr_6845 + 1, crt_pos);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="vprintfmt函数程序流程图"><a href="#vprintfmt函数程序流程图" class="headerlink" title="vprintfmt函数程序流程图"></a>vprintfmt函数程序流程图</h1><p>vcprintf （见 kern/printf.c） 函数所调用的 vprintfmt （见 lib/printfmt.c） 函数的程序流程图<br><img src="/2017/08/20/笔记03-4-Lab-1-控制台输出函数/3.PNG" title="vprintfmt程序流程图"><br>上图 5 个格式变量： padc、 width、 precision、 lflag、 altflag。 padc 代表的是填充字符，在初始化的时候 padc 变量会被初始化为空格符，而当程序在显示字符串的 ’%’ 字符后读到 ’-’ 或者 ’0’ 的字符时便会将 ’-’ 或者 ’0’ 赋值给 padc。 width 代表的是打印的一个字符串或者一个数字在屏幕上所占的宽度，而 precision 则特指一个字符串在屏幕上应显示的长度。当打印字符串的时候， padc = ’-’ 代表着字符串需要左对齐，右边补空格， padc =’ ’ 代表字符串右对齐， 而左边由空格补齐， padc = ’0’ 代表字符串右对齐， 左边由 0 补齐。在我们这个实验中当输出数字时会一律的右对齐，左边补 padc，数字显示长度为数字本身的长度。 lfag 变量则是专门在输出数字的时候起作用，在我们这个实验中为了简单起见实际上是不支持输出浮点数的，于是 vprintfmt 函数只能够支持输出整形数，，输出整形数时，当 lflag = 0 时，表示将参数当做 int 型的来输出，当 lflag = 1 时，表示当做 long 型的来输出，而当 lflag = 2 时表示当做 long long 型的来输出。最后， altflag 变量表示当 altflag = 1 时函数若输出乱码则用 ’?’ 代替。</p>
+<h1 id="vprintfmt函数打印字符串"><a href="#vprintfmt函数打印字符串" class="headerlink" title="vprintfmt函数打印字符串"></a>vprintfmt函数打印字符串</h1><p>lib/printfmt.c 之 vprintfmt 函数打印一个字符串具体是如何实现的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">case &apos;s&apos;:</span><br><span class="line">			if ((p = va_arg(ap, char *)) == NULL)</span><br><span class="line">				p = &quot;(null)&quot;; /* 当字符串指针为空时，将它指向&quot;(null)&quot;字符串*/</span><br><span class="line">			if (width &gt; 0 &amp;&amp; padc != &apos;-&apos;)</span><br><span class="line">				for (width -= strnlen(p, precision); width &gt; 0; width--)</span><br><span class="line">					putch(padc, putdat); /*字符串右对齐，左边补相应数量的空格或者 0*/</span><br><span class="line">			for (; (ch = *p++) != &apos;\0&apos; &amp;&amp; (precision &lt; 0 || --precision &gt;= 0); width--)</span><br><span class="line">				if (altflag &amp;&amp; (ch &lt; &apos; &apos; || ch &gt; &apos;~&apos;))</span><br><span class="line">					putch(&apos;?&apos;, putdat);</span><br><span class="line">				else</span><br><span class="line">					putch(ch, putdat);/*打印相应长度的字符串*/</span><br><span class="line">			for (; width &gt; 0; width--)</span><br><span class="line">				putch(&apos; &apos;, putdat); /*当字符串是左对齐的时候打印相应数量的空格*/</span><br><span class="line">			break;</span><br></pre></td></tr></table></figure></p>
+<p>当程序识别了显示字符串中 ’%’ 后的 ’s’ 字符后便从可变参数中读入字符串指针，若指针为空，则让它指向一个 “(null)” 字符串。然后再判断输出是左对齐还是右对齐，若 padc = ’-’ ， 表示是左对齐， 否则是右对齐。确认是右对齐的话，按照我们之前所讲的， 用 width 减去字符串实际显示长度便得到需要在左边补空格或 0 的个数，注意到 int strnlen(char *str, int maxlen) 函数原型是计算字符串 str 的 (unsigned int 型）长度，不包括结束符NULL，该长度最大为 maxlen ， maxlen 传入 -1 的话会返回字符串的长度。在这之后程序便开始打印字符串本身，可以看到若 precision 大于 0 则显示长度等于 precision 与字符串长度之间的最小值， precision 小于 0 则显示长度等于字符串本身的长度（无论 width 多大）。最后程序判断如果字符串是左对齐的话则在右侧剩余空间补充空格。</p>
+<h1 id="printnum函数原型"><a href="#printnum函数原型" class="headerlink" title="printnum函数原型"></a>printnum函数原型</h1><p>在打印数字的时候则会用到 printnum 这个函数，该函数的主体如下所示<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">/*参数 num 代表需要打印出来的整形数， base 代表整形数的进制，其它的参数和 vprintfmt 函数中代表同样的意思。当 num 超过 1 位时函数递归的调用自己本身，这样便可以先打印高位的数字，当 num 只有 1 位时，程序便首先按照右对齐的格式在左侧打印填充字符，然后打印这个数字。*/</span><br><span class="line"></span><br><span class="line">static void</span><br><span class="line">printnum(void (*putch)(int, void*), void *putdat,</span><br><span class="line">	 unsigned long long num, unsigned base, int width, int padc)</span><br><span class="line">&#123;</span><br><span class="line">	// first recursively print all preceding (more significant) digits</span><br><span class="line">	if (num &gt;= base) &#123;</span><br><span class="line">		printnum(putch, putdat, num / base, base, width - 1, padc);</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		// print any needed pad characters before first digit</span><br><span class="line">		while (--width &gt; 0)</span><br><span class="line">			putch(padc, putdat);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// then print this (the least significant) digit</span><br><span class="line">	putch(&quot;0123456789abcdef&quot;[num % base], putdat);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到无论是打印字符串还是数字，都是将它们分解成一个个单个的字符然后用<br>putch 函数一个一个的打印出来。所以 putch 函数可谓是显示输出的基本函数。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-3-Lab-1-bootmain-c/" rel="next" title="笔记03.3 - Lab 1:bootmain.c">
+                <i class="fa fa-chevron-left"></i> 笔记03.3 - Lab 1:bootmain.c
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-5-Lab-1-Jos内核/" rel="prev" title="笔记03.5 - Lab 1:Jos内核">
+                笔记03.5 - Lab 1:Jos内核 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#C-语言中解决变参问题的一组宏"><span class="nav-number">1.</span> <span class="nav-text">C 语言中解决变参问题的一组宏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cprintf-函数原型"><span class="nav-number">2.</span> <span class="nav-text">cprintf()函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vcprintf函数原型"><span class="nav-number">3.</span> <span class="nav-text">vcprintf函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#putch函数原型"><span class="nav-number">4.</span> <span class="nav-text">putch函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cputchar函数原型"><span class="nav-number">5.</span> <span class="nav-text">cputchar函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cons-putc函数原型"><span class="nav-number">6.</span> <span class="nav-text">cons_putc函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#cga-putc函数原型"><span class="nav-number">7.</span> <span class="nav-text">cga_putc函数原型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vprintfmt函数程序流程图"><span class="nav-number">8.</span> <span class="nav-text">vprintfmt函数程序流程图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#vprintfmt函数打印字符串"><span class="nav-number">9.</span> <span class="nav-text">vprintfmt函数打印字符串</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#printnum函数原型"><span class="nav-number">10.</span> <span class="nav-text">printnum函数原型</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

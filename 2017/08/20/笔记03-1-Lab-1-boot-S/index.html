@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="解析boot.S以下是 JOS Boot Loader 部分关于 boot.S 的解析，关于 boot.S 的介绍请阅读【学习笔记03 - Lab 1:Booting a PC】以下内容摘抄自《系统的启动和初始化》一书1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记03.1 - Lab 1:boot.S">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记03-1-Lab-1-boot-S/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="解析boot.S以下是 JOS Boot Loader 部分关于 boot.S 的解析，关于 boot.S 的介绍请阅读【学习笔记03 - Lab 1:Booting a PC】以下内容摘抄自《系统的启动和初始化》一书1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.190Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记03.1 - Lab 1:boot.S">
+<meta name="twitter:description" content="解析boot.S以下是 JOS Boot Loader 部分关于 boot.S 的解析，关于 boot.S 的介绍请阅读【学习笔记03 - Lab 1:Booting a PC】以下内容摘抄自《系统的启动和初始化》一书1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记03-1-Lab-1-boot-S/">
+
+
+
+
+
+  <title>笔记03.1 - Lab 1:boot.S | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记03-1-Lab-1-boot-S/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记03.1 - Lab 1:boot.S</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:04:14+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="解析boot-S"><a href="#解析boot-S" class="headerlink" title="解析boot.S"></a>解析boot.S</h1><p>以下是 JOS Boot Loader 部分关于 boot.S 的解析，关于 boot.S 的介绍请阅读【学习笔记03 - Lab 1:Booting a PC】<br><strong>以下内容摘抄自《系统的启动和初始化》一书</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;inc/mmu.h&gt; </span><br><span class="line"></span><br><span class="line"># 启动 CPU ，切换到 32 位保护模式，跳转到 C 代码</span><br><span class="line">  BIOS 将这份代码从硬盘的第一个扇区读取到内存的 0x7c00 物理地址上</span><br><span class="line"># 设置 %cs=0 %ip=7c00 并在 real mode 下开始执行</span><br><span class="line"></span><br><span class="line">  # 首先 boot 程序会进行初始化，先把代码段选择子与数据段选择子以及保护模式</span><br><span class="line">  # 启动标识设置为常量，然后关中断并且将 ds、 es、 ss 这些段寄存器全部清零</span><br><span class="line">.set PROT_MODE_CSEG, 0x8         # 内核代码段选择子常量，gdt 表中第二项</span><br><span class="line">.set PROT_MODE_DSEG, 0x10        # 内核数据段选择子常量，gdt 表中第三项</span><br><span class="line">.set CR0_PE_ON,      0x1         # 内核保护模式启动标识位 常量</span><br><span class="line"></span><br><span class="line">.globl start</span><br><span class="line">start:</span><br><span class="line">  .code16                     # 16 位模式</span><br><span class="line">  cli                         # 关中断，只能在内核模式下执行</span><br><span class="line">  cld                         # 使方向标识位 DF 复位，内存地址向高地址增加</span><br><span class="line"></span><br><span class="line">  # 设置重要的数据段寄存器(DS, ES, SS)</span><br><span class="line">  xorw    %ax,%ax             # ax 清零</span><br><span class="line">  movw    %ax,%ds             # 数据段寄存器清零</span><br><span class="line">  movw    %ax,%es             # 附加段寄存器清零</span><br><span class="line">  movw    %ax,%ss             # 堆栈段寄存器清零</span><br><span class="line"></span><br><span class="line">  # A20对实模式和保护模式的影响:</span><br><span class="line">  # 实模式下：在8086/8088中，分段模式能够表示的最大内存为FFFFh:FFFFh=FFFF0h+FFFFh=10FFEFh=1M+64K-16Bytes（1M多余出来的部分被称做高端内存区HMA）。但8086/8088只有20位地址线，如果访问100000h~10FFEFh之间的内存，则必须有第21根地址线。所以当程序员给出超过1M（100000H-10FFEFH）的地址时，系统并不认为其访问越界而产生异常，而是自动从重新0开始计算，系统计算实际地址的时候是按照对1M求模的方式进行的，这种技术被称为wrap-around。到了80286，系统的地址总线发展为24根，如果A20 Gate被打开，则当程序员给出100000H-10FFEFH之间的地址的时候，系统将真正访问这块内存区域；如果A20 Gate被禁止，则当程序员给出100000H-10FFEFH之间的地址的时候，系统仍然使用8086/8088的方式。在80286以及更高系列的PC中，即使A20 Gate被打开，在实模式下所能够访问的内存最大也只能为10FFEFH，尽管它们的地址总线所能够访问的能力都大大超过这个限制。</span><br><span class="line">  # 保护模式下：如果A20 Gate被禁止，则其第20-bit在CPU做地址访问的时候是无效的，永远只能被作为0；如果A20 Gate被打开，则其第20-bit是有效的，其值既可以是0，又可以是1。所以，在保护模式下，如果A20 Gate被禁止，则可以访问的内存只能是奇数1M段，即1M,3M,5M…，也就是00000-FFFFF, 200000-2FFFFF,300000-3FFFFF…。如果A20 Gate被打开，则可以访问的内存则是连续的。</span><br><span class="line">  #   下面的代码打开 A20 地址线</span><br><span class="line">seta20.1:</span><br><span class="line">  inb     $0x64,%al               # 从 0x64 端口读入一个字节的数据到 al 中</span><br><span class="line">                                  # 等待空闲的时候</span><br><span class="line"></span><br><span class="line">  testb   $0x2,%al                # 测试 al 的第 2 位是否为 0</span><br><span class="line">  jnz     seta20.1                # 如果 al 的第 2 位不为 0，循环检查</span><br><span class="line"></span><br><span class="line">  movb    $0xd1,%al               # 将 0xd1 写入到 al 中</span><br><span class="line">  outb    %al,$0x64               # 将 al 中的数据写入到端口 0x64 中</span><br><span class="line"></span><br><span class="line">seta20.2:</span><br><span class="line">  inb     $0x64,%al               # 从 0x64 端口读入一个字节的数据到 al 中</span><br><span class="line">                                  # 等待空闲的时候</span><br><span class="line"></span><br><span class="line">  testb   $0x2,%al                # 测试 al 的第 2 位是否为 0</span><br><span class="line">  jnz     seta20.2                # 如果 al 的第 2 位不为 0，循环检查</span><br><span class="line"></span><br><span class="line">  movb    $0xdf,%al               # 将 0xdf 写入到 al 中</span><br><span class="line">  outb    %al,$0x60               # 将 al 中的数据写入到端口 0x60 中</span><br><span class="line"></span><br><span class="line">  # 将系统从实模式切换到保护模式</span><br><span class="line">  # 首先用 “lgdt gdtdesc” 这条指令将 GDT 表的首地址加载到 GDTR， 然后将 cr0 寄存器的最低位置 1， 标志着系统进入保护模式，最后用一个跳转指令让系统开始使用 32 位的寻址模式。</span><br><span class="line"></span><br><span class="line">    # 在装载 cr0 之前需要先使用指令 lgdt gdtdesc 加载段表，原因是：</span><br><span class="line">    # 开启保护模式之后，基址：偏移 这种寻址方式就变成了 段选择子：偏移 这种方</span><br><span class="line">    # 式，而所谓的段选择子就是段表中的索引，因此为了正确的进行段式地址变换，还</span><br><span class="line">    # 需要加载段表。</span><br><span class="line">  lgdt    gdtdesc              # 将全局描述符表标识符加载到全局描述符表寄存器</span><br><span class="line"></span><br><span class="line">    # 开启保护模式</span><br><span class="line">    # cr0 中的第 0 位为 1 表示处于保护模式</span><br><span class="line">    # cr0 中的第 0 位为 0 表示处于实模式</span><br><span class="line">  movl    %cr0, %eax           # 把控制寄存器 cr0 的数据加载到 eax 中</span><br><span class="line">  orl     $CR0_PE_ON, %eax     # 将 eax 中的第 0 位设置为 1</span><br><span class="line">  movl    %eax, %cr0           # 将 eax 中的值装入 cr0 中</span><br><span class="line"></span><br><span class="line">    # 跳转到 32 位模式中的下一条指令，将处理器切换为 32 位工作模式</span><br><span class="line">    # 由于是在保护模式中，所以 $PROT_MODE_CSEG 被当作段选择子，而 $protcseg 是偏移地址。从后面的 GDT 表中可以看到，段选择子的值是 0x8，于是对应的段描述符会是表中的第二项（因为段选择子的低三位表示了RPL和TI），即是 SEG(STA_X|STA_R, 0x0, 0xffffffff)这一项，0x0 表示段首地址是 0，所以最终得到的线性地址为 0+$protcseg，程序便会跳到 protcseg 所标识的位置来执行。由于此时尚未开启分页，因此该链接地址会被当做加载地址，所以 boot loader 的加载地址必须和链接地址保持一致。 lab1 中的 boot/Makefrag 文件的第 28 行实际上规定了 Boot Loader 的固定链接地址是 0x7C00 。</span><br><span class="line">    # 将代码段选择子常量 $PROT_MODE_CSEG 加载到 cs 中，cs 对应的高速缓冲存储器会自动加载代码段描述符，同样将 $protcseg 加载到 ip 中（此后如果没有修改段寄存器的内容，cs 的内容将不会改变）。</span><br><span class="line"></span><br><span class="line">  ljmp    $PROT_MODE_CSEG, $protcseg </span><br><span class="line"></span><br><span class="line">  # 进入保护模式后，程序重新对段寄存器进行初始化并且赋值堆栈指针，然后调用</span><br><span class="line">  # bootmain 函数。可以看到，在 “call bootmain” 之后便是一个无限循环的跳转指令，</span><br><span class="line">  # 之所以是无限循环就是这个函数调用永远都不会有返回的可能性，这句程序仅仅只是</span><br><span class="line">  # 让整个代码看起来有完整性。</span><br><span class="line">  .code32                     # 32 位模式</span><br><span class="line">protcseg:</span><br><span class="line">    # 设置保护模式下的数据寄存器</span><br><span class="line">  movw    $PROT_MODE_DSEG, %ax    # 将数据段选择子常量装入到 ax 中</span><br><span class="line">    # 将 ax 装入到其他数据段寄存器中，在装入的同时，这些段寄存器对应的高速缓冲</span><br><span class="line">    # 寄存器会自动加载数据段描述符</span><br><span class="line">  movw    %ax, %ds                # -&gt; DS: Data Segment</span><br><span class="line">  movw    %ax, %es                # -&gt; ES: Extra Segment</span><br><span class="line">  movw    %ax, %fs                # -&gt; FS</span><br><span class="line">  movw    %ax, %gs                # -&gt; GS</span><br><span class="line">  movw    %ax, %ss                # -&gt; SS: Stack Segment</span><br><span class="line"></span><br><span class="line">    # 设置栈指针，并且调用 main.c 中的 bootmain 函数 </span><br><span class="line">    # 值得注意的是，这是进入保护模式之后第一个栈顶，在任何函数调用前都要初始化栈，boot.S 里很巧妙的将 start 作为栈的基址，因为栈空间是向下增长的，$start 的地址是 0x7c00，在正式的设定之前，0-start 这段空间做为栈，应该足够了。</span><br><span class="line">  movl    $start, %esp</span><br><span class="line">  call bootmain</span><br><span class="line"></span><br><span class="line">    # 如果 bootmain 返回的话，就一直循环</span><br><span class="line">spin:</span><br><span class="line">  jmp spin</span><br><span class="line"></span><br><span class="line">.p2align 2                          # 强制 4 字节对齐</span><br><span class="line">                                    # GDT 表的存放位置是 4 字节对齐的，也</span><br><span class="line">                                    # 就是说 GDT 表的物理首地址是 4 的倍数</span><br><span class="line">  # GDT 全局描述符表描述符</span><br><span class="line">gdt:</span><br><span class="line">  SEG_NULL                          # 空表项，连续 8 个值为 0 的 字节</span><br><span class="line">  SEG(STA_X|STA_R, 0x0, 0xffffffff) # 代码段表项</span><br><span class="line">  SEG(STA_W, 0x0, 0xffffffff)       # 数据段表项</span><br><span class="line">                                    # SEG 宏的第一个参数是 type，第二个是base，</span><br><span class="line">                                    # 第三个是 limit，所以我们可知定义的第二、</span><br><span class="line">                                    # 第三个段均是基址为 0，长度是 4G 的段</span><br><span class="line"></span><br><span class="line">  # 全局描述符表对应的描述符</span><br><span class="line">gdtdesc:</span><br><span class="line">  .word   0x17                      # gdt 表长度 - 1，说明 gdt 表长度为 24 字节</span><br><span class="line">  .long   gdt                       # gdt 表物理地址</span><br></pre></td></tr></table></figure></p>
+<h1 id="补充概念"><a href="#补充概念" class="headerlink" title="补充概念"></a>补充概念</h1><p><strong>物理地址：</strong>将主板上的物理内存条所提供的内存空间定义为物理内存空间，把内存看成一个从 0 字节一直到最大空量逐字节的编号的大数组，然后把这个数组叫做物理地址。<br><strong>逻辑地址：</strong>逻辑地址指的是机器语言指令中，用来指定一个操作数或者是一条指令的地址。Intel中段式管理中，对逻辑地址要求：一个逻辑地址，是由一个段标识符加上一个指定段内相对地址的偏移量，表示为 [段标识符：段内偏移量]，也就是说，给定 0xFFFFFFFF ，应该表示为[A的代码段标识符:  0xFFFFFFFF]，这样才完整一些。<br><strong>线性地址：</strong>也叫<strong>链接地址</strong>。Intel为了兼容，将远古时代的段式内存管理方式保留了下来。程式代码会产生逻辑地址，或说是段中的偏移地址，加上相应段的基地址就生成了一个线性地址（这种情况下，个人认为逻辑地址的概念已经由[段标识符：段内偏移量]变为[段内偏移量]了）。Linux中逻辑地址等于线性地址。jos 的代码段和数据段基址都是从 0x0 开始，长度 4G（内核gdt指定），这样<strong>线性地址=逻辑地址+ 0x0</strong>，相当于禁用了段机制的寻址功能，也就是说逻辑地址等于线性地址了。这样的情况下Linux只用到了GDT，不论是用户任务还是内核任务，都没有用到LDT。线性地址空间是指一段连续的、不分段的、范围为 0~4GB 的地址空间。一个线性地址就是线性地址空间的一个绝对地址。<br><strong>虚拟内存空间中的地址转换为物理地址：</strong>  CPU 将一个虚拟内存空间中的地址转换为物理地址，需要进行两步：首先将给定一个逻辑地址<strong>（其实是段内偏移量，这个一定要理解！！！）</strong>，逻辑地址实际上就是程序自己假设在内存中存放的位置，即编译器在编译的时候会认定程序将会连续的存放在从起始处的线性地址开始的内存空间，于是像 protcseg 这样的地址标识符就被编译成了那段代码开始处的偏移地址。 CPU 要利用其段式内存管理单元，先将逻辑地址加上基址，转换成一个线性地址，再利用其页式内存管理单元，转换为最终物理地址。JOS 实验的 Boot Loader 阶段段基地址为0，偏移量即为逻辑地址，由于没有启用分页，线性地址甚至直接使用为物理地址。后续操作中，内核将被加载到低地址，但使用高地址进行访问，其映射工作就是通过开启分页机制来完成的。  </p>
+<p><strong>Boot Loader 的起始链接地址：</strong>lab1 中的 boot/Makefrag 文件的第 28 行实际上规定了 Boot Loader 的链接地址：$(V)$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $@.out $^。其中“ 0x7C00”便是规定的链接地址。假设我们修改了 Boot Loader 的起始链接地址（不再是固定的 7c00 ），重新编译代码后，boot.asm 反汇编文件展示的指令代码地址和指令跳转全是按照链接地址重新计算过的。首先我们先在物理内存的 0x7c00 处设置一个断点，因为 Boot Loader 一定会加载在这个位置，所以 0x7c00 处的第一条指令便是 boot.S 的第一条可执行指令。gdb 对应的是物理地址，单步调试时每一行显示的是物理地址。 Boot Loader 加载到 0x7c00 后，由于尚未涉及到跳转，因此取下一条指令时只要 ip 累加即可继续正确执行。涉及到 jne 等跳转指令时，如果条件未满足，仍然继续向下取指令执行。当碰上如 ljmp 等指令进行跳转时，目标链接地址是重新计算过的，该地址在 boot.asm 中对应的指令并不同于此时内存中相应位置的指令，因此当以该地址取内存中的指令时，导致出错。综上，为了正确地跳转到下一条指令的位置，需要使加载地址等于链接地址，因此 Boot Loader 的起始链接地址必须固定为 0x7c00 。  </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-Lab-1-Booting-a-PC/" rel="next" title="笔记03 - Lab 1:Booting a PC">
+                <i class="fa fa-chevron-left"></i> 笔记03 - Lab 1:Booting a PC
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-2-Lab-1-ELF/" rel="prev" title="笔记03.2 - Lab 1:ELF">
+                笔记03.2 - Lab 1:ELF <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#解析boot-S"><span class="nav-number">1.</span> <span class="nav-text">解析boot.S</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#补充概念"><span class="nav-number">2.</span> <span class="nav-text">补充概念</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="安装仿真环境课程内核程序git仓库地址：https://pdos.csail.mit.edu/6.828/2014/jos.git  运行机器要求：i386 Athena 机器（uname -a 提示 i386 GNU/Linux 或者 i686 GNU/Linux）。可使用qemu模拟器运行内核程序和Compiler Toolchain工具。虽然qemu的内置监控只提供了有限的调试支持,qemu">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记03 - Lab 1:Booting a PC">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="安装仿真环境课程内核程序git仓库地址：https://pdos.csail.mit.edu/6.828/2014/jos.git  运行机器要求：i386 Athena 机器（uname -a 提示 i386 GNU/Linux 或者 i686 GNU/Linux）。可使用qemu模拟器运行内核程序和Compiler Toolchain工具。虽然qemu的内置监控只提供了有限的调试支持,qemu">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/6.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/7.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/8.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.206Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记03 - Lab 1:Booting a PC">
+<meta name="twitter:description" content="安装仿真环境课程内核程序git仓库地址：https://pdos.csail.mit.edu/6.828/2014/jos.git  运行机器要求：i386 Athena 机器（uname -a 提示 i386 GNU/Linux 或者 i686 GNU/Linux）。可使用qemu模拟器运行内核程序和Compiler Toolchain工具。虽然qemu的内置监控只提供了有限的调试支持,qemu">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/">
+
+
+
+
+
+  <title>笔记03 - Lab 1:Booting a PC | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记03-Lab-1-Booting-a-PC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记03 - Lab 1:Booting a PC</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:03:34+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="安装仿真环境"><a href="#安装仿真环境" class="headerlink" title="安装仿真环境"></a>安装仿真环境</h1><p>课程内核程序git仓库地址：<a href="https://pdos.csail.mit.edu/6.828/2014/jos.git" target="_blank" rel="noopener">https://pdos.csail.mit.edu/6.828/2014/jos.git</a>  运行机器要求：i386 Athena 机器（uname -a 提示 i386 GNU/Linux 或者 i686 GNU/Linux）。可使用<a href="https://pdos.csail.mit.edu/6.828/2014/tools.html#qemu" target="_blank" rel="noopener">qemu</a>模拟器运行内核程序和<a href="https://pdos.csail.mit.edu/6.828/2014/tools.html#chain" target="_blank" rel="noopener">Compiler Toolchain</a>工具。虽然qemu的内置监控只提供了有限的调试支持,qemu可以作为GNU调试器(GDB)的远程调试目标。课程项目包含了一个分级评分项目，运行 make grade 可以测试自己的解决方案。 </p>
+<p>本课程提供的qemu源码安装步骤：<br>1、Clone the IAP 6.828 QEMU git repository<br><strong>git clone <a href="https://github.com/geofft/qemu.git" target="_blank" rel="noopener">https://github.com/geofft/qemu.git</a> -b 6.828-1.7.0</strong><br>2、Configure the source code<br><strong>Linux:</strong><br><strong>./configure –disable-kvm [–prefix=PFX] [–target-list=”i386-softmmu x86_64-softmmu”]</strong><br><strong>OS X:</strong><br><strong>./configure –disable-kvm –disable-sdl [–prefix=PFX] [–target-list=”i386-softmmu x86_64-softmmu”]</strong><br>The <strong>prefix</strong> argument specifies where to install QEMU; without it QEMU will install to <strong>/usr/local</strong> by default. The <strong>target-list</strong> argument simply slims down the architectures QEMU will build support for.<br>3、Run <strong>make &amp;&amp; make install</strong></p>
+<p>执行 <strong>./configure –disable-kvm</strong> 安装qemu 1.7.0过程可能出现依赖错误，提前安装的软件如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install zlib1g-dev</span><br><span class="line">sudo apt-get install libglib2.0</span><br><span class="line">sudo apt-get install autoconf</span><br><span class="line">sudo apt-get install libtool</span><br><span class="line">sudo apt-get install libsdl-console</span><br><span class="line">sudo apt-get install libsdl-console-dev</span><br></pre></td></tr></table></figure></p>
+<p>如果出现以下错误的话，按照提示执行，如执行（2） <strong>git submodule update –init pixman</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ERROR: pixman not present. Your options:</span><br><span class="line">    (1) Preferred: Install the pixman devel package (any recent distro should have packages as Xorg needs pixman too).</span><br><span class="line">    (2) Fetch the pixman submodule, using:</span><br><span class="line">        git submodule update --init pixman</span><br></pre></td></tr></table></figure></p>
+<p>执行 <strong>make install</strong> 的时候，可能会出现 以下错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make[1]: bison: Command not found</span><br></pre></td></tr></table></figure></p>
+<p>解决方案是执行 <strong>sudo apt-get install bison</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">make[4]: Nothing to be done for `all-am&apos;.</span><br><span class="line">install -d -m 0755 &quot;/usr/local/share/qemu/keymaps&quot;</span><br><span class="line">...提示不存在相关qemu目录...</span><br></pre></td></tr></table></figure></p>
+<p>解决方法是以root的方式执行 <strong>sudo make install</strong></p>
+<h1 id="Part-1-PC-Bootstrap"><a href="#Part-1-PC-Bootstrap" class="headerlink" title="Part 1: PC Bootstrap"></a>Part 1: PC Bootstrap</h1><p>搭建并熟悉实验环境，包括QEMU虚拟机、以及GDB调试器</p>
+<h2 id="仿真xv6"><a href="#仿真xv6" class="headerlink" title="仿真xv6"></a>仿真xv6</h2><p>安装完qemu并下载课程内容后，进入课程目录并执行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd lab</span><br><span class="line">make</span><br></pre></td></tr></table></figure></p>
+<p>上述步骤会生成obj/kern/kernel.img文件，这是仿真PC的虚拟硬盘内容，包括引导加载程序boot loader (obj/boot/boot)和内核kernel (obj/kernel)。<br>返回到lab目录，执行以下命令启动qemu<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make qemu</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/1.PNG" title="启动qemu"> 
+<p>‘Booting from Hard Disk…’之后的内容都是由JOS内核程序输出。K&gt;是内核的交互式控制程序打印的提示。为了测试和实验分级的目的，JOS内核的控制台输出被设置为写到虚拟VGA显示(见qemu窗口)和模拟PC的虚拟串口（见终端）。JOS内核从键盘和串行端口接收输入，可以在VGA显示窗口或运行QEMU的终端输入命令，<strong>Ctrl-Alt 可以切换终端和VGA显示窗口</strong>，VGA显示窗口输入如下所示：<br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/2.PNG" title="qemu执行命令"><br>执行kerninfo命令时，内核监控程序将运行在仿真PC的“原生（虚拟）硬件”上。</p>
+<h2 id="PC的物理地址空间"><a href="#PC的物理地址空间" class="headerlink" title="PC的物理地址空间"></a>PC的物理地址空间</h2><p>以32位地址空间为例<br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/3.PNG" title="32-bit 物理地址空间"><br>早期PC基于16位的因特尔8088处理器，只有1MB物理内存，地址范围是0x0000000 - 0x000fffff，非上图所示的0x0000000 - 0xffffffff。<strong>Low Memory</strong>是早期PC唯一能使用的随机存取存储器RAM，占了640KB。事实上，非常早期的PC仅仅只能使用16KB、32KB或者64KB的RAM。剩余的384KB空间有诸如作为视频显示缓冲区和非易失性内存保存固件等特殊用途。从0x000A0000到0x000FFFFF的384kB的区域是被硬件保留着用于特殊通途的，比如像作为VGA的显示输出的缓存或者是被当作保存系统固化指令的非易失性存储器。这一部分内存区域中最重要的应该是保存在0x000F0000到0x00100000处占据64KB的基本输入输出系统(BIOS)。早期PC使用只读存储器ROM存储BIOS，而不是现今的可更新闪存。<strong>BIOS作用是：</strong>执行基本的系统初始化，如激活显卡和检查已装置的内存总量；执行初始化后，BIOS从一个适当的位置加载操作系统到内存，这些位置可以是如软盘、硬盘、CD-ROM或网络，将机器控制权移交给操作系统。<br>因特尔80286处理器支持16MB地址空间，80386处理器支持4G地址空间，为了软件的向后兼容，仍然保留1MB的低地址空间。因此PC的RAM被0x000A0000 - 0x00100000这块物理内存（第一个<strong>hole</strong>）分为两部分，前640KB成为常规内存，0x00100000以上部分成为扩展内存。另外，现在一般由BIOS保留32位物理地址空间的高地址部分（所有物理RAM之上），供32位PCI设备使用。现有x86处理器能支持4G以上地址空间，0xFFFFFFFF以上地址能继续扩展RAM，因此，BIOS必须绕过上述32位设备映射空间（第二个<strong>hole</strong>）。本课程的内核程序基于80386处理器，只使用PC物理内存的<strong>前256MB</strong>，因此只考虑PC只支持32位物理地址空间。</p>
+<h2 id="使用qemu调试工具研究IA-32兼容计算机的启动过程"><a href="#使用qemu调试工具研究IA-32兼容计算机的启动过程" class="headerlink" title="使用qemu调试工具研究IA-32兼容计算机的启动过程"></a>使用qemu调试工具研究IA-32兼容计算机的启动过程</h2><p>开启两个终端，分别进入lab目录后，一个终端执行 <strong>make qemu-gdb (或 make qemu-nox-gdb)</strong> 命令开启qemu，qemu在处理器执行第一条指令之前将停止并等到GDB的调试连接；另一个终端执行 <strong>gdb</strong> 命令，该命令使用已提供的.gdbinit文件来设置GDB，.gdbinit文件确保GDB能在早期引导期间进行16位代码调试工作，并引导它附属到监听的qemu，如若出现gdb无法执行.gdbinit文件的情况，按照提示添加add-auto-load-safe-path到主目录。<br>实验证明，启动qemu监听以后，开启gdb连接，如果gdb断开并重新开启，会出现类似以下错误，解决方法是重新开启qemu。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Ignoring packet error, continuing...</span><br><span class="line">warning: unrecognized item &quot;timeout&quot; in &quot;qSupported&quot; response</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/4.PNG" title="启动gdb连接qemu"> 
+<p>注意到这一行：<strong>[f000:fff0] 0xffff0: ljmp $0xf000,$0xe05b</strong>，它是GDB对第一条执行指令的反汇编结果（GDB连接qemu后qemu执行的第一条指令），表示的意思是：IBM PC开启时CS段寄存器内容是0xf000，IP段寄存器是0xfff0，执行的物理地址是0x000ffff0（BIOS 64KB地址范围内），第一条执行的指令是jmp，跳转的段寄存器地址是CS = 0xf000 和 IP = 0xe05b。由于BIOS物理地址范围是0x000f0000-0x000fffff（“硬连线的”），IBM早期的PC沿用以上因特尔8088处理器的设计，确保开启电源或重启后BIOS能控制机器。qemu仿真器附带的BIOS也安置在这个位置（位于处理器模拟的物理地址空间上）。一旦处理器复位，模拟的处理器将进入<strong>实地址模式</strong>并设置CS = 0xf000 和 IP = 0xe05b，在（CS:IP）段地址开始执行。实模式下，PC启动时段地址转换为物理地址过程如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">physical address = 16 * segment + offset</span><br><span class="line">   16 * 0xf000 + 0xfff0   # in hex multiplication by 16 is</span><br><span class="line">   = 0xf0000 + 0xfff0     # easy--just append a 0.</span><br><span class="line">   = 0xffff0</span><br></pre></td></tr></table></figure></p>
+<p>这个位置距离BIOS结束地址0x100000只有16字节空间，因此BIOS执行的第一条指令是跳转到BIOS地址空间更靠前的位置。BIOS运行时，设置一个中断描述符表，初始化VGA显示器等各种设备。初始化PCI总线和BIOS知道的所有重要设备后，BIOS搜索软盘、硬盘或光盘等可引导设备。最终，当它发现一个引导盘时，BIOS从磁盘读取引导加载程序并将控制权移交给引导加载程序。<strong>此BIOS部分的其他解释见博客【计算机原理-计算机启动】</strong></p>
+<h1 id="Part-2-The-Boot-Loader"><a href="#Part-2-The-Boot-Loader" class="headerlink" title="Part 2: The Boot Loader"></a>Part 2: The Boot Loader</h1><p>了解PC启动过程以及内核装载过程</p>
+<h2 id="启动扇区和引导程序"><a href="#启动扇区和引导程序" class="headerlink" title="启动扇区和引导程序"></a>启动扇区和引导程序</h2><p>硬盘由于传统的原因被默认分割成了一个个大小为 512 字节的扇区，而扇区则是硬盘最小的读写单位，即每次对硬盘的读写操作只能够对一个或者多个扇区进行并且操作地址必须是 512 字节对齐的。如果说操作系统是从磁盘启动的话，则磁盘的第一个扇区就被称作“启动扇区”，因为 Boot Loader 的可执行程序就存放在这个扇区。在本实验中，当 BIOS 找到启动的磁盘后，便将 512 字节的启动扇区的内容装载到物理内存的 0x7c00 到 0x7dff 的位置，紧接着再执行一个跳转指令将 CS 设置为 0x0000， IP 设置为 0x7c00，这样便将控制权交给了 Boot Loader 程序。<br>PC 发展到很后来的时候才能够从 CD-ROM 启动，而 PC 架构师也重新考虑了 PC 的启动过程。然而从 CD-ROM 启动的过程略微有点复杂。 CD-ROM 的一个扇区的大小不是 512 字节而是 2048 字节，并且 BIOS 也能够从 CD-ROM 装载更大的 BootLoader 程序到内存。在本实验中由于规定是从硬盘启动，所以我们暂且不考虑从 CD-ROM启动的问题。<br>本实验 Boot Loader 的源程序是由一个叫做的 boot.S 的 AT&amp;T 汇编程序与一个叫做 main.c 的 C 程序组成的。这两部分分别完成两个不同的功能。其中 boot.S 主要是将处理器从实模式转换到 32 位的保护模式，这是因为只有在保护模式中我们才能访问到物理内存高于 1MB 的空间，保护模式下段地址（段：偏移）到物理地址的转化不同于实模式，模式转化后偏移是 32 bits 而不是 16 bits 。main.c 的主要作用是将内核的可执行代码从硬盘镜像中读入到内存中，具体的方式是运用 x86 专门的 I/O 指令。<br>obj/boot/boot.asm是引导程序的反汇编结果，obj/kern/kernel.asm是内核程序的反汇编结果，可被用于调试参考。比如使用 b *0x7c00 命令在0x7c00处设置断点，并使用 c 命令跳转到该断点，参考obj/boot/boot.asm进行追踪。</p>
+<h2 id="引导程序之模式转换"><a href="#引导程序之模式转换" class="headerlink" title="引导程序之模式转换"></a>引导程序之模式转换</h2><p><strong>以下分析尝试解决的问题是： 1.什么原因导致了 16-bit 模式转换为 32-bit 模式？ 2.处理器什么时候开始执行 32-bit 代码？</strong><br>Boot Loader 会被加载到 0x7c00 处，设置断点可看出改为知道第一条指令是 boot.S 的第一条可执行指令。<br><strong>gdb 图示</strong><br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/5.PNG" title="gdb 图示"><br><strong>boot.S 图示</strong><br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/6.PNG" title="boot.S 图示"><br><strong>boot.S 的具体分析请阅读【学习笔记03.1 - Lab 1:boot.S】</strong><br><strong>16位模式和32位模式的区别请阅读【计算机原理 - Intel 32 位处理器的工作模式】</strong><br>《x86汇编语言：从实模式到保护模式》一书把实模式和 16 位的保护模式统称为 “ 16 位模式”；把 32 位保护模式称为 “ 32 位模式”。简单来讲， 16 位模式下，处理器把所有指令都看成是 16 位的，数据的大小是 8 位或者 16 位的，控制转移和内存访问时偏移量是 16 位的；32 位模式下，数据的大小是 8 位或者 32 位的，但兼容 80286 的 16 位保护模式。<br>8086 CPU（16位）实模式下数据总线为16位（一次最多能取2^16＝64KB数据，实模式下每个段最大只有64KB），地址总线为20位（寻址的能力是2^20=1MB，实模式下CPU的最大寻址能力），实模式下所有寄存器都是16位。<br>从80386开始CPU数据总线和地址总线均为32位，而且寄存器都是32位。<br><strong>问题 1.什么原因导致了 16 位模式转换为 32 位模式？：</strong> boot.S 首先在实模式下执行 16 位代码，然后切换到保护模式，通过跳转执行 32 位代码。转换到 32 位模式（这里指保护模式）才能访问 1M 以上的地址空间，同时更灵活地进行存储管理，并且对程序能够访问的物理地址进行限制。具体改变是ljmpl指令改变了%cs寄存器，其对应的段描述符由16位变为32位。<br><strong>问题 2.处理器什么时候开始执行 32 位代码？：</strong> 处理器开A20地址线，装载 GDT 表，装载 cr0 为1开启保护模式后，就跳转到 32 位模式中的下一条指令，将处理器切换为 32 位工作模式，从而执行 32 位代码。跳转代码以及执行的第一条 32 位代码见下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">    ljmp    $PROT_MODE_CSEG, $protcseg </span><br><span class="line">    ...</span><br><span class="line">    .code32                     # 32 位模式</span><br><span class="line">protcseg: </span><br><span class="line">    movw    $PROT_MODE_DSEG, %ax </span><br><span class="line">    ...</span><br></pre></td></tr></table></figure></p>
+<h2 id="引导程序之内核装载"><a href="#引导程序之内核装载" class="headerlink" title="引导程序之内核装载"></a>引导程序之内核装载</h2><p><strong>以下分析尝试解决的问题是：1. boot loader 如何决定读取多少个扇区，而不是从磁盘上获取整个内核，它是从哪里取得信息进行判断的？2.内核程序的第一条指令在哪里？3.boot loader 执行的最后一句指令是什么？4.内核程序装载后执行的第一条指令是什么？</strong><br><strong>bootmain.c 的具体分析请阅读【学习笔记03.3 - Lab 1:bootmain.c】</strong><br><strong>问题 1.boot loader 如何决定读取多少个扇区，而不是从磁盘上获取整个内核，它是从哪里取得信息进行判断的？：</strong> bootmain.c 首先将磁盘第二个扇区文件的前 4KB 读入内存，4KB 为一页，其中包括 ELF 文件头以及程序头表。根据程序头表的信息明确文件段的个数，然后将文件逐段读入内存。逐段读入时，将段在硬盘中的偏移由字节数转换成扇区数，并找到段在内存中加载地址的最末端 end_pa ，以当前加载的物理地址小于 end_pa 为循环条件逐扇区读取。<br><strong>问题 2.内核程序的第一条指令在哪里？：</strong> 装载内核文件到内存后，内核程序的第一条指令在物理地址 0x10000c 处。（eip 为 0x10000c，cs 为 0x8 不变！）（boot loader 的入口地址为 0x7c00，内核文件 ELF 文件读写到内存 0x10000 开始的地方， kernel 的入口地址为 0x10000c，0x10000C 是系统内核的第一条<strong>指令</strong>所在的物理地址处）<br><strong>问题 3.boot loader 执行的最后一句指令是什么？：</strong> 在将内核装载到内存中后转移到内核入口地址处执行，c语言是 ((void (<em>)(void)) (ELFHDR-&gt;e_entry))(); ，指令是 **=&gt; 0x7d61:    call   </em>0x10018<strong>，执行该指令会转移到物理地址 0x10000c 处（直接寻址方式）。   
+</strong>问题 4.内核程序装载后执行的第一条指令是什么？：<strong> 通过 gdb 调试，可知内核程序装载后执行的第一条指令是 </strong>=&gt; 0x10000c:    movw   $0x1234,0x472**。  </p>
+<h1 id="Part-3-The-Kernel"><a href="#Part-3-The-Kernel" class="headerlink" title="Part 3: The Kernel"></a>Part 3: The Kernel</h1><p>了解页表机制、库函数实现机制、内核堆栈<br>内核程序也是通过部分汇编代码进行一些设置，然后跳转到 C 语言代码执行函数。kern/entry.S 第 80 行通过 call i386_init 调用了 kern/inic.c 的 i386_init 函数。</p>
+<h2 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h2><p>操作系统内核通常会链接和运行在非常高的线性地址上，这是为了留出处理器的线性地址空间的中低部分给用户程序使用。许多机器没有 0xf0100000 的物理地址，因此不能指望将内核装载在这里。相反，将使用处理器的内存管理硬件映射线性地址 0xf0100000 （内核代码将在该链接地址运行）到物理地址 0x00100000 （引导加载程序加载内核到该物理内存）。这种情况下，内核代码将被装载到物理内存中 1MB 的内存，略高于 BIOS ROM。<br>下次实验将会映射物理地址空间的低 256MB （0x00000000 - 0x0fffffff） 到线性地址（0xf0000000 - 0xffffffff）。现在只需映射物理内存的前 4MB 就足以启动和运行 JOS 内核，这部分工作将通过手写、静态初始化页目录和页表来完成，详见 kern/entrypgdir.c。 kern/entry.S 将设置 CR0_PG 标识符，虚存硬件开始将线性地址映射为物理地址。在标识符设置之前，由于没有开启分页，逻辑地址通过段映射得到的线性地址都被当作物理地址。<strong>（能访问的到的 0 到 4G 的地址空间实际上是线性地址空间，在开启分页机制后，还要经过页表转换才能得到真实地址，而在开启分页之前系统一般会控制只访问低地址。）</strong> entry_pgdir 将 0xf0000000 - 0xf0400000 和 0x00000000 - 0x00400000 的虚拟空间映射到物理空间 0x00000000 - 0x00400000 。使用 qemu 和 gdb 调试，当开始执行内核代码到 <strong>=&gt; 0x100025:    mov    %eax,%cr0</strong> 处后，查看 0x00100000 和 0xf0100000 位置上的内容，将会发现内容一样(注意观察前后的movl汇编指令，可以发现开启分页后就开始使用程序内 KERNBASE 开始的线性地址。):  <a href="http://www.cnblogs.com/tekkaman/p/3506120.html" target="_blank" rel="noopener">gdb之x命令</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(gdb) x/3xw 0x100000</span><br><span class="line">0x100000:	0x1badb002	0x00000000	0xe4524ffe</span><br><span class="line">(gdb) x/3xw 0xf0100000</span><br><span class="line">0xf0100000 &lt;_start+4026531828&gt;:	0x1badb002	0x00000000	0xe4524ffe</span><br></pre></td></tr></table></figure></p>
+<p>如果停用页表机制，即注释掉 kern/entry.S 的 movl %eax, %cr0 再重新编译执行，将会在 <strong>=&gt; 0x10002d:    jmp    *%eax</strong> 处出现错误，因为这里存放的是线性地址。<br>为了在进程地址空间中保证多个进程能够读写同样的地址数值，并且保证不同的进程的地址空间不会相互影响，硬件 TLB （Translation Lookaside Buffer）提供了从物理地址到线性地址的抽象映射，称为“页表”。在这里， boot loader 将内核装载进物理地址的低位，而在进程空间模型当中则将内核置于高位，页表正好可以解决此冲突，将物理地址在低位的页表映射到线性地址的高位当中去。<br>在 CPU 当中 %cr0 控制着是否使用页表寻址方式；而 %cr3 则存放页表一级目录基地址。 entry.S 当中第 57~62 行代码就通过修改 %cr3 与 %cr0 寄存器开启了页表机制。</p>
+<h2 id="格式化输出到控制台"><a href="#格式化输出到控制台" class="headerlink" title="格式化输出到控制台"></a>格式化输出到控制台</h2><p><strong>以下分析尝试解决的问题是：</strong><br>1.在 lab1 中，与实现显示输出相关的文件有 3 个，它们分别是 kern/printf.c、 lib/printfmt.c、 kern/console.c，了解它们之间的关系以及将 printfmt.c 独立到一个库目录的原因。<br>详细信息请阅读【笔记03.4 - Lab 1:控制台输出函数】，一言以蔽之， kern/console.c 完成“如何打印”的逻辑，而 lib/printfmt.c 完成“打印什么”的逻辑，它们的链接纽带就是 kern/printf.c。 kern/printf.c 定义了 cprintf、vcprintf、putch 三个函数， cprintf 功能类似于 C 语言的 printf 函数。 cprintf 初始化后调用 vcprintf， vcprintf 调用了 lib/printfmt.c 定义的 vprintfmt 函数进行输出，并将 kern/printf.c 定义的 putch 函数指针传递给 vprintfmt 函数作为第一个参数， putch 函数的功能是通过调用 kern/console.c 定义的 cputchar 函数将一个字符输出在屏幕上。   </p>
+<p>2.解释 printf.c 和 console.c 的接口，特别是 console.c 暴露了什么函数，这些函数又如何被 printf.c 所使用？<br>详细信息请阅读【笔记03.4 - Lab 1:控制台输出函数】， kern/printf.c 中的 putch 函数调用了 kern/console.c 定义的 cputchar 函数， cputchar 函数又调用了 serial_putc(c)、 lpt_putc(c)、 cga_putc(c) 三个函数，分别对应于写串口、写并口、写显示器。（写了串口/并口后，再由 qemu 将串口/并口输出信息打印到控制台，所以输出信息既可以在 qemu 中显示，也可以在控制台显示） </p>
+<p>3.解释 console.c 中的代码段：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1      if (crt_pos &gt;= CRT_SIZE) &#123;</span><br><span class="line">2              int i;</span><br><span class="line">3              memcpy(crt_buf, crt_buf + CRT_COLS, (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));</span><br><span class="line">4              for (i = CRT_SIZE - CRT_COLS; i &lt; CRT_SIZE; i++)</span><br><span class="line">5                      crt_buf[i] = 0x0700 | &apos; &apos;;</span><br><span class="line">6              crt_pos -= CRT_COLS;</span><br><span class="line">7      &#125;</span><br></pre></td></tr></table></figure></p>
+<p>crt_buf 是一个指向 16 位无符号整形数的静态指针，它实际上指向的是内存中物理地址为 0xb8000 的位置，（物理内存的 0xa0000 到 0xc0000 这 128KB 的空间是留给 VGA 显示缓存的，实际上在我们的试验中从 0xb8000 这个位置开始的一部分内存空间便是可以直接与显示屏相关联的显存）。在物理地址超过 0xb8fa0 的内存部分中存储字符数据，此时实际上显示屏就无法显示超过的部分，这个时候通常下显示屏都会滚屏好让最新输出的字符能够显示出来。在每输出一个字符后都先判断 crt_pos 是否大于或等于 CRT_SIZE，而 CRT_SIZE 实际上就是一个屏幕可以输出的字符数，即 80*25。当等于 CRT_SIZE 时，说明此时已经满屏，当大于 CRT_SIZE 时，说明有字符没有显示出来。当满足这两种情况的中的一种时，程序所做的处理是将屏幕上第二行到最后一行的的字符数据复制到第一行到倒数第二行去，然后将屏幕的最后一行输出为空格（并通过 crt_buf[i] = 0x0700 | ‘ ‘; 设置默认字符格式）。  </p>
+<p>4.追踪以下代码，了解 x86 平台 GCC 的调用约定。当调用 cprintf() 时， fmt 指向什么？ ap 指向什么？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int x = 1, y = 3, z = 4;</span><br><span class="line">cprintf(&quot;x %d, y %x, z %d\n&quot;, x, y, z);</span><br></pre></td></tr></table></figure></p>
+<p>GCC 的默认函数调用约定是 stdcall。 stdcall 调用约定声明的语法为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int __stdcall function(int a,int b)</span><br></pre></td></tr></table></figure></p>
+<p>stdcall的调用约定意味着：1）参数从右向左压入堆栈，2）函数自身修改堆栈，3)函数名自动加前导的下划线，后面紧跟一个@符号，其后紧跟着参数的尺寸。<br>以上述这个函数为例，参数 b 首先被压栈，然后是参数 a，函数调用 function(1,2) 调用处。  </p>
+<p>查看 /obj/kern/kernel.asm 第 61 行，可以看到 /kern/entry.S 最后调用 kern/inic.c 的 i386_init 函数的反汇编结果。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">61:	call	i386_init</span><br><span class="line">62:f0100039:	e8 5f 00 00 00       	call   f010009d &lt;i386_init&gt;</span><br></pre></td></tr></table></figure></p>
+<p>我们可以将上述代码添加到 i386_init 函数入口处（切记需要在调用 cons_init() 之后），删除 obj 目录后重新在 lab 目录下 make，然后启动 qemu 和 gdb。设置断点到 f0100039 处，然后一步一步调试获取结果。在这里 “x %d, y %x, z %d\n” 便是显示字符串，整形变量 x、 y、 z 便是可变参数。在初始化了 va_list 变量 ap 后， ap 便指向了 x 所存放的位置，之后便可以通过 va_arg 宏依次得到变量 x、 y、 z。 %x 代表以无符号 16 进制整数的形式打印出来，如果设置 y = -3，输出 fffffffd，因为 -3 在内存中是以补码的形式存储的，于是在内存中-3 实际上是 fffffffd，所以将它看做是一个无符号数时，打印出来的结果便是 fffffffd。<br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/7.PNG" title="GCC 的调用协定调试"></p>
+<p>5.执行以下代码，它的输出是什么？ X86 系列 CPU 都是 little-endian 的字节序，如果你设定了 big-endian ，输出是什么？需要修改 57616 吗？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">unsigned int i = 0x00646c72;</span><br><span class="line">cprintf(&quot;H%x Wo%s&quot;, 57616, &amp;i);</span><br></pre></td></tr></table></figure></p>
+<p>大小端分析请阅读【计算机原理-大端和小端】。<br>输出 He110 World。因为十进制数 57616 用 16 进制数来表示便是 0xe110。由于无符号整形数 i 是占 4 个字节，而低位数字是存在低地址处。若将这四个字节看做一个字符串，则每个字节代表的就是一个字符的 ASCII 码，所以低位的 0x72 代表的是字符 ‘r’，而最高位的 0x00 代表就是空字符，即标识字符串的结束。于是字符串与 “Wo” 组成了 “World”，所以最终在屏幕上输出了 “He110 World”。如果要想在大端法机器上运行得到相同的结果，i 的值应为 0x726c6400。57616 不需要更改顺序，因为存储时也会采用大端法，所以读出来的十六进制数的顺序不会改变。(注意%x是一次性读出57616并以16进制形式打印，所以即使存储方式不同，读出后仍然一样。而%s是一字节一字节从低地址取出并输出，存储顺序不同则打印顺序不同。)   </p>
+<p>6.以下代码在 “y=” 之后将打印什么内容（提示：答案不是一个特殊值）？为什么会出现这种现象？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cprintf(&quot;x=%d y=%d&quot;, 3);</span><br></pre></td></tr></table></figure></p>
+<p>显示出来 y = 1604，是个随机的数字，这是因为可变参数只有一个，而可变参数指针指向的是这一个参数存放的位置，当函数试图去在内存中寻找不存在的第二个参数的时候便会在内存中存放第一个参数之后的位置中去取，而这个位置存放的内容我们无法确定，因此打印出来的便是一个随机的数字。  </p>
+<p>7.假设 GCC 修改了调用约定，按照声明顺序将参数进栈，最后声明的参数就最后进栈。如何修改接口使得仍能给 cprintf 传递数量可变的参数？<br><strong>需要注意的是， gcc 的默认调用约定有两个事实，一是 C 程序栈的内存生长方式是往低地址内存生长，这也说明为什么局部变量无法申请太大内存，因为栈内容有限；二是函数参数的入栈的顺序是从右往左的。</strong>  因此，默认情况下，调用 va_start(ap, fmt) 函数时，ap 指向的地址是在 fmt 地址的基础上使用加法得到的（传入的参数在 fmt 字符串的高地址处），va_arg 则是在 ap 地址的基础上使用加法得到的。 jos 系统中，inc/stdarg.h 定义的 va_start 等宏都是使用了编译器内置函数。当进栈顺序变为按照声明顺序时，应该需要修改 inc/stdarg.h 中的宏定义，将 va_start 和 va_arg 改成用减法获得新地址（va_start 仍是基于 fmt 的地址，只是获取 ap 的地址时是通过做减法）。  </p>
+<p>8.如何修改 qemu 的控制台颜色？<br>添加 kern/color.h 定义颜色值，kern/monitor.c 添加 setcolor 指令和 mon_setcolor 函数，mon_setcolor 函数接收指令为：setcolor bg=[背景颜色] ch=[字符颜色]，其中字符颜色见新增的 kern/color.h。mon_setcolor 函数去除 “bg=” 和 “ch=” 后调用 kern/console.c 新增的 setcolor(const char <em>bg, const char </em>ch) 函数，判断字符串的值并根据 CGA 的文本模式修改背景颜色和字体颜色，并保存结果，用于设置新输入的字符。    </p>
+<p>9.补充使用 “%o” 形式打印八进制数字的部分代码。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">putch(&apos;0&apos;, putdat);</span><br><span class="line">num = getuint(&amp;ap, lflag);</span><br><span class="line">base = 8;</span><br><span class="line">goto number;</span><br></pre></td></tr></table></figure></p>
+<h2 id="堆栈"><a href="#堆栈" class="headerlink" title="堆栈"></a>堆栈</h2><p><strong>以下分析尝试解决的问题是：</strong><br>1.内核在哪里初始化堆栈，内核如何给自己的栈留出空间？栈指针一开始在内核栈的哪端？<br>内核在 kern/entry.S 中初始化堆栈。内核初始化堆栈的时候将寄存器 ebp 初始化为 0， esp 初始化为 bootstacktop。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.data</span><br><span class="line">###################################################################</span><br><span class="line"># boot stack</span><br><span class="line">###################################################################</span><br><span class="line">	.p2align	PGSHIFT		# force page alignment</span><br><span class="line">	.globl		bootstack</span><br><span class="line">bootstack:</span><br><span class="line">	.space		KSTKSIZE</span><br><span class="line">	.globl		bootstacktop   </span><br><span class="line">bootstacktop:</span><br></pre></td></tr></table></figure></p>
+<p>栈的空间定义在 ELF 的 data 字段，载入内核时根据 data 段在 ELF 文件中的相对位置被载入内存。栈有两部分，第一部分是实际栈空间，一共 <code>KSTKSIZE = 8*PGSIZE = 8*4096B = 32KB</code>。 第二部分是栈底指针 bootstacktop， 指向栈空间定义以后的高地址位置。  </p>
+<p>2.熟悉 Linux 的 c 语言调用约定，在 obj/kern/kernel.asm 中找到 test_backtrace 函数的地址，设置断点，检查在内核启动后该函数每次被调用时的变化。test_backtrace 每次递归嵌套会将什么内容进栈？请按照以下形式输出，其中第一行映射到当前执行函数，第二行映射到调用它的函数，以此类推。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Stack backtrace:</span><br><span class="line">  ebp f0109e58  eip f0100a62  args 00000001 f0109e80 f0109e98 f0100ed2 00000031</span><br><span class="line">  ebp f0109ed8  eip f01000d6  args 00000000 00000000 f0100058 f0109f28 00000061</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure></p>
+<p>查看 test_backtrace 函数的汇编代码，如下：<br><img src="/2017/08/20/笔记03-Lab-1-Booting-a-PC/8.PNG" title="汇编代码"><br>可以看出一共有四类栈空间被使用，分别是：77 行 %ebp 入栈；79 行 %ebx 入栈以保护现场；80 行出栈顶指针下移 20 字节，作为临时变量存储，包括 call 其他函数时，传给该函数的参数也放在这部分空间里；92 行 call 时（递归）自动将 eip 入栈。共 4 + 4 + 20 + 4 = 32 byte 空间压栈。<strong>可阅读【笔记03.5 - Lab 1:Jos内核】进一步了解。</strong>为了输出  kern/monitor.c 代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">mon_backtrace(int argc, char **argv, struct Trapframe *tf)</span><br><span class="line">&#123; </span><br><span class="line">	// Your code here.</span><br><span class="line">	uint32_t *ebp, eip;</span><br><span class="line">	uint32_t arg0, arg1, arg2, arg3, arg4;</span><br><span class="line">	ebp = (uint32_t*)read_ebp();</span><br><span class="line">	eip = ebp[1];</span><br><span class="line">	arg0 = ebp[2];</span><br><span class="line">	arg1 = ebp[3];</span><br><span class="line">	arg2 = ebp[4];</span><br><span class="line">	arg3 = ebp[5];</span><br><span class="line">	arg4 = ebp[6]; </span><br><span class="line">	cprintf(&quot;Stack backtrace:\n&quot;);</span><br><span class="line">	/*</span><br><span class="line">	当发现 ebp 的值为 0 时便停止循环。</span><br><span class="line">	因为最外层的程序是 kern/entry.S 中的入口程序，记得在之前我们看到过入口程序中有一句代码是“ movl $0x0,%ebp”，也就是说在入口程序调用 i386_init 函数之前便把 ebp 的值置为 0，也就是说入口程序的 ebp 实际上为 0</span><br><span class="line">	*/</span><br><span class="line">	while(ebp != 0)&#123;</span><br><span class="line">		cprintf(&quot;ebp %08x  eip %08x  args %08x %08x %08x %08x %08x\n&quot;,</span><br><span class="line">			ebp,eip,arg0,arg1,arg2,arg3,arg4);</span><br><span class="line">		ebp = (uint32_t*)ebp[0]; // 0x0[%ebp] 可以读出上个函数的栈指针</span><br><span class="line">		eip = ebp[1];</span><br><span class="line">		arg0 = ebp[2];</span><br><span class="line">		arg1 = ebp[3];</span><br><span class="line">		arg2 = ebp[4];</span><br><span class="line">		arg3 = ebp[5];</span><br><span class="line">		arg4 = ebp[6]; </span><br><span class="line">	&#125; </span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>3.如何实现“输出函数调用者的栈地址，并输出跟这些地址关联的函数名”？请完成 kern/kdebug.c 中 debuginfo_eip 的实现过程，加入调用 stab_binsearch 的实现。在内核监视部分添加 backtrace 命令，完成 mon_backtrace 的实现过程，加入调用 debuginfo_eip 以实现输出关联的函数名和行号。<br>这里需要看一下符号表里的结构。用 objdump -G obj/kern/kernel 指令查看 stab，发现在每一种类型（SO/SLINE/…）中都会按照地址的顺序逐渐有行号的递增。仿照 debuginfo_eip 函数里对 SO/FUN （文件名/函数名）的写法，使用 stab_binsearch 这个给定的二分查找方法，找到对应的行数，然后取出行号。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">stab_binsearch(stabs, &amp;lline, &amp;rline, N_SLINE, addr);</span><br><span class="line">if (lline &gt; rline)</span><br><span class="line">    info-&gt;eip_line = -1;</span><br><span class="line">else</span><br><span class="line">    info-&gt;eip_line = stabs[lline].n_desc;</span><br></pre></td></tr></table></figure></p>
+<p>修改后的 kern/monitor.c 文件的 mon_backtrace 函数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">mon_backtrace(int argc, char **argv, struct Trapframe *tf)</span><br><span class="line">&#123; </span><br><span class="line">	// Your code here.</span><br><span class="line">	uint32_t *ebp, eip;</span><br><span class="line">	uint32_t arg0, arg1, arg2, arg3, arg4;</span><br><span class="line">	ebp = (uint32_t*)read_ebp();</span><br><span class="line">	eip = ebp[1];</span><br><span class="line">	arg0 = ebp[2];</span><br><span class="line">	arg1 = ebp[3];</span><br><span class="line">	arg2 = ebp[4];</span><br><span class="line">	arg3 = ebp[5];</span><br><span class="line">	arg4 = ebp[6]; </span><br><span class="line">	cprintf(&quot;Stack backtrace:\n&quot;);</span><br><span class="line">	/*</span><br><span class="line">	当发现 ebp 的值为 0 时便停止循环。</span><br><span class="line">	因为最外层的程序是 kern/entry.S 中的入口程序，记得在之前我们看到过入口程序中有一句</span><br><span class="line">	代码是“ movl $0x0,%ebp”，也就是说在入口程序调用 i386_init 函数之前便把 ebp 的值置</span><br><span class="line">	为 0，也就是说入口程序的 ebp 实际上为 0</span><br><span class="line">	*/</span><br><span class="line">	while(ebp != 0)&#123;</span><br><span class="line">		cprintf(&quot;ebp %08x  eip %08x  args %08x %08x %08x %08x %08x\n&quot;,</span><br><span class="line">			ebp,eip,arg0,arg1,arg2,arg3,arg4);</span><br><span class="line">		struct Eipdebuginfo info;</span><br><span class="line"></span><br><span class="line">		if(debuginfo_eip(eip, &amp;info) == 0)&#123;</span><br><span class="line">			//file name : line</span><br><span class="line">	    	cprintf(&quot;\t%s:%d: &quot;, info.eip_file, info.eip_line);</span><br><span class="line">	    	//function name + the offset of the eip from the first instruction of the function</span><br><span class="line">	    	//注意：printf(&quot;%.*s&quot;, length, string)打印string的至多length个字符</span><br><span class="line">	      	cprintf(&quot;%.*s+%d\n&quot;, info.eip_fn_namelen, info.eip_fn_name, eip - info.eip_fn_addr);</span><br><span class="line">	    &#125; </span><br><span class="line"></span><br><span class="line">		ebp = (uint32_t*)ebp[0];</span><br><span class="line">		eip = ebp[1];</span><br><span class="line">		arg0 = ebp[2];</span><br><span class="line">		arg1 = ebp[3];</span><br><span class="line">		arg2 = ebp[4];</span><br><span class="line">		arg3 = ebp[5];</span><br><span class="line">		arg4 = ebp[6]; </span><br><span class="line">	&#125; </span><br><span class="line">	return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记02-HW01-x86-shell/" rel="next" title="笔记02 - HW01: x86 shell">
+                <i class="fa fa-chevron-left"></i> 笔记02 - HW01: x86 shell
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记03-1-Lab-1-boot-S/" rel="prev" title="笔记03.1 - Lab 1:boot.S">
+                笔记03.1 - Lab 1:boot.S <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安装仿真环境"><span class="nav-number">1.</span> <span class="nav-text">安装仿真环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-1-PC-Bootstrap"><span class="nav-number">2.</span> <span class="nav-text">Part 1: PC Bootstrap</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#仿真xv6"><span class="nav-number">2.1.</span> <span class="nav-text">仿真xv6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PC的物理地址空间"><span class="nav-number">2.2.</span> <span class="nav-text">PC的物理地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用qemu调试工具研究IA-32兼容计算机的启动过程"><span class="nav-number">2.3.</span> <span class="nav-text">使用qemu调试工具研究IA-32兼容计算机的启动过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-2-The-Boot-Loader"><span class="nav-number">3.</span> <span class="nav-text">Part 2: The Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动扇区和引导程序"><span class="nav-number">3.1.</span> <span class="nav-text">启动扇区和引导程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导程序之模式转换"><span class="nav-number">3.2.</span> <span class="nav-text">引导程序之模式转换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导程序之内核装载"><span class="nav-number">3.3.</span> <span class="nav-text">引导程序之内核装载</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Part-3-The-Kernel"><span class="nav-number">4.</span> <span class="nav-text">Part 3: The Kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟内存"><span class="nav-number">4.1.</span> <span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#格式化输出到控制台"><span class="nav-number">4.2.</span> <span class="nav-text">格式化输出到控制台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#堆栈"><span class="nav-number">4.3.</span> <span class="nav-text">堆栈</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

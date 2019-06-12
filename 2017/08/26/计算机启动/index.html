@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="计算机原理,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="计算机启动过程有哪些阶段第一阶段：BIOS第二阶段：MBR第三阶段：硬盘启动第四阶段：操作系统 第一阶段：BIOS：控制权为BIOS概念BIOS：BIOS是一组固化到计算机内主板上一个ROM芯片上的程序，它保存着计算机最重要的基本输入输出的程序、开机后自检程序和系统自启动程序，它可从CMOS中读写系统设置的具体信息。CMOS：CMOS 是电脑主机板上一块特殊的RAM芯片，是系统参数存放的地方，而B">
+<meta name="keywords" content="计算机原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机启动">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/计算机启动/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="计算机启动过程有哪些阶段第一阶段：BIOS第二阶段：MBR第三阶段：硬盘启动第四阶段：操作系统 第一阶段：BIOS：控制权为BIOS概念BIOS：BIOS是一组固化到计算机内主板上一个ROM芯片上的程序，它保存着计算机最重要的基本输入输出的程序、开机后自检程序和系统自启动程序，它可从CMOS中读写系统设置的具体信息。CMOS：CMOS 是电脑主机板上一块特殊的RAM芯片，是系统参数存放的地方，而B">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/6.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.257Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="计算机启动">
+<meta name="twitter:description" content="计算机启动过程有哪些阶段第一阶段：BIOS第二阶段：MBR第三阶段：硬盘启动第四阶段：操作系统 第一阶段：BIOS：控制权为BIOS概念BIOS：BIOS是一组固化到计算机内主板上一个ROM芯片上的程序，它保存着计算机最重要的基本输入输出的程序、开机后自检程序和系统自启动程序，它可从CMOS中读写系统设置的具体信息。CMOS：CMOS 是电脑主机板上一块特殊的RAM芯片，是系统参数存放的地方，而B">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/计算机启动/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/计算机启动/">
+
+
+
+
+
+  <title>计算机启动 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/计算机启动/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">计算机启动</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T11:39:18+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/计算机原理/" itemprop="url" rel="index">
+                    <span itemprop="name">计算机原理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="计算机启动过程有哪些阶段"><a href="#计算机启动过程有哪些阶段" class="headerlink" title="计算机启动过程有哪些阶段"></a>计算机启动过程有哪些阶段</h1><p>第一阶段：BIOS<br>第二阶段：MBR<br>第三阶段：硬盘启动<br>第四阶段：操作系统</p>
+<h1 id="第一阶段：BIOS：控制权为BIOS"><a href="#第一阶段：BIOS：控制权为BIOS" class="headerlink" title="第一阶段：BIOS：控制权为BIOS"></a>第一阶段：BIOS：控制权为BIOS</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>BIOS：</strong>BIOS是一组固化到计算机内主板上一个ROM芯片上的程序，它保存着计算机最重要的基本输入输出的程序、开机后自检程序和系统自启动程序，它可从CMOS中读写系统设置的具体信息。<br><strong>CMOS：</strong>CMOS 是电脑主机板上一块特殊的RAM芯片，是系统参数存放的地方，而BIOS中系统设置程序是完成参数设置的手段。CMOS芯片由主板上的钮扣电池供电，即使系统断电，参数也不会丢失。<br><strong>实模式：</strong>最早期的8086 CPU（16位）只有一种工作方式，那就是实模式，而且数据总线为16位（一次最多能取2^16＝64KB数据，实模式下每个段最大只有64KB），地址总线为20位（寻址的能力是2^20=1MB，实模式下CPU的最大寻址能力），实模式下所有寄存器都是16位。8086处理器在实模式下的存储器寻址方式由段寄存器的内容乘以16作为基地址，加上段内的偏移地址形成最终内存中实际的物理地址。<br><strong>这里回答一个问题：在8086/8088中，只有20根地址总线，所以可以访问的地址是2^20=1M，但由于8086/8088是16位地址模式，能够表示的地址范围是0-64K，所以为了在8086/8088下能够访问1M内存(16位寄存器怎么表示20位的寻址空间？)，Intel用了分段的方法 —— segment:offset. 实际的地址是segment &lt;&lt; 4 + offset。</strong><br><strong>保护模式：</strong>从80286开始就有了保护模式，从80386开始CPU数据总线和地址总线均为32位，而且寄存器都是32位。但80386以及现在的奔腾、酷睿等等CPU为了向前兼容都保留了实模式，现代操作系统在刚加电时首先运行在实模式下，然后再切换到保护模式下运行。</p>
+<h2 id="BIOS映射到内存"><a href="#BIOS映射到内存" class="headerlink" title="BIOS映射到内存"></a>BIOS映射到内存</h2><p><strong>boot block:</strong> 当启动中计算机的时候，一开始BIOS并不会马上把Flash ROM中的内容copy到shadow memory，CPU会执行一部分代码，我们习惯把这一段代码叫做Boot Block。之所以要把Flash ROM中的内容loaded到memory，是因为当对CPU，memory进行完initialized，由于ROM的执行速度远比RAM要低，才会把BIOS shadow到memory中去，这样可以reduce POST的时间。所以我们在OS下会发现BIOS的content会shadow到memory的最顶端，举个例子，如果你是用的32bit的XP(support 4G)，你就可以在FFF00000-FFFFFFFF（对1M的BIOS而言，如果是512K地址则是FFF7FFFF-FFFFFFFF）这段memory空间找到你的BIOS的content。  </p>
+<p>注：以下内容参考并摘抄自<a href="http://www.feishare.com/attachments/056_CPU%20reset.pdf" target="_blank" rel="noopener">《CPU rest》</a><br><strong>i386 CPU取的第一条指令地址与所处模式：</strong> 当CPU 抓到第一条指令，并执行的时候，如果说处于real mode，那么FFFFFFF0h的地址，早已超出了real mode CPU的寻址范围。也许很多人都讨论过这个问题。首先，可以确定的是：<br>此时CPU并不处于protect mode。CPU进入protect mode的标志是CR0的PE bit置1，而当CPU执行第一条指令时，此Flag bit并未置1。如果说此时CPU处于real mode， 那么此时CS=F000h, IP=FFF0h,（CS和IP的初始值应当是8086/8088-1M物理地址空间-时代编址BIOS第一条指令地址遗留下来的） 按照real mode的寻址方式， 此时形成的第一条指令的地址应该是 CS:IP=F000h <em> 10h+FFF0h =FFFF0h， 而不是FFFFFFF0h。(有文档说， CPU第一条指令会从 FFFFFFF0h抓，而有文档说是从FFFF0抓， 那到底从那里抓呢？一切以 Intel的说法为准，Intel 说从FFFFFFF0h抓，那就是从FFFFFFF0h抓。)<br><strong>CPU寻址和所在的模式无关，它只会使用内部的base address寄存器加上offset，实模式下base address是段寄存器×16，保护模式下就是加载段选择子的内容。</strong>自从386以来，CS不再是单个的段寄存器，而是包括Segment selector，segment base，和segment limit 3个register的一组寄存器。Segment Base决定着基地址的值。当 CPU 处于实模式段寻址方式时，如果段寄存器装入F000h, 那么 CPU 会自动将F000h </em> 10h = F0000h装入Segment Base，那么最终形成的地址就是F0000h+IP， 即Segment Base+IP形成地址。然而实际情况是，CPU reset过后，虽然此时CPU的确处于段寻址模式，Segment Selector的值为F000h，但是Segment Base register的值却并没有按照段寻址模式的方式装入，而是被设置为Segment Base=FFFF0000h，按照Segment Base+IP的方式，最终形成的地址为FFFF0000h + FFF0h = FFFFFFF0h。这就是为何第一条指令会从 FFFFFFF0h抓，而不是FFFF0h抓的原因。<br>那么，其实我们可以说，CPU执行第一条指令时，它处于一种不普通的real mode中。<br>（段寻址模式：在寻址一个内存具体单元时，由一个基址再加上某些寄存器提供的16位偏移量来形成实际的20位物理地址。这个基址就是CPU中的段寄存器。在形成20位物理地址时，段寄存器的16位的数会自动左移4位，然后与16位偏移量相加，即可形成所需的内存地址。这种寻址方式的实质还是基址寻址。）</p>
+<p><strong>地址映射：</strong>在CPU读到BIOSCode之前，一切工作都是由HW完成，其中南桥做了一些很重要的幕后工作。在CPUreset和BIST之后，CPU将会去读取第一条指令。对于传统的 CPU + 北桥 + 南桥类型的platform来说，CPU的request通过FSB到达北桥，北桥将这个request透过ESI送到南桥。而对于最新的chipset来说，北桥和CPU封装在一颗Chip里面，所以会看到这个request通过DMI/QPI被送到南桥。Request到达南桥后，南桥根据配置决定将request route 到SPI或者LPC。南桥自己有一张特殊的address mapping table，存在两个这样的区域，第一个是从地址空间4G向下，大小从4MB到16MB不等的一个区域，以4MB为例，地址空间从FFFC00000h~FFFFFFFFh，称之为Range4G。CPU reset后会从FFFFFFF0h抓第一条指令，这第一条指令正好处于南桥的4G范围内，能享受南桥的special service。第二个受到南桥关照的地址空间，一般是从1MB向下128KB的范围，即ESegment和FSegment，从E0000~FFFFF，称之为Legacy Range，也就是说，不仅FFFC00000h~FFFFFFFFh之间的request能够被route到SPI/LPC，E0000~FFFFF之间的request也同样会被route到SPI/LPC。<br>CPU reset的时候，内存还没初始化，所以不可能从内存XXXX的位置读取第一条指令。CPU从来不会直接从内存中读数据，CPU的读写，都是针对自己的地址空间而言。假设一个 CPU，其地址空间大小是4GB，这个系统拥有一根1GB的内存。内存初始化过后，其地址被映射到0~3FFFFFFFh的地址空间，假设CPU要访问一个地址10000h，CPU的request首先针对自己的地址空间，然后 CPU的硬件会将这个请求转化为一个bus的请求，比如 FSB or PCI，然后内存控制器从bus上收到这样一个请求后，会确认这个请求是否在内存的地址空间，如果是在内存映射的空间内，则将其重定向到内存中，然后就由内存回复这个请求。 如果CPU访问一个地址8FFFFFFFh，当这个请求到达bus被内存控制器收到后，经过比较，这个地址不在内存映射的范围内，所以内存控制器将不处理这个请求， 然后这个请求可能最终通过北桥，到达南桥。当CPU reset时，其第一条指令请求的地址为FFFFFFF0h，此时内存并未初始化，这个请求会从bus上被转发到南桥，南桥最终将其重定向到LPC/SPI的ROM上，所以boot block阶段，所有的代码都是从ROM上读取的。这也是从概念上区分boot block/PEI和POST/DXE阶段的方法。那么，如果内存初始化过后，CPU读取FFFFFFF0h的request是否有可能被内存接收到呢？<strong>No，在内存控制器初始化的时候，会设置一些参数，保留几段地址空间的区域给flash rom、PCI设备分配使用，它确保不会将内存映射到这些地址空间上。所以内存初始化过后，地址请求FFFFFFF0h还是会被北桥转发出去，不会decode到内存。</strong>但是，如果一个PCI设备，在南桥之前收到了这个请求，并且解码了这个地址，回复了CPU的请求，那么将不会从南桥的LPC/SPI boot。  </p>
+<p>注：以下内容参考自<a href="http://www.oldlinux.org/oldlinux/archiver/?tid-1823.html" target="_blank" rel="noopener">OldLinux’s Archiver</a>上关于内存的讨论。<br><strong>8086时代 - 1M物理地址空间：</strong>机器加电成功后，CPU自设定为初试状态，开始准备运行（以实模式），此时RAM是空的。不同BIOS厂商生产的BIOS代码量不一样，因此习惯<strong>将BIOS的第一条指令编码到特定地址上（CS:IP = 0xF000:0xFFF0处）</strong>，CPU则被预编程查找这个固定的位置。该位置放置一个jmp指令以跳转到真正执行的代码位置，通过jmp指定位置来适配不同数量的BIOS代码。事实上CS:IP = 0xF000:0xFFF0离实模式的极限地址0xF000:0xFFFF只有16个字节了，也就安排得开一个跳转指令和其他几条简短指令。而我们实际究竟需要使用多长的冷启动代码由jmp 0xF000:0xXXXX中的偏移0xXXXX来把握，如果使用得多，0xXXXX就小，使用得少，0xXXXX就大。BIOS冷启动代码编址到1M顶部保证启动代码尽量靠后，而不浪费多余的地址空间，由于地址空间安排在最后，也不会把整个地址空间隔离成两段。<br><strong>i386时代：</strong>我们说的bios rom，当然这包括很多bios的rom，如视频bios rom和SCSI卡bios rom等，当然还包括我们传统意义上的包含冷启动程序代码以及一系列原始中断服务程序的bios的rom，由于技术的发展，这一部分rom现在变得非常大，如现在一般的传统bios rom就达2M以上，而视频bios rom等都更大。以前习惯上把这些rom的地址空间安排在640k以上1M以下的空间里(也就是说640k~1M这一段地址指向rom而不是指向ram)，但这一点空间是明显安排不下现在的rom的，又为了不让这一段rom的地址将ram的地址隔离成两段，一般都将这段rom的地址空间安排在cpu所能访问到的地址的最高端。因此，为了保持对8086/8088的兼容性，所以intel采用了一个变通的方法，具体就是：<br>1）CPU复位后得到机器执行的第一条指令地址0xFFFFFFF0（cpu取指令时,由于是从物理上使A20~A31地址线为1,所以当cs为f000,指令偏移为FFF0时,形成物理地址FFFF0,再加上A20~A31都为1,实际得到的物理地址是:FFFFFFF0）。执行一条跳转指令jmp f000:xxxx跳转到启动代码的开始处。（段内跳转，跳转的位置仍然是rom的位置）<br>2）在实模式下，intel把BIOS中的冷启动代码映射到32位cpu所能寻址的4G地址空间的最后64k，把A20~A31地址线全置为1，把CS = 0xf000，这样，cpu所得到的物理地址就是0xffff0000 - 0xffffffff，即4G地址空间的最后64K。（猜测映射过程并没有复制数据到4G顶部，也就是说，可能被映射的物理地址空间没有数据但仍然无法被使用！）<br>3）通过执行启动代码（或者别的方法）把BIOS中的ROM内容关于实模式的代码和数据拷贝到物理地址640K~1Mb处，这样使得在实模式下，cpu也能通过动态映射访问BIOS中的部分内容。<br>4）执行一个段间跳转，屏蔽掉地址的A20~A31线（intel规定任何一个段间转移指令可以置触发器的输出为0），从而来到低地址空间，接着执行从rom bios拷贝过来的代码。<br>（内存控制器控制CPU对BIOS中ROM内容的访问到底转发到RAM还是ROM，而4G处则一直映射着全部的BIOS数据。按照《CPU rest》的分析，内存控制器初始化的时候，会设置一些参数，保留几段地址空间的区域给flash rom、 PCI设备分配使用，它确保不会将内存映射到这些地址空间上，那么复制BIOS的数据到4G处将没有多大的意义，因为也读不了，而且实模式复制数据到4G又得采取特殊的方式。）</p>
+<h2 id="BIOS硬件自检"><a href="#BIOS硬件自检" class="headerlink" title="BIOS硬件自检"></a>BIOS硬件自检</h2><p>注：以下内容参考自<a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">计算机是如何启动的</a><br>BIOS程序首先检查，计算机硬件能否满足运行的基本条件，这叫做”硬件自检”（Power-On Self-Test），缩写为POST。<br>如果硬件出现问题，主板会发出不同含义的蜂鸣，启动中止。如果没有问题，屏幕就会显示出CPU、内存、硬盘等信息。</p>
+<h2 id="启动顺序"><a href="#启动顺序" class="headerlink" title="启动顺序"></a>启动顺序</h2><p>注：以下内容参考自<a href="https://zh.wikipedia.org/wiki/%E4%B8%BB%E5%BC%95%E5%AF%BC%E8%AE%B0%E5%BD%95" target="_blank" rel="noopener">维基百科-主引导记录</a>和<a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">计算机是如何启动的</a><br>当BIOS检查到硬件正常并与CMOS中的设置相符后，BIOS需要知道，”下一阶段的启动程序”具体存放在哪一个设备。也就是说，BIOS需要有一个外部储存设备的排序，排在前面的设备就是优先转交控制权的设备。这种排序叫做”启动顺序”（Boot Sequence）。按照CMOS中对启动设备的设置顺序检测可用的启动设备。BIOS将相应启动设备的第一个扇区（也就是MBR扇区）读入内存地址为0000:7C00H处，然后检查0000:7CFEH-0000:7CFFH（MBR的结束标志位）是否等于55AAH，若不等于则转去尝试其他启动设备（往往还对磁盘是否有写保护、主引导扇区中是否存在活动分区等进行检查），如果没有启动设备满足要求则显示”NO ROM BASIC”然后死机。当检测到有启动设备满足要求后，BIOS将控制权交给相应启动设备。根据MBR中的引导代码启动某个分区的引导程序。</p>
+<h1 id="第二阶段：MBR：控制权为满足要求的启动设备"><a href="#第二阶段：MBR：控制权为满足要求的启动设备" class="headerlink" title="第二阶段：MBR：控制权为满足要求的启动设备"></a>第二阶段：MBR：控制权为满足要求的启动设备</h1><p>注：以下内容参考自<a href="https://zh.wikipedia.org/wiki/%E4%B8%BB%E5%BC%95%E5%AF%BC%E8%AE%B0%E5%BD%95" target="_blank" rel="noopener">维基百科-主引导记录</a>和<a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">计算机是如何启动的</a></p>
+<h2 id="概念-1"><a href="#概念-1" class="headerlink" title="概念"></a>概念</h2><p><strong>主引导记录：</strong>主引导记录（Master Boot Record，缩写：MBR），又叫做主引导扇区，是计算机开机后访问硬盘时所必须要读取的首个扇区，它在硬盘上的三维地址为（柱面，磁头，扇区）＝（0，0，1）。在深入讨论主引导扇区内部结构的时候，有时也将其开头的446字节内容特指为“主引导记录”（MBR），其后是4个16字节的“磁盘分区表”（DPT），以及2字节的结束标志（55AA）。因此，在使用“主引导记录”（MBR）这个术语的时候，需要根据具体情况判断其到底是指整个主引导扇区，还是主引导扇区的前446字节。（这512个字节的最后两个字节是0x55和0xAA，表明这个设备可以用于启动；如果不是，表明设备不能用于启动，控制权于是被转交给”启动顺序”中的下一个设备。）<br>BIOS POST之后call INT 19h，主引导记录本身就是中断信号INT 19h的处理程序。</p>
+<h2 id="MBR结构"><a href="#MBR结构" class="headerlink" title="MBR结构"></a>MBR结构</h2><img src="/2017/08/26/计算机启动/1.PNG" title="标准MBR结构"> 
+<h2 id="启动代码"><a href="#启动代码" class="headerlink" title="启动代码"></a>启动代码</h2><p>主引导记录最开头是引导代码。其中的硬盘引导程序的主要作用是检查分区表是否正确并且在系统硬件完成自检以后将控制权交给硬盘上的引导程序（如GNU GRUB）。它不依赖任何操作系统，而且启动代码也是可以改变的，从而能够实现多系统引导。<br>随着计算机操作系统越来越复杂，位于主引导记录的空间已经放不下引导操作系统的代码，于是就有了第二阶段的引导程序，而MBR中代码的功能也从直接引导操作系统变为了引导第二阶段的引导程序。例如在普通的个人电脑上，引导程序通常分为两部分：第一阶段引导程序（Boot Loader）位于主引导记录（MBR），用以引导位于某个分区上的第二阶段引导程序（Boot Loader），如NTLDR、BOOTMGR和GNU GRUB等。</p>
+<h2 id="分区表"><a href="#分区表" class="headerlink" title="分区表"></a>分区表</h2><img src="/2017/08/26/计算机启动/2.PNG" title="硬盘分区结构信息">  
+<p>考虑到每个区可以安装不同的操作系统，”主引导记录”因此必须知道将控制权转交给哪个区。分区表的长度只有64个字节，里面又分成四项，每项16个字节。所以，一个硬盘最多只能分四个一级分区，又叫做”主分区”。每个主分区的16个字节，由6个部分组成：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">（1） 第1个字节：如果为0x80，就表示该主分区是激活分区，控制权要转交给这个分区。四个主分区里面只能有一个是激活的。</span><br><span class="line">（2） 第2-4个字节：主分区第一个扇区的物理位置。</span><br><span class="line">（3） 第5个字节：主分区类型。</span><br><span class="line">（4） 第6-8个字节：主分区最后一个扇区的物理位置。</span><br><span class="line">（5） 第9-12字节：该主分区第一个扇区的逻辑地址。</span><br><span class="line">（6） 第13-16字节：主分区的扇区总数。</span><br></pre></td></tr></table></figure></p>
+<p>最后的四个字节（”主分区的扇区总数”），决定了这个主分区的长度。也就是说，一个主分区的扇区总数最多不超过2的32次方。如果每个扇区为512个字节，就意味着单个分区最大不超过2TB。再考虑到扇区的逻辑地址也是32位，所以单个硬盘可利用的空间最大也不超过2TB。如果想使用更大的硬盘，只有2个方法：一是提高每个扇区的字节数，二是<a href="https://en.wikipedia.org/wiki/GUID_Partition_Table" target="_blank" rel="noopener">增加扇区总数</a>。  </p>
+<p><strong>下面是一个例子：</strong><br>如果某一分区在硬盘分区表的信息如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">80 01 01 00 0B FE BF FC 3F 00 00 00 7E 86 BB 00</span><br></pre></td></tr></table></figure></p>
+<p>则我们可以看到，最前面的”80”是一个分区的激活标志，表示系统可引导[1]；”01 01 00”表示分区开始的磁头号为1，开始的扇区号为1，开始的柱面号为0；”0B”表示分区的系统类型是FAT32，其他比较常用的有04（FAT16）、07（NTFS）；”FE BF FC”表示分区结束的磁头号为254，分区结束的扇区号为63、分区结束的柱面号为764；”3F 00 00 00”表示首扇区的相对扇区号为63（小端序）；”7E 86 BB 00”表示总扇区数为12289662（小端序）。</p>
+<h2 id="主引导记录的内存地址为0x7C00的原因"><a href="#主引导记录的内存地址为0x7C00的原因" class="headerlink" title="主引导记录的内存地址为0x7C00的原因"></a>主引导记录的内存地址为0x7C00的原因</h2><p>注：以下内容参考自<a href="http://www.glamenv-septzen.net/en/view/6" target="_blank" rel="noopener">Why BIOS loads MBR into 0x7C00 in x86</a><br>0x7C00这个地址来自IBM PC 5150 BIOS Developer Team，IBM PC 5150使用Intel 8088处理器，是现代x86(32bit) IBM PC/AT兼容机的祖先。DOS 1.0要求至少32KiB的内存空间，所以BIOS团队不再考虑16KB的启动情况。BIOS开发团队基于以下原因设计了0x7C00地址：<br>1、他们想在32KiB空间内留出尽可能多的空间来加载操作系统本身。<br>2、8086/8088使用0x0 - 0x3FF存储中断向量，BIOS数据存在它后面。<br>3、启动扇区大小是512字节，启动程序的stack/data区域需要512字节。<br>4、操作系统加载后，主引导记录就没有用处了，此后它所在的内存地址可以被操作系统重新利用。<br>5、所以，32KiB的最后1024B被选来加载MBR。计算过程为 <strong>0x7FFF - 512 - 512 + 1 = 0x7C00</strong>。<br>操作系统加载后，内存布局如下：<br><img src="/2017/08/26/计算机启动/3.PNG" title="内存布局">   </p>
+<h1 id="第三阶段：硬盘启动：控制权为硬盘上的启动程序"><a href="#第三阶段：硬盘启动：控制权为硬盘上的启动程序" class="headerlink" title="第三阶段：硬盘启动：控制权为硬盘上的启动程序"></a>第三阶段：硬盘启动：控制权为硬盘上的启动程序</h1><p>注：以下内容参考自<a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">计算机是如何启动的</a>  </p>
+<h2 id="情况A：卷引导记录"><a href="#情况A：卷引导记录" class="headerlink" title="情况A：卷引导记录"></a>情况A：卷引导记录</h2><p>四个主分区里面，只有一个是激活的。MBR的引导代码读取激活分区的第一个扇区，叫做”卷引导记录”（Volume boot record，缩写为VBR），并将控制权交给它。<br>“卷引导记录”包含了操作系统引导代码，它的主要作用是，告诉计算机，操作系统在这个分区里的位置。然后，计算机就会加载操作系统了。<br><a href="https://zh.wikipedia.org/wiki/NTFS" target="_blank" rel="noopener">NTFS</a>文件系统的卷引导记录，该文件始终位于卷的第一个簇，其中包含引导代码（用于定位并启动NTLDR/BOOTMGR，NTLDR–NT loader的缩写，是微软的Windows NT系列操作系统的引导程序，包括Windows XP和Windows Server 2003）、BIOS参数块（其中包含卷序列号），以及$MFT和$MFTMirr所在的簇编号。</p>
+<h2 id="情况B：扩展分区和逻辑分区"><a href="#情况B：扩展分区和逻辑分区" class="headerlink" title="情况B：扩展分区和逻辑分区"></a>情况B：扩展分区和逻辑分区</h2><p>随着硬盘越来越大，四个主分区已经不够了，需要更多的分区。但是，分区表只有四项，因此规定有且仅有一个区可以被定义成”扩展分区”（Extended partition）。<br>所谓”扩展分区”，就是指这个区里面又分成多个区。这种分区里面的分区，就叫做”逻辑分区”（logical partition）。在MBR分区表中最多4个主分区或者3个主分区＋1个扩展分区，也就是说扩展分区只能有一个，然后可以再细分为多个逻辑分区。<br>计算机先读取扩展分区的第一个扇区，叫做”扩展引导记录”（Extended boot record，缩写为EBR）。和MBR结构类似，它里面也包含一张64字节的分区表，但是最多只有两项（也就是两个逻辑分区），其分区表的第一项指向该逻辑分区本身的引导扇区，第二项指向下一个逻辑驱动器的EBR，分区表第三、第四项没有用到。<br>计算机接着读取第二个逻辑分区的第一个扇区，再从里面的分区表中找到第三个逻辑分区的位置，以此类推，直到某个逻辑分区的分区表只包含它自身为止（即只有一个分区项）。因此，扩展分区可以包含无数个逻辑分区。<br>但是，似乎很少通过这种方式启动操作系统。如果操作系统确实安装在扩展分区，一般采用下一种方式启动。</p>
+<h2 id="情况C：启动管理器"><a href="#情况C：启动管理器" class="headerlink" title="情况C：启动管理器"></a>情况C：启动管理器</h2><p>注：以下内容参考自<a href="https://zh.wikipedia.org/wiki/GNU_GRUB" target="_blank" rel="noopener">GNU GRUB</a><br>计算机启动后，BIOS将寻找第一个可启动的设备（通常为硬盘），而后从MBR中载入启动程序，然后把控制交给这段代码，情况C控制权给了GNU GRUB。MBR位于硬盘的前512字节内。  </p>
+<p><strong>GNU GRUB在MBR分区表的硬盘上</strong><br><img src="/2017/08/26/计算机启动/4.PNG" title="GNU GRUB在MBR分区表的硬盘上"><br><strong>GRUB第一版</strong><br>GRUB的步骤1包含在MBR中。由于受MBR的大小限制，步骤一所做的几乎只是装载GRUB的下一步骤（存放在硬盘的其它位置）。步骤1既可以直接装载步骤2，也可以装载步骤1.5：GRUB的步骤1.5包含在MBR后面的30千字节中。步骤1.5载入步骤2。<br>当步骤2启动后，它将呈现一个界面来让用户选择启动的操作系统。这步通常采用的是图形菜单的形式，如果图形方式不可用或者用户需要更高级的控制，可以使用GRUB的命令行提示，通过它，用户可以手工指定启动参数。GRUB还可以设置超时后自动从某一个内核启动。 </p>
+<img src="/2017/08/26/计算机启动/5.PNG" title="GNU GRUB 2">  
+<p><strong>GRUB第二版本</strong><br>与GRUB第一版相似的是，boot.img像步骤1一样在MBR或在启动分区中，但是，它可以从任何LBA48地址的一个扇区中读取，它（boot.img）将读取core.img（产生于diskboot.img）的第一个扇区以用来后面读取core.img的剩余部分。core.img正常情况下跟步骤1.5储存在同一地方并且有着同样的问题，可是，当它被移动到一个文件系统或一个纯粹的分区时会比在步骤1.5移动或删除引起更少的麻烦。一旦完成读取，core.img会读取默认的配置文件和其他需要的模块。<br>GRUB配置文件的文件名和位置随系统的不同而不同；如在Debian（GRUB Legacy）和OpenSUSE中，这个文件为/boot/grub/menu.lst，而在Fedora和Gentoo中为/boot/grub/grub.conf。Fedora、Gentoo Linux和Debian（GRUB 2）使用/boot/grub/grub.conf。 Fedora为了兼容文件系统层次结构标准提供了一个从/etc/grub.conf到/boot/grub/grub.conf的符号链接。<br><strong>当GRUB启动后</strong><br>一旦选择了启动选项，GRUB把选择的内核载入内存并把控制交给内核。在此步骤中，对于Windows之类不支持多启动标准的操作系统，GRUB也可以通过<strong>链式启动</strong>把控制传给其它启动器。在这种情况下，其它操作系统的启动程序被GRUB保存了下来；与内核不同，其它操作系统如同直接自MBR启动。类似Windows的启动菜单，也许是另一个启动管理器，它允许在多个不支持多启动的操作系统中做进一步的选择。（在已有Windows的系统上面，或者包含多个Windows版本的系统上安装现代的Linux而不修改原操作系统，即属于这类情况。）  </p>
+<p><strong>GNU GRUB在GPT分区表的硬盘上</strong><br><img src="/2017/08/26/计算机启动/6.PNG" title="GNU GRUB在GPT分区表的硬盘上"> </p>
+<h1 id="第四阶段：操作系统：控制权为操作系统内核"><a href="#第四阶段：操作系统：控制权为操作系统内核" class="headerlink" title="第四阶段：操作系统：控制权为操作系统内核"></a>第四阶段：操作系统：控制权为操作系统内核</h1><p>注：以下内容参考自<a href="http://www.ruanyifeng.com/blog/2013/02/booting.html" target="_blank" rel="noopener">计算机是如何启动的</a><br>操作系统的内核首先被载入内存。<br>以Linux系统为例，先载入/boot目录下面的kernel。内核加载成功后，第一个运行的程序是/sbin/init。它根据配置文件（Debian系统是/etc/initab）产生init进程。这是Linux启动后的第一个进程，pid进程编号为1，其他进程都是它的后代。<br>然后，init线程加载系统的各个模块，比如窗口程序和网络程序，直至执行/bin/login程序，跳出登录界面，等待用户输入用户名和密码。<br>至此，全部启动过程完成。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/计算机原理/" rel="tag"># 计算机原理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/内存管理之地址转换和保护机制/" rel="next" title="内存管理之地址转换和保护机制">
+                <i class="fa fa-chevron-left"></i> 内存管理之地址转换和保护机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/孤儿进程和僵尸进程/" rel="prev" title="孤儿进程和僵尸进程">
+                孤儿进程和僵尸进程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#计算机启动过程有哪些阶段"><span class="nav-number">1.</span> <span class="nav-text">计算机启动过程有哪些阶段</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第一阶段：BIOS：控制权为BIOS"><span class="nav-number">2.</span> <span class="nav-text">第一阶段：BIOS：控制权为BIOS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念"><span class="nav-number">2.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BIOS映射到内存"><span class="nav-number">2.2.</span> <span class="nav-text">BIOS映射到内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BIOS硬件自检"><span class="nav-number">2.3.</span> <span class="nav-text">BIOS硬件自检</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动顺序"><span class="nav-number">2.4.</span> <span class="nav-text">启动顺序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二阶段：MBR：控制权为满足要求的启动设备"><span class="nav-number">3.</span> <span class="nav-text">第二阶段：MBR：控制权为满足要求的启动设备</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念-1"><span class="nav-number">3.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MBR结构"><span class="nav-number">3.2.</span> <span class="nav-text">MBR结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动代码"><span class="nav-number">3.3.</span> <span class="nav-text">启动代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分区表"><span class="nav-number">3.4.</span> <span class="nav-text">分区表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主引导记录的内存地址为0x7C00的原因"><span class="nav-number">3.5.</span> <span class="nav-text">主引导记录的内存地址为0x7C00的原因</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三阶段：硬盘启动：控制权为硬盘上的启动程序"><span class="nav-number">4.</span> <span class="nav-text">第三阶段：硬盘启动：控制权为硬盘上的启动程序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#情况A：卷引导记录"><span class="nav-number">4.1.</span> <span class="nav-text">情况A：卷引导记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#情况B：扩展分区和逻辑分区"><span class="nav-number">4.2.</span> <span class="nav-text">情况B：扩展分区和逻辑分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#情况C：启动管理器"><span class="nav-number">4.3.</span> <span class="nav-text">情况C：启动管理器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第四阶段：操作系统：控制权为操作系统内核"><span class="nav-number">5.</span> <span class="nav-text">第四阶段：操作系统：控制权为操作系统内核</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

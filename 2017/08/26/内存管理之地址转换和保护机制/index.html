@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="计算机原理,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="注：以下分析引用自 80386 保护模式简介    保护模式简介Intel 推出 x86 架构已近 30 年，刚开始推出的 8086 处理器是一款 16 位的处理器，它标志着 x86 架构的诞生，这种 16 位处理器数据总线是 16 位的，而地址总线是 20 位的，最多可以寻址 1MB 的地址空间。之后的 80286 处理器也是 16 位，但是地址总线有 24 位，而且从 80286开始 CPU">
+<meta name="keywords" content="计算机原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存管理之地址转换和保护机制">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="注：以下分析引用自 80386 保护模式简介    保护模式简介Intel 推出 x86 架构已近 30 年，刚开始推出的 8086 处理器是一款 16 位的处理器，它标志着 x86 架构的诞生，这种 16 位处理器数据总线是 16 位的，而地址总线是 20 位的，最多可以寻址 1MB 的地址空间。之后的 80286 处理器也是 16 位，但是地址总线有 24 位，而且从 80286开始 CPU">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/3.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/6.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/7.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/8.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/9.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/10.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/11.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/12.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/13.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/14.jpg">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/15.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/16.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/17.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/18.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/19.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/20.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/21.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/22.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/23.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/24.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/25.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.075Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="内存管理之地址转换和保护机制">
+<meta name="twitter:description" content="注：以下分析引用自 80386 保护模式简介    保护模式简介Intel 推出 x86 架构已近 30 年，刚开始推出的 8086 处理器是一款 16 位的处理器，它标志着 x86 架构的诞生，这种 16 位处理器数据总线是 16 位的，而地址总线是 20 位的，最多可以寻址 1MB 的地址空间。之后的 80286 处理器也是 16 位，但是地址总线有 24 位，而且从 80286开始 CPU">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/">
+
+
+
+
+
+  <title>内存管理之地址转换和保护机制 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/内存管理之地址转换和保护机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">内存管理之地址转换和保护机制</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T11:15:31+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/计算机原理/" itemprop="url" rel="index">
+                    <span itemprop="name">计算机原理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>注：以下分析引用自 <a href="http://grid.hust.edu.cn/zyshao/Teaching_Material/OSEngineering/Chapter1.pdf" target="_blank" rel="noopener">80386 保护模式简介</a>   </p>
+<h1 id="保护模式简介"><a href="#保护模式简介" class="headerlink" title="保护模式简介"></a>保护模式简介</h1><p>Intel 推出 x86 架构已近 30 年，刚开始推出的 8086 处理器是一款 16 位的处理器，它标志着 x86 架构的诞生，这种 16 位处理器数据总线是 16 位的，而地址总线是 20 位的，最多可以寻址 1MB 的地址空间。之后的 80286 处理器也是 16 位，但是地址总线有 24 位，而且从 80286开始 CPU 演变出两种工作模式：实模式和保护模式；而 80386 则是 Intel 推出的 80x86 系列中的第一款 32 位处理器，它的数据总线与地址总线都是 32 位，可以寻址 4G 的地址空间； AMD 公司随后在 2000 年又在 x86 架构的基础上推出了 x86-64 处理器架构， AMD 的处理器可以兼容 32 位的指令集，所以它既是 64 位的又是 32 位的。 </p>
+<p>在 x86 架构中， 16 位的处理器与 32 位处理器所对应的寄存器是有所不同的。<strong>像 8086 寄存器组就分为通用寄存器、专用寄存器和段寄存器三类总共 15 个</strong>，其中通用寄存器有 AX、BX、 CX、 DX、 SP、 BP、 DI 及 SI，专用寄存器包括 IP、 SP 和 FLAGS 三个 16 位寄存器，而段寄存器则有 CS、 DS、 SS、 ES，这些寄存器都是 16 位的。 <strong>32 位 x86 架构对应的寄存器则共有 34 个</strong>，其中包括 EAX、 EBX、 ECX、 EDX、 ESI、 EDI、 EBP、 ESP 8 个 32 位的通用寄存器； 6 个 16 位的段寄存器 CS、 DS、 SS、 ES、 FS、 GS，相比 8086 增加了 FS 和 GS；GDTR、 LDTR、 IDTR 和 TR 四个系统地址寄存器； EFLAGS、 EIP、 CR0—CR3 6 个状态和控制寄存器，在这里标志寄存器 EFLAGS 与指令指针寄存器 EIP 都从 16 位进化到了 32 位；还有就是增加了一些调试寄存器、段描述符寄存器以及测试寄存器。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/1.PNG" width="8086" title="和 86386 的寄存器的对比"><br>保护模式(Protected Mode) 是一种和 80286 系列及之后的 x86 兼容 CPU 操作模式。保护模式有一些新的特色，设计用来增强多功能和系统稳定度，比如内存保护、分页、系统以及硬件支持的虚拟内存。大部分的现今 x86 操作系统都在保护模式下运行，包含 Linux、 FreeBSD、以及 微软 Windows 2.0 和之后版本。需要指出的是，保护模式在增加这些新特性的同时，也带来了系统软件设计的复杂性。</p>
+<p>在 8086 时代， CPU 中设置了四个段寄存器： CS、 DS、 SS 和 ES，分别用于可执行代码段、数据段以及堆栈段。每个段寄存器都是 16 位的，对应于地址总线中的高 16 位。每条“访存”指令中的内部地址也都是 16 位的，但是在送到地址总线之前，CPU 内部会自动地把它与某个段寄存器中的内容相加。因为段寄存器中的内容对应于 20 位地址总线中的高 16 位，所以相加时实际上是地址总线中的高 16 位与段寄存器中的 16 位相加，而低 4 位保留不变，这样就形成一个 20 位的实际地址，也就实现了从 16 位内存地址到 20 位实际地址的转换，或者叫 “映射”。</p>
+<p>到了 80286 时代，它的地址总线位数增加到了 24 位，因此可以访问到 16MB 的内存空间。更重要的是从此开始引进了一个全新理念——保护模式。这种模式下内存段的访问受到了限制。访问内存时不能直接从段寄存器中获得段的起始地址了，而需要经过额外转换和检查。为了和 8086 兼容， 80286 内存寻址可以有两种方式，一种是先进的保护模式，另一种是老式的 8086 方式，被称为实模式。 Intel 选择了在段寄存器的基础上构筑保护模式，并且保留 16 位的段寄存器。不同的是，在保护模式下，段范围不再受限于 64K，可以达到 16MB（或者 80386 的 4GB）。</p>
+<h1 id="寻址方式的变化"><a href="#寻址方式的变化" class="headerlink" title="寻址方式的变化"></a>寻址方式的变化</h1><h2 id="实模式下段的管理"><a href="#实模式下段的管理" class="headerlink" title="实模式下段的管理"></a>实模式下段的管理</h2><p>实模式采用 16 位寻址模式，在该模式中，最大寻址空间为 1MB，最大分段为 64KB。由于处理器的设计需要考虑到向下兼容的问题，实模式也是我们今天接触到的大多数计算机在启动后处于的寻址模式。 </p>
+<p>8086 处理器地址总线扩展到 20 位，但算术逻辑运算单元（ ALU）宽度即数据总线却只有 16 位，也就是说直接参与运算的数值都是 16 位的。为支持 1MB 寻址空间， 8086 在实模式下引入了分段的方法。在处理器中设置了四个 16 位的段寄存器： CS、 DS、 SS、 ES，对应于地址总线中的高 16 位。寻址时，采用以下公式计算实际访问的物理内存地址：<strong>实际物理地址 = （段寄存器 &lt;&lt; 4） + 偏移地址。</strong>这样，便实现了 16 位内存地址到 20 位物理地址的转换。  </p>
+<p>我们回顾一下实模式下程序的运行。程序运行的实质就是指令的执行，显然 CPU 是指令得以执行的硬件保障，而 CPU 是如何知道指令在什么地方呢？ 80x86 系列是使用 CS 寄存器配合 IP 寄存器的组合来通知 CPU 指令在内存中的位置。 程序指令在执行过程中一般还需要有各种数据， 80x86 系列有 DS、 ES、 FS、 GS、 SS 等用于指示不同用途的数据段在内存中的位置。程序可能需要调用系统的服务子程序， 80x86 系列使用中断机制来实现系统服务。总的来说，这些就是实模式下一个程序运行所需的主要内容。  </p>
+<p>我们再来回顾一下实模式下的寻址方式。寻址方式一共有以下 8 种：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1. 立即数寻址 例如： MOV AX, 1234H  </span><br><span class="line">2. 寄存器寻址 例如： MOV AX, BX  </span><br><span class="line">3. 直接寻址 例如： MOV AX, [1234H]  </span><br><span class="line">4. 寄存器间接寻址 例如： MOV AX, [BX]  </span><br><span class="line">5. 基址寻址 例如： MOV AX, [BX+100H]  </span><br><span class="line">6. 变址寻址 例如： MOV AX, [SI+100H]  </span><br><span class="line">7. 基址加变址寻址 例如： MOV AX, [BX+SI]  </span><br><span class="line">8. 带位移的基址加变址寻址 例如： MOV AX, [BX+SI+100H]</span><br></pre></td></tr></table></figure></p>
+<p>纵然有这么多种的寻址方式，但实际上实模式的寻址本质上都是段基址左移 4 位加上偏移得到物理地址，如下图所示：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/2.PNG" title="实模式的寻址"></p>
+<h2 id="保护模式下段的管理"><a href="#保护模式下段的管理" class="headerlink" title="保护模式下段的管理"></a>保护模式下段的管理</h2><p>在保护模式下，分段机制是利用一个称作段选择子的偏移量到全局描述符表中找到需要的段描述符，而这个段描述符中就存放着段的在线性地址空间的位置，然后再加上偏移地址量便得到了最后的线性地址。<br>需要指出的是，在 32 位平台上，段基址和偏移址都是 32 位的，地址计算不再需要将段首地址左移 4 位了，直接相加即可，如果发生溢出的情况，则将溢出位舍弃。  </p>
+<p>80386 转换逻辑地址（程序员观点的地址）到物理地址分以下两步：<br>1、 分段地址转换，这一步中把逻辑地址（由段选择子和段偏移组成） 转换为线性地址。<br>2、 分页地址转换，这一步中把线性地址转换为物理地址。这一步是可选的，由系统软件设计者决定是否需要。  </p>
+<h1 id="分段地址转换"><a href="#分段地址转换" class="headerlink" title="分段地址转换"></a>分段地址转换</h1><img src="/2017/08/26/内存管理之地址转换和保护机制/3.JPG" title="分段地址转换">
+<p>我们可以这样理解这个寻址过程，首先有一个结构体类型（称为段描述符， Descriptor），它有三个成员变量：段基址、段界限、段属性，在内存中存在一个数组（称为全局描述符表， Global Descriptor Table）维护一组这样的结构体。段选择子（ Selector）中存储的是对应的结构体在该数组中的下标，也就是索引，通过该索引从数组中找到对应的结构体，从而得到段基址，然后加上偏移量，得到最后的线性地址。为了这样的转换， 处理器用到了以下的数据结构：描述符（ Descriptors）、描述符表（Descriptor tables）、选择子（Selectors）、段寄存器（Segment Registers）。  </p>
+<p>一般保护模式段式寻址可用 xxxx： yyyyyyyy 表示。其中 xxxx 表示索引，也就是段选择子，是 16 位的； yyyyyyyy 是偏移量，是 32 位的。到哪里去寻找全局描述符表呢？ 80386 以及以后的处理器专门设计了一个寄存器 GDTR（ Global Descriptor Table Register），专门用于存储全局描述符表在内存中存放的位置，当发生内存寻址与定位的时候，处理器通过该寄存器找到全局描述符表，并通过 xxxx 找到对应的描述符，进而得到该段的起始地址，并加上 yyyyyyyy 得到最终的物理地址。这个过程可以用下图来描述：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/4.PNG" title="保护模式段式寻址"></p>
+<h2 id="GDTR-寄存器"><a href="#GDTR-寄存器" class="headerlink" title="GDTR 寄存器"></a>GDTR 寄存器</h2><p><strong>GDTR 寄存器</strong>有 48 位，其中有 32 位记录描述符表的物理地址， 16 位记录全局描述符表的长度（该表占据的物理内存字节数），如下图所示。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/5.PNG" title="GDTR位分布图"></p>
+<h2 id="段选择符"><a href="#段选择符" class="headerlink" title="段选择符"></a>段选择符</h2><p><strong>段选择符</strong>为16位，它不直接指向段，而是通过指向的段描述符。选择子可以做为指针变量的一部分，从而对应用程序员是可见的，但是一般是由连接加载器来设置的。段选择符的结构如下图所示。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/6.jpg" title="段选择符的结构"><br><strong>索引（Index）</strong>，在描述符表中从8192个描述符中选择一个描述符。 处理器自动将这个索引值乘以8（描述符的长度），再加上描述符表的基址来索引描述符表，从而选出一个合适的描述符。索引值为 13 位（<strong>段选择符可寻找 2^13 个段描述符，每个段描述符占 2^3 字节，所有段选择符共可占 2^16 字节，而 GDTR 使用 1 6位记录段描述符的长度，刚好对应</strong>），所以在保护模式下最多可以表示 2^13=8192 个段描述符，而 TI 又分 GDT 和 LDT ，所以一共可以表示 8192<em>2=16384 个段描述符，每个段描述符可以指定一个具体的段信息，所以一共可以表示 16384 个段。而段内偏移地址为 32 位值，所以一个段最大可达 4GB ，这样 16384\</em>4GB＝64TB ，这就是所谓的 64TB 最大寻址能力。<br><strong>TI</strong> 是表指示位，0代表应该访问全局描述符表（GDT），1代表应该访问局部描述符表。<br><strong>RPL</strong> 表示请求特权级。保护机制使用该位。<br><strong>注意：如此看来，段选择子的13位索引部分表示的是第几个段描述符，如果是第1个，则%cs应该为0x1（从0算起）。但这是不对的，因为低三位是RPL和TI，所以如果是GDT表的第0项且RPL为0，则索引第1个段描述符的段选择子的值应该是0x8。</strong>    </p>
+<h2 id="段描述符"><a href="#段描述符" class="headerlink" title="段描述符"></a>段描述符</h2><p>再来看看<strong>段描述符</strong>，段描述符实际上是一个占据 64 位内存（ 8 个字节）的结构体，是处理器用来把逻辑地址映射为线性地址的必要数据结构。描述符是由编译器、连接器、加载器、或者是操作系统生成的，不能由应用程序员生成。下图显示了两种常用的描述符的格式。所有的段描述符都是这两种格式当中的一种：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/7.JPG" title="段描述符的结构"><br>另一种表示则如下所示：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/8.JPG" title="段描述符的结构"><br>下面我们将结合上图详细介绍一下段描述符中的段属性，请对应上述两种图进行思考。<br>一个 64 位的段描述符包含了段基址、段界限以及段属性。在描述符中，段基址占 32 位，段限长占 20 位，属性占 12 位。<br>由上图可知，段基址为 2， 3， 4， 7 字节，共 32 位。段限长为 0， 1 以及 6 字节的低四位，共 20 位，段限长即段最大长度，与粒度位 G 共同确定。粒度位 G（Granularity bit）决定了界限值被处理器解析的方式。<br><strong>G</strong>：粒度位， G = 0 时，粒度为 1B，界限值被解析为以 1 字节为一个单元，描述符中的 20 位段限长为实际段限长，最大限长为 1MB（ 0－FFFFFh）。 G = 1 时，粒度为 1 页（4KB），界限值以 4K 为一个单元，界限值在使用之前处理器将会把它先左移 12 位，低 12 位则自动插入 0，段大小可以高达 4G（<strong>这又恰好对应于寻址时偏移地址为 32 位的情况</strong>）。<br><strong>D/B</strong>：对于不同类型段含义不同。在可执行代码段中，这一位叫做 D 位， D = 1 使用 32 位地址和 32/8 位操作数， D = 0 使用 16 位地址和 16/8 位操作数。在数据段中，这一位叫做 B 位， B = 1 段的上界为 4GB， B = 0 段的上界为 64KB。在堆栈段中，这一位叫做 B 位， B = 1 使用 32 位操作数，堆栈指针用 ESP， B = 0 使用 16 位操作数，堆栈指针用 SP。<br><strong>AVL</strong>： Available and Reserved Bit，通常设为 0。<br><strong>P</strong>：段存在位， P = 1 表示段在内存中。如果这一位为0，则此描述符为非法的，不能被用来实现地址转换。如果一个非法描述符被加载进一个段寄存器，处理器会立即产生异常。操作系统可以任意的使用被标识为可用（AVAILABLE）的位。一个实现基于段的虚拟内存的操作系统可以在以下情况下来清除存在位：1、当这个段的线性地址空间并没有完全被分页系统映射到物理地址空间时。2、当段根本没有在内存里时。<br><strong>DPL</strong>：描述符特权级，取值 0 ~ 3 共 4 级。 0 特权级为最高，而 3 特权级为最低，表示访问该段时 CPU 所需处于的最低特权级，我们在后面会详细讨论特权级的问题。<br><strong>S</strong>：描述符类型标志， S = 1 表示代码段或者数据段； S = 0 表示系统段（TSS、LDT）和门描述符。<br><strong>TYPE</strong>：描述符类型，和 S 结合使用，可以表示的描述符类型有：代码段、数据段、 TSS、LDT、中断门（ Interrupt Gate）、陷阱门（ Trap Gate）、调用门（ Call Gate）、任务门（ Task Gate）。  </p>
+<ul>
+<li>其中，根据描述符类型标志 S 和 TYPE 可以确定描述符的类型。  </li>
+<li>当 S = 1 时，Type 的最后一位代表已访问位（Accessed bit）。当处理器访问该段时，将自动设置访问位。也就是说，当一个指向该段描述符的选择子被加载进一个段寄存器时或者当被一条选择子测试指令使用时。在段级基础上实现虚拟内存的操作系统可能会周期性的测试和清除该位，从而监视一个段的使用情况。   </li>
+<li>当 S = 1 时， TYPE &lt; 8 时，为数据段描述符。数据段都是可读的，不一定可写。如下图所示： <img src="/2017/08/26/内存管理之地址转换和保护机制/9.PNG" title="描述符类型——数据段描述符"></li>
+<li><p>当 S = 1 时， TYPE ≥ 8 时，为代码段描述符。代码段都是可执行的，一定不可写。如下图所示：</p>
+<img src="/2017/08/26/内存管理之地址转换和保护机制/10.PNG" title="描述符类型——代码段描述符"> 
+<img src="/2017/08/26/内存管理之地址转换和保护机制/11.PNG" title="描述符类型——代码段描述符">
+<p>当 S=1 时，TYPE中的4个二进制位情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">     3        2       1       0</span><br><span class="line">   执行位   一致位   读写位   访问位 </span><br><span class="line">执行位：置1时表示可执行，置0时表示不可执行；</span><br><span class="line">一致位：置1时表示一致码段，置0时表示非一致码段；</span><br><span class="line">读写位：置1时表示可读可写，置0时表示只读；</span><br><span class="line">访问位：置1时表示已访问，置0时表示未访问。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>S = 0 时，描述符可能为 TSS、 LDT 和 4 种门描述符。如下图所示： </p>
+<img src="/2017/08/26/内存管理之地址转换和保护机制/12.PNG" title="描述符类型——门描述符">
+</li>
+</ul>
+<h2 id="段寄存器"><a href="#段寄存器" class="headerlink" title="段寄存器"></a>段寄存器</h2><p>80386把描述符的信息存储在段寄存器里，以便不用每次内存访问都去访问内存中的描述符表。<br>如下图所示，每一个段寄存器都有一个可见部分和一个不可见部分。这些段寄存器的可见部分被程序员当作一个16位的寄存器来使用。不可见的部分则只能由处理器来操纵。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/13.JPG" title="段寄存器"><br>加载这些寄存器的操作和一般的加载指令是一样的，这些指令分为两类：<br>1、直接的加载指令，例如， MOV， POP， LDS， LSS， LGS， LFS。 这些指令显示的访问这些段寄存器。<br>2、隐式的加载指令，例如， far CALL和JMP。这些指令隐式的访问CS 段寄存器，给它加载一个新的值。<br><strong>使用这些指令，程序将用一个16位的选择子加载段寄存器的可见部分。 处理器自动将基址、界限、类型和其它信息从描述符表中加载到段选择子的不可见部分。</strong>因为很多数据访问指令访问的数据段选择子已经加载到段寄存器中，所以处理器可以直接把段相关的基址加上指令提供的偏移部分，而且不会有额外的加法开销。</p>
+<h1 id="GDT简介"><a href="#GDT简介" class="headerlink" title="GDT简介"></a>GDT简介</h1><p>注：以下分析引用自 <a href="http://www.kancloud.cn/digest/protectedmode/121465" target="_blank" rel="noopener">全局描述符表（GDT）-《x86汇编语言：从实模式到保护模式》</a>  </p>
+<p>同实模式一样，在保护模式下，对内存的访问仍然使用段地址加偏移地址。但是，在保护模式下，在每个段能够访问之前，必须先登记。这就好比像C语言中，“对变量的使用必须先定义”一样。</p>
+<p>每个段在能够使用之前，都要为这个段建立一个描述符。每个描述符占8个字节，这些描述符集中存放在内存的某个区域，一个挨着一个，就构成了一张“表”。</p>
+<p>80x86中有两种描述符表：<br>全局描述符表（Global Descriptor Table, 简称GDT）<br>局部描述符表（Local Descriptor Table,简称LDT）<br>一个描述符表仅仅是一个包含了很多描述符的8字节内存数组而以。描述符表是长度是可变的，最多可包含高达8192（2^13）个描述符。处理器用GDTR和LDTR来定位内存中的全局描述符表和当前的局部描述符表。这些寄存器存储了这些表的线性地址的基址和段长界限。指令LGDT和SGDT是用业访问全局描述符表寄存器的，而指令LLDT和SLDT则是用来访问局部描述符表寄存器的。</p>
+<p>在进入保护模式之前，必须要定义GDT，也就是说，我们要在内存中构建出一张表。</p>
+<p>需要说明的是：在整个系统中，全局描述符表GDT只有一张(一个处理器对应一个GDT)；GDT可以被放在内存的任何位置，但CPU必须知道GDT的入口。</p>
+<p>CPU如何知道GDT的入口呢？在处理器内部，有一个48位的寄存器，名叫GDTR，也就是全局描述符表寄存器。其结构如下图：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/14.jpg" title="GDTR"></p>
+<p>该寄存器分为2部分：<br>32位的线性基地址：GDT在内存中的起始线性地址（我们还没有涉及到分页，所以这里的线性地址等同于物理地址，下同，以后同）；<br>16位的表界限：在数值上等于表的大小（总字节数）减去1；<br>注意：在处理器刚上电的时候，基地址默认为0，表界限默认为0xFFFF; 在保护模式初始化过程中，必须给GDTR加载一个新值。</p>
+<p>因为表界限是16位的，最大值是0xFFFF，也就是十进制的65535，那么表的大小就是65535+1=65536.又因为一个描述符占用8个字节，所以65536字节相当于8192个描述符（65536/8=8192）.故理论上最多可以定义8192个描述符。实际上，不一定这么多，具体多少根据需要而定。</p>
+<p>理论上，GDT可以放在内存中的任何地方。但是，我们必须在进入保护模式之前就定义GDT，所以GDT一般都定义在1MB以下的内存范围中。当然，允许在进入保护模式后换个位置重新定义GDT。</p>
+<p>接下来我们来分析一下MIT 6.828 jos中boot.S 中关于GDT的信息：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/15.PNG" title="boot.S 中关于GDT的信息"><br><img src="/2017/08/26/内存管理之地址转换和保护机制/16.PNG" title="boot.S 中关于GDT的信息"><br>这是一个最简单版本的段描述符，仅仅把内存分为数据段（data seg）和代码段（code seg）。<br>其中 SEG_NULL 的定义为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define SEG_NULL \</span><br><span class="line">    .word 0, 0; \</span><br><span class="line">    .byte 0, 0, 0, 0</span><br></pre></td></tr></table></figure></p>
+<p>它的作用就是定义连续 8 个值为 0 的字节，这就表示一个空的 GDT 表项。处理器规定，GDT 中的第一个描述符必须是空描述符。由于全局描述符表的第一项是不被处理器使用的，所以当一个选择子的索引（Index）部分和表指示位（Table Indicator）都为0的时候（也就是说，选择子指向全局描述符表的第一项时），可以当做一个空的选择子。很多时候寄存器和内存单元的初始值都会为 0，或者程序设计无意中用全 0 的索引来选择描述符，如果第一个描述符不为0，很有可能经常错误选中描述符。当一个段寄存器被加载一个空选择子时，处理器并不会产生一个异常。但是，当用一个空选择子去访问内存时，则会产生异常。这个特点可以用来初始化不用的段寄存器，以防偶然性的非法访问。<br>而 SEG(type,base,lim)的定义为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#define SEG(type,base,lim) \</span><br><span class="line">    .word (((lim) &gt;&gt; 12) &amp; 0xffff), ((base) &amp; 0xffff); \</span><br><span class="line">    .byte (((base) &gt;&gt; 16) &amp; 0xff), (0x90 | (type)), \</span><br><span class="line">        (0xC0 | (((lim) &gt;&gt; 28) &amp; 0xf)), (((base) &gt;&gt; 24) &amp; 0xff)</span><br></pre></td></tr></table></figure></p>
+<p>在这里， type 表示段属性， base 表示段基址，而 lim 则表示段长的界限，给出这三个参数就可以用这个宏来定义一个 GDT 表项。在这里段属性的参数也是一般式通过宏的形式给出的，下表给出了常用的一些宏，这些宏每个都代表表项中的一个 bit 位，同时也代表一种段的属性。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">宏         值       属性</span><br><span class="line">STA_X      0x8      可执行的段</span><br><span class="line">STA_E      0x4      向下扩展(该属性仅限于非可执行段)</span><br><span class="line">STA_C      0x4      一致性的代码段(仅限于可执行段)</span><br><span class="line">STA_W      0x2      可写(仅限于非可执行段)</span><br><span class="line">STA_R      0x2      可读(仅限于可执行段)</span><br><span class="line">STA_A      0x1      可访问的</span><br></pre></td></tr></table></figure></p>
+<h1 id="分页地址转换"><a href="#分页地址转换" class="headerlink" title="分页地址转换"></a>分页地址转换</h1><p>在地址转换的第二个阶段，80386 将线性地址转换为实物理地址。这个阶段实现了基于页的虚拟内存和页级保护机制。<br>分页地址转换过程是可选的。只有当CR0中的PG位置位时才会产生效果。 这个位的设置一般来说是由操作系统在系统初始化的过程中设置的。如果操作系统想要实现能运行多个虚拟8086任务、基于页级的保护、基于页级的虚拟内存的话，PG位是必需置位的。</p>
+<p><strong>处理器的控制寄存器的三个标识控制着分页：</strong><br>1.<strong>PG (paging) flag</strong>。CR0寄存器的第31位。从Intel386处理器开始的所有IA-32处理器均可用。该位允许页转换机制。<br>2.<strong>PSE (page size extensions) flag</strong>。CR4的第4位。当PSE位复位时，页长度为4KB，此时存在二级页表机制；当PSE置位时，页长度为4MB或2MB(PAE置位时)。<br>3.<strong>PAE (physical address extension) flag</strong>。CR4的第5位。当该位置位时，提供了一种机制将物理地址扩展到36位。只有允许分页时才能使用物理地址扩展。</p>
+<p><strong>处理器用于转换线性地址为物理地址的信息包括四个数据结构：</strong><br>1.<strong>页目录</strong>：32位页目录项的数组，占据一页(4K)空间，最多有1024个页目录项。页目录项的<strong>PS</strong>位表明页目录项指向的是页表（其页表项指向一个4K的页，此时PS为0），还是直接指向4M大小的页（此时PSE和PS为1），还是直接指向2M大小的页（此时PAE和PS为1）。<br>2.<strong>页表</strong>：32位页表项的数组，占据一页(4K)空间，最多有1024个页表项。当页长为4MB或2MB时，页表将不被使用。<br>3.<strong>页</strong>：4KB、2MB、4MB的平滑地址空间。<br>4.<strong>页目录指针表</strong>：包含4个64位条目项的数组，每一个指向一个页目录。该数据结构只有当允许物理地址扩展时才被使用。</p>
+<h2 id="线性地址和页表"><a href="#线性地址和页表" class="headerlink" title="线性地址和页表"></a>线性地址和页表</h2><p>线性地址通过使用一个页表，表内的一个页，和一个页内的偏移来映射到实物理地址外。格式如下：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/17.JPG" title="线性地址格式"><br>下图显示处理器如何将线性地址中的DIR，PAGE和OFFSET字段转换为实物理地址上的，这个过程使用了两级页表。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/18.JPG" title="线性地址转换为物理地址"><br>高一级的页表称为页目录，本身占据一个页，每个低一级的页表也是占据一个页，其中每个页表项占4个字节，一个页目录/页表共有1K项。首先根据cr3寄存器获取到页目录的地址（jos系统中的页目录将存储在0x113000地址上，即在内核代码存储空间内），然后使用10-bit的DIR索引得到一个页目录项，该项存储了某个二级页表的信息；接着，使用10-bit的PAGE字段索引该二级页表，得到一个页表项，该项存储了某个物理页的信息；再使用OFFSET部分来索引该物理页桢，最终访问所需要的数据。</p>
+<p>在寻址一个内存页时，使用了两级的页表。高一级的页表也被叫作页目录。页目录可最多寻址1K个二级页表。一个二级页表最多可寻址1K个页面。所以，一个页目录最多可寻址1M个页面。因为每个页面有4K（2^12）字节大小。所以一个页目录可寻址整个80386的实物理地址空间（2^20 * 2^12 = 2^32）。</p>
+<h2 id="页表项"><a href="#页表项" class="headerlink" title="页表项"></a>页表项</h2><p>两级页表项都有相同的格式，页表项的格式如下：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/19.JPG" title="页表项的格式"><br><strong>页桢地址（Page Frame Address）：</strong>页桢地址指出了一个实物理页的开始地址。因为实物理页的地址是以4K为边界的，所以地址的低12位总是为0，所以二级页表使用20位页帧地址即可表示要访问的物理页的起始地址，该物理页包含了要访问的指令操作数。二级页表本身也是占据一个页，所以页目录使用20位页帧地址即可表示二级页表的起始地址。<br><strong>存在位（Present Bit）：</strong>存在位决定了一个页表项是否可以用作地址转换过程，如果P=1则可以用该页表项。当任何一级页表项的P=0时，该项都不可以用作地址转换过程，这时，该项的其它位可以被软件使用，它们中的任何一位都不会被硬件使用。当任何一级页表项的P=0时，而软件又试图用它来访问内存时，处理器将会引发一个异常。在支持页级虚拟内存的软件系里，缺页异常处理子程序可以将所需的页面调入物理内存。引起缺页异常的指令是可以重起的。注意，没有页目录自身的存在位。当任务挂起时，该任务的页目录是可以不存在的，但是操作系必须在一个任务被重运行前确保该任务的CR3映象（保存在TSS里）指示的页面（即页目录表）在内存中。下图显示了当P=0时的页表项格式：<br><img src="/2017/08/26/内存管理之地址转换和保护机制/20.JPG" title="当P=0时的页表项格式"><br><strong>已访问位和脏位（Accessed and Dirty Bits）：</strong>这些位提供了两级页表的数据使用情况信息。除了页目录表的脏位（Dirty bit），所有的这些位都由硬件自动置位，但是处理器绝对不会复位它们。在一个页面被读或写之前，处理器将自动将两级页表的这些相关的位置1。当向一个地址写入时，处理器将会把相关的二级页表的脏位（Dirty bit）置为1。页目录表项的脏位没有作定义。当系统内存紧张时，一个支持页级虚拟内存的操作系统可以使用这些位来决定将要换出哪些物理页面。操作系统应该自已负责测试和清除这些相关位。<br><strong>读/写位，用户/特权用户位（Read / Write and User / Supervisor Bits）：</strong>这些位并不是用于地址转换过程的，它们是用来实现页级保护机制的，这些保护机制是在地址转换过程的同时实施的。</p>
+<h2 id="页地址转换缓存（Page-Translation-Cache）"><a href="#页地址转换缓存（Page-Translation-Cache）" class="headerlink" title="页地址转换缓存（Page Translation Cache）"></a>页地址转换缓存（Page Translation Cache）</h2><p>为了获得最大的地址转换效率，处理器把最近使用的页表数据存储在一个芯片内的缓存中。只有当所要的地址转换信息没有在缓存中时，才有访问两级页表的必要。应用程序员是感觉不到页地址转换缓存的存在的，但系统程序员知来说不是。当页表内容改变时，操作系统程序员必须清除缓存。页地址转换缓存可以用以下两种方法清除：<br>1、 通过MOV指令重新加载CR3寄存器，例如，MOV CR3，EAX。<br>2、 通过任务切换到一个TSS，该TSS保存了一个不同的CR3映象。</p>
+<h1 id="保护模式完整的权限检查"><a href="#保护模式完整的权限检查" class="headerlink" title="保护模式完整的权限检查"></a>保护模式完整的权限检查</h1><p>特权级是保护模式下一个重要的概念，CPL，RPL和DPL是其中的核心概念。<br>CPL(CS.RPL)是<strong>当前进程的权限级别</strong>(Current Privilege Level)，是当前正在执行的代码所在的段的特权级，存在于cs寄存器的低两位。<br>RPL是<strong>段选择子</strong>里面的bit 0和bit 1位组合所得的值，说明的是进程对段访问的请求权限(Request Privilege Level)，是对于段选择子而言的。每个段选择子有自己的RPL，它说明的是进程对段访问的请求权限。RPL对每个段来说不是固定的，两次访问同一段时的RPL可以不同。RPL可能会削弱CPL的作用，例如当前CPL=0的进程要访问一个数据段，它把段选择符中的RPL设为3，这样它对该段仍然只有特权为3的访问权限。<br>DPL存储在<strong>段描述符</strong>中，规定访问该段的权限级别(Descriptor Privilege Level)，每个段的DPL固定的、静态不变的。当进程访问一个段时，需要进程特权级检查，一般要求<strong>DPL &gt;= max {CPL, RPL}</strong>。<br><strong>采用RPL的原因是：假设当前进程的CPL是0，将访问DPL为3的段，如果进程对目标段的RPL &gt; DPL，则当前进程仍然无法访问该段。因此控制RPL即可实现安全访问，即使线程的权限级别CPL很高。</strong></p>
+<h2 id="对数据段和堆栈段访问时的特权级控制"><a href="#对数据段和堆栈段访问时的特权级控制" class="headerlink" title="对数据段和堆栈段访问时的特权级控制"></a>对数据段和堆栈段访问时的特权级控制</h2><p>程序访问数据段或堆栈段要遵循一个准则：<strong>只有相同或更高特权级的代码才能访问相应的数据段。</strong>即：访问数据段或堆栈段的程序的CPL≤待访问的数据段或堆栈段的DPL，同时选择子的RPL≤待访问的数据段或堆栈段的DPL。RPL可能会削弱CPL的作用，访问数据段或堆栈段时，默认用CPL和RPL中的最小特权（值最大）去访问数据段，所以max {CPL, RPL} ≤ DPL，否则访问失败。</p>
+<h2 id="对代码段访问的特权级控制（代码执行权的特权转移）"><a href="#对代码段访问的特权级控制（代码执行权的特权转移）" class="headerlink" title="对代码段访问的特权级控制（代码执行权的特权转移）"></a>对代码段访问的特权级控制（代码执行权的特权转移）</h2><p>程序通过JMP或Call跳转时，根据目标代码段的不同对现有代码段的特权级要求有所不同，但最终结果是：<strong>一旦允许跳转，跳转后特权级别CPL不会发生变化</strong>。<br>首先我们来看看目标代码段有什么不同。</p>
+<h3 id="一致代码段和非一致代码段"><a href="#一致代码段和非一致代码段" class="headerlink" title="一致代码段和非一致代码段"></a>一致代码段和非一致代码段</h3><p>一致代码段和非一致代码段的物理区分主要是根据代码段描述符里的TYPE来决定的。<br><strong>一致代码段：</strong>简单理解，就是操作系统拿出来被共享的代码段，可以被低特权级的用户直接调用访问的代码。通常这些共享代码，是“不访问”受保护的资源和某些类型异常处理。比如一些数学计算函数库，为纯粹的数学运算计算，被作为一致代码段。<br><strong>一致代码段的限制作用：</strong><br>1、特权级高的程序不允许访问特权级低的程序：核心态不允许调用用户态的程序。<br>2、特权级低的程序可以访问到特权级高的程序。但是特权级不会改变：用户态还是用户态。<br><strong>非一致代码段：</strong>为了避免低特权级的访问而被操作系统保护起来的系统代码。<br><strong>非一致代码段的限制作用：</strong><br>1、只允许同级间访问。<br>2、绝对禁止不同级访问：核心态不允许调用用户态的程序，用户态程序也不能访问核心态程序。<br>由此可知，跳转到一致代码段或非一致代码段，特权级限制是不同的。跳转又分直接跳转和通过调用门的跳转。具体是取决于目标段描述符的AR byte，有以下情况：CONFORMING-CODE-SEGMENT、NONCONFORMING-CODE-SEGMENT、CALL-GATE、TASK-GATE、TASK-STATE-SEGMENT。</p>
+<p>以下跳转的内容可参考 <a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/CALL.htm" target="_blank" rel="noopener">https://pdos.csail.mit.edu/6.828/2014/readings/i386/CALL.htm</a> 和<a href="https://pdos.csail.mit.edu/6.828/2014/readings/i386/JMP.htm" target="_blank" rel="noopener">https://pdos.csail.mit.edu/6.828/2014/readings/i386/JMP.htm</a> 。  </p>
+<h3 id="代码间跳转的特权级限制：直接跳转"><a href="#代码间跳转的特权级限制：直接跳转" class="headerlink" title="代码间跳转的特权级限制：直接跳转"></a>代码间跳转的特权级限制：直接跳转</h3><p>普通转跳不经过Gate，JMP或Call后跟着48位全指针（16位段选择子+32位地址偏移），且其中的段选择子指向代码段描述符，这样的跳转称为直接（普通）跳转。普通跳转不能使特权级发生跃迁，即不会引起CPL的变化。  </p>
+<p><strong>如果目标代码段是一致代码段：</strong><br><strong>要求：</strong>当前代码段CPL &gt;= 目标代码段描述符DPL ，RPL不检查。适用于JMP和CALL。<br><strong>结果：</strong>Load CS with new code segment selector。转跳后程序的CPL = 转跳前程序的CPL。<br><strong>说明：</strong>CPL没有发生变化，纵使它执行了特权级DPL较高的代码。若访问时不满足要求，则发生异常。  </p>
+<p><strong>如果目标代码段是非一致代码段：</strong><br><strong>要求：</strong>当前代码段CPL = 目标代码段描述符DPL AND 当前代码段CPL &gt;= 目标代码段选择子RPL。此时目标代码段选择子RPL &lt;= 目标代码段描述符DPL。适用于JMP和CALL。<br><strong>结果：</strong>Load CS with new code segment selector; Set RPL field of CS register to CPL。转跳后程序的CPL = 目标代码段描述符DPL = 转跳前程序的CPL。<br><strong>说明：</strong>因为前提是CPL=DPL，所以转跳后程序的CPL = 目标代码段描述符DPL不会改变CPL的值，特权级(CPL)也没有发生变化。如果访问时不满足前提CPL=DPL，则引发异常。</p>
+<h3 id="代码间跳转的特权级限制：通过调用门CALL-GATE的跳转"><a href="#代码间跳转的特权级限制：通过调用门CALL-GATE的跳转" class="headerlink" title="代码间跳转的特权级限制：通过调用门CALL-GATE的跳转"></a>代码间跳转的特权级限制：通过调用门CALL-GATE的跳转</h3><p>当段间转移指令JMP和段间转移指令CALL后跟着的目标段选择子指向一个调用门描述符时，该跳转就是利用调用门的跳转。这时如果选择子后跟着32位的地址偏移，也不会被cpu使用，因为调用门描述符已经记录了目标代码的偏移。使用调门进行的跳转比普通跳转多一个步骤，即在访问调用门描述符时要将描述符当作一个数据段来检查访问权限，具体是：<strong>当前代码段CPL &lt;= 门描述符DPL；调用门选择子RPL &lt;= 门描述符DPL</strong>。只有满足了以上条件，CPU才会进一步从调用门描述符中读取目标代码段的选择子和地址偏移。<br>从调用门中读取到目标代码的段选择子和地址偏移后（不同于普通跳转一开始就得到了目标代码的段选择子和地址偏移），CPU会将读到的目标代码段选择子中的RPL清0，即忽略了调用门中代码段选择子的RPL的作用。完成这一步后，CPU开始对当前程序的CPL，目标代码段选择子的RPL（事实上它被清0后总能满足要求）以及由目标代码选择子指示的目标代码段描述符中的DPL进行特权级检查，并根据情况进行跳转。  </p>
+<p><strong>如果目标代码段是一致代码段：</strong><br><strong>要求：</strong>当前代码段CPL &gt;= 目标代码段描述符DPL，RPL被清0，不检查，永远满足RPL &lt;= DPL。适用于JMP和CALL。<br><strong>结果：</strong>Load CS register with new code-segment descriptor；Set RPL of CS to CPL。转跳后程序的CPL = 转跳前程序的CPL。（CALL指令是SAME-PRIVILEGE）。</p>
+<p><strong>如果目标代码段是非一致代码段：</strong><br>JMP指令：<br><strong>要求：</strong>当前代码段CPL = 目标代码段描述符DPL，（RPL被清0，不检查）。<br><strong>结果：</strong>Load CS register with new code-segment descriptor；Set RPL of CS to CPL。转跳后程序的CPL = 目标代码段描述符DPL = 转跳前程序的CPL。<br>CALL指令：<br><strong>要求：</strong>当前代码段CPL &gt;= 目标代码段描述符DPL，（RPL被清0，不检查）。<br><strong>结果：</strong>如果当前代码段CPL &gt; 目标代码段描述符DPL：（MORE-PRIVILEGE）Load CS descriptor；Set CPL to stack segment DPL；Set RPL of CS to CPL。<br>如果当前代码段CPL = 目标代码段描述符DPL：（SAME-PRIVILEGE）Load code segment descriptor into CS register，Set RPL of CS to CPL。转跳后程序的CPL = 目标代码段描述符DPL。  </p>
+<p>当条件CPL=DPL时，程序跳转后CPL=DPL,特权级不发生跃迁；当CPL＞DPL时，程序跳转后CPL=DPL,特权级发生跃迁，这是我们当目前位置唯一见到的使程序当前执行忧先级(CPL)发生变化的跳转方法，即用CALL指令+调用门方式跳转，且目标代码段是非一致代码段。</p>
+<h3 id="代码间跳转的特权级限制：通过任务门TASK-GATE的跳转"><a href="#代码间跳转的特权级限制：通过任务门TASK-GATE的跳转" class="headerlink" title="代码间跳转的特权级限制：通过任务门TASK-GATE的跳转"></a>代码间跳转的特权级限制：通过任务门TASK-GATE的跳转</h3><p><strong>当前代码段CPL &lt;= 门描述符DPL；调用门选择子RPL &lt;= 门描述符DPL</strong>，然后测试任务门给出的指向TSS的选择子，TSS描述符AR byte必须指向可用的TSS。切换到TSS的任务。</p>
+<h3 id="代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转"><a href="#代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转" class="headerlink" title="代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转"></a>代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转</h3><p><strong>当前代码段CPL &lt;= TSS描述符DPL；TSS选择子RPL &lt;= TSS描述符DPL</strong>，TSS描述符AR byte必须指向可用的TSS。切换到TSS的任务。</p>
+<h1 id="jos系统保护机制"><a href="#jos系统保护机制" class="headerlink" title="jos系统保护机制"></a>jos系统保护机制</h1><p>接下来我们来看一下MIT 6.828 jos中关于CPL、RPL、DPL的相关设置。<br><strong>创建用户进程结构</strong>的时候，会设置env的trapframe相关寄存器值，其中，ds、es、ss、cs的低2位代表RPL，RPL说明了进程对该段选择子对应的段描述符描述的段的访问权限。trapframe相关寄存器值会被加载到相应寄存器的可视部分（选择子）。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/21.PNG" title="创建用户进程结构时设置env的trapframe相关寄存器值"><br><img src="/2017/08/26/内存管理之地址转换和保护机制/22.JPG" title="段寄存器">  </p>
+<p><strong>执行程序过程中可能产生中断</strong>，中断会经由中断门或陷阱门，<strong>中断门或陷阱门的门描述符描述了中断处理程序的代码段选择子和偏移位置等信息。在这里，代码段选择子sel就是内核代码段选择子，权限是TI为0，RPL为0，所以给sel传递参数<code>GD_KT</code>即可（或者是<code>GD_KT | 0</code>更明显）。</strong>中断门本身也有DPL，约束了中断或异常的特权级别。如果触发中断的程序CPL&gt;中断门的DPL，则不能调用相应处理函数。所以系统调用、断点需要设置dpl为3才能被用户程序调用。<br>如果可以调用中断处理函数，则调用之前处理器会将中断门sel部分加载到cs段选择器中（以及对应的cs隐藏部分），在这里是<code>GD_KT</code>，在GDT中查找到对应的段描述符，并加上偏移地址得出处理程序地址（中断处理程序定义在内核中，所以偏移地址也就是中断处理程序的入口地址）。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/23.PNG" title="中断门或陷阱门"><br><img src="/2017/08/26/内存管理之地址转换和保护机制/24.PNG" title="初始化IDT">    </p>
+<p><strong>执行中断程序时</strong>，由代码段选择子的CPL/RPL和段描述符DPL决定是否能够访问内核代码段，段描述符DPL在GDT表的初始化过程中已经设置好了。<br><img src="/2017/08/26/内存管理之地址转换和保护机制/25.PNG" title="初始化GDT">    </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/计算机原理/" rel="tag"># 计算机原理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/Intel-32-位处理器的工作模式/" rel="next" title="Intel 32 位处理器的工作模式">
+                <i class="fa fa-chevron-left"></i> Intel 32 位处理器的工作模式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/计算机启动/" rel="prev" title="计算机启动">
+                计算机启动 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#保护模式简介"><span class="nav-number">1.</span> <span class="nav-text">保护模式简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#寻址方式的变化"><span class="nav-number">2.</span> <span class="nav-text">寻址方式的变化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实模式下段的管理"><span class="nav-number">2.1.</span> <span class="nav-text">实模式下段的管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保护模式下段的管理"><span class="nav-number">2.2.</span> <span class="nav-text">保护模式下段的管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分段地址转换"><span class="nav-number">3.</span> <span class="nav-text">分段地址转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GDTR-寄存器"><span class="nav-number">3.1.</span> <span class="nav-text">GDTR 寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#段选择符"><span class="nav-number">3.2.</span> <span class="nav-text">段选择符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#段描述符"><span class="nav-number">3.3.</span> <span class="nav-text">段描述符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#段寄存器"><span class="nav-number">3.4.</span> <span class="nav-text">段寄存器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GDT简介"><span class="nav-number">4.</span> <span class="nav-text">GDT简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分页地址转换"><span class="nav-number">5.</span> <span class="nav-text">分页地址转换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#线性地址和页表"><span class="nav-number">5.1.</span> <span class="nav-text">线性地址和页表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页表项"><span class="nav-number">5.2.</span> <span class="nav-text">页表项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页地址转换缓存（Page-Translation-Cache）"><span class="nav-number">5.3.</span> <span class="nav-text">页地址转换缓存（Page Translation Cache）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#保护模式完整的权限检查"><span class="nav-number">6.</span> <span class="nav-text">保护模式完整的权限检查</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对数据段和堆栈段访问时的特权级控制"><span class="nav-number">6.1.</span> <span class="nav-text">对数据段和堆栈段访问时的特权级控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对代码段访问的特权级控制（代码执行权的特权转移）"><span class="nav-number">6.2.</span> <span class="nav-text">对代码段访问的特权级控制（代码执行权的特权转移）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一致代码段和非一致代码段"><span class="nav-number">6.2.1.</span> <span class="nav-text">一致代码段和非一致代码段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码间跳转的特权级限制：直接跳转"><span class="nav-number">6.2.2.</span> <span class="nav-text">代码间跳转的特权级限制：直接跳转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码间跳转的特权级限制：通过调用门CALL-GATE的跳转"><span class="nav-number">6.2.3.</span> <span class="nav-text">代码间跳转的特权级限制：通过调用门CALL-GATE的跳转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码间跳转的特权级限制：通过任务门TASK-GATE的跳转"><span class="nav-number">6.2.4.</span> <span class="nav-text">代码间跳转的特权级限制：通过任务门TASK-GATE的跳转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转"><span class="nav-number">6.2.5.</span> <span class="nav-text">代码间跳转的特权级限制：通过TASK-STATE-SEGMENT的跳转</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#jos系统保护机制"><span class="nav-number">7.</span> <span class="nav-text">jos系统保护机制</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

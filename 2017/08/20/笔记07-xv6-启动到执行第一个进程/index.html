@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="自学项目,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="xv6的boot loader从硬盘加载xv6内核到内存并在entry处开始执行，此时xv6还没开启分页，virtual addresses直接映射到physical addresses。boot loader将内核加载到物理地址0x100000，不加载在0x80100000（内核期望由此地址寻找指令和数据）的原因是机器不一定有这么多内存，不加载在0x0的原因是0xa0000:0x100000的范">
+<meta name="keywords" content="自学项目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="笔记07 - xv6 启动到执行第一个进程">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="xv6的boot loader从硬盘加载xv6内核到内存并在entry处开始执行，此时xv6还没开启分页，virtual addresses直接映射到physical addresses。boot loader将内核加载到物理地址0x100000，不加载在0x80100000（内核期望由此地址寻找指令和数据）的原因是机器不一定有这么多内存，不加载在0x0的原因是0xa0000:0x100000的范">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/1.JPG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/2.JPG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.242Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="笔记07 - xv6 启动到执行第一个进程">
+<meta name="twitter:description" content="xv6的boot loader从硬盘加载xv6内核到内存并在entry处开始执行，此时xv6还没开启分页，virtual addresses直接映射到physical addresses。boot loader将内核加载到物理地址0x100000，不加载在0x80100000（内核期望由此地址寻找指令和数据）的原因是机器不一定有这么多内存，不加载在0x0的原因是0xa0000:0x100000的范">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/1.JPG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/">
+
+
+
+
+
+  <title>笔记07 - xv6 启动到执行第一个进程 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记07-xv6-启动到执行第一个进程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">笔记07 - xv6 启动到执行第一个进程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:09:04+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>xv6的boot loader从硬盘加载xv6内核到内存并在entry处开始执行，此时xv6还没开启分页，virtual addresses直接映射到physical addresses。boot loader将内核加载到物理地址0x100000，不加载在0x80100000（内核期望由此地址寻找指令和数据）的原因是机器不一定有这么多内存，不加载在0x0的原因是0xa0000:0x100000的范围内包含了IO设备。为了允许剩余的内核代码可以正常运行，entry设置了页表，映射virtual addresses 0x80000000(KERNBASE)到physical addresses 0x0。entry分别映射virtual addresses 0:0x400000 到 physical addresses 0:0x400000，以及virtual addresses KERNBASE:KERNBASE+0x400000 到 physical addresses 0:0x400000，这也要求内核指令和数据占据的空间在4M以内。以下主要分析x86启动分页、内核初始化、启动多处理器、启动init进程的过程。  </p>
+<p>xv6的进程结构以及进程调度涉及到进程的有三大数据结构：struct cpu、struct proc、struct context。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">// proc.h</span><br><span class="line"></span><br><span class="line">// Per-CPU state</span><br><span class="line">struct cpu &#123;</span><br><span class="line">  uchar apicid;                // Local APIC ID</span><br><span class="line">  struct context *scheduler;   // swtch() here to enter scheduler</span><br><span class="line">  struct taskstate ts;         // Used by x86 to find stack for interrupt</span><br><span class="line">  struct segdesc gdt[NSEGS];   // x86 global descriptor table</span><br><span class="line">  volatile uint started;       // Has the CPU started?</span><br><span class="line">  int ncli;                    // Depth of pushcli nesting.</span><br><span class="line">  int intena;                  // Were interrupts enabled before pushcli?</span><br><span class="line"></span><br><span class="line">  // Cpu-local storage variables; see below</span><br><span class="line">  struct cpu *cpu;</span><br><span class="line">  struct proc *proc;           // The currently-running process.</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">enum procstate &#123; UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE &#125;;</span><br><span class="line"></span><br><span class="line">// Per-process state</span><br><span class="line">struct proc &#123;</span><br><span class="line">  uint sz;                     // Size of process memory (bytes)</span><br><span class="line">  pde_t* pgdir;                // Page table</span><br><span class="line">  char *kstack;                // Bottom of kernel stack for this process</span><br><span class="line">  enum procstate state;        // Process state</span><br><span class="line">  int pid;                     // Process ID</span><br><span class="line">  struct proc *parent;         // Parent process</span><br><span class="line">  struct trapframe *tf;        // Trap frame for current syscall</span><br><span class="line">  struct context *context;     // swtch() here to run process</span><br><span class="line">  void *chan;                  // If non-zero, sleeping on chan</span><br><span class="line">  int killed;                  // If non-zero, have been killed</span><br><span class="line">  struct file *ofile[NOFILE];  // Open files</span><br><span class="line">  struct inode *cwd;           // Current directory</span><br><span class="line">  char name[16];               // Process name (debugging)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//PAGEBREAK: 17</span><br><span class="line">// Saved registers for kernel context switches.</span><br><span class="line">// Don&apos;t need to save all the segment registers (%cs, etc),</span><br><span class="line">// because they are constant across kernel contexts.</span><br><span class="line">// Don&apos;t need to save %eax, %ecx, %edx, because the</span><br><span class="line">// x86 convention is that the caller has saved them.</span><br><span class="line">// Contexts are stored at the bottom of the stack they</span><br><span class="line">// describe; the stack pointer is the address of the context.</span><br><span class="line">// The layout of the context matches the layout of the stack in swtch.S</span><br><span class="line">// at the &quot;Switch stacks&quot; comment. Switch doesn&apos;t save eip explicitly,</span><br><span class="line">// but it is on the stack and allocproc() manipulates it.</span><br><span class="line">struct context &#123;</span><br><span class="line">  uint edi;</span><br><span class="line">  uint esi;</span><br><span class="line">  uint ebx;</span><br><span class="line">  uint ebp;</span><br><span class="line">  uint eip;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>附上file、inode以及trapframe结构：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">// file.h</span><br><span class="line">struct file &#123;</span><br><span class="line">  enum &#123; FD_NONE, FD_PIPE, FD_INODE &#125; type;</span><br><span class="line">  int ref; // reference count</span><br><span class="line">  char readable;</span><br><span class="line">  char writable;</span><br><span class="line">  struct pipe *pipe;</span><br><span class="line">  struct inode *ip;</span><br><span class="line">  uint off;</span><br><span class="line">&#125;;</span><br><span class="line">  </span><br><span class="line">// in-memory copy of an inode</span><br><span class="line">struct inode &#123;</span><br><span class="line">  uint dev;           // Device number</span><br><span class="line">  uint inum;          // Inode number</span><br><span class="line">  int ref;            // Reference count</span><br><span class="line">  struct sleeplock lock;</span><br><span class="line">  int flags;          // I_VALID</span><br><span class="line"></span><br><span class="line">  short type;         // copy of disk inode</span><br><span class="line">  short major;</span><br><span class="line">  short minor;</span><br><span class="line">  short nlink;</span><br><span class="line">  uint size;</span><br><span class="line">  uint addrs[NDIRECT+1];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">// x86.h</span><br><span class="line">//PAGEBREAK: 36</span><br><span class="line">// Layout of the trap frame built on the stack by the</span><br><span class="line">// hardware and by trapasm.S, and passed to trap().</span><br><span class="line">struct trapframe &#123;</span><br><span class="line">  // registers as pushed by pusha</span><br><span class="line">  uint edi;</span><br><span class="line">  uint esi;</span><br><span class="line">  uint ebp;</span><br><span class="line">  uint oesp;      // useless &amp; ignored</span><br><span class="line">  uint ebx;</span><br><span class="line">  uint edx;</span><br><span class="line">  uint ecx;</span><br><span class="line">  uint eax;</span><br><span class="line"></span><br><span class="line">  // rest of trap frame</span><br><span class="line">  ushort gs;</span><br><span class="line">  ushort padding1;</span><br><span class="line">  ushort fs;</span><br><span class="line">  ushort padding2;</span><br><span class="line">  ushort es;</span><br><span class="line">  ushort padding3;</span><br><span class="line">  ushort ds;</span><br><span class="line">  ushort padding4;</span><br><span class="line">  uint trapno;</span><br><span class="line"></span><br><span class="line">  // below here defined by x86 hardware</span><br><span class="line">  uint err;</span><br><span class="line">  uint eip;</span><br><span class="line">  ushort cs;</span><br><span class="line">  ushort padding5;</span><br><span class="line">  uint eflags;</span><br><span class="line"></span><br><span class="line">  // below here only when crossing rings, such as from user to kernel</span><br><span class="line">  uint esp;</span><br><span class="line">  ushort ss;</span><br><span class="line">  ushort padding6;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h1 id="启动分页"><a href="#启动分页" class="headerlink" title="启动分页"></a>启动分页</h1><p>启动分页之前必须创建页表并设置给cr3寄存器，然后给cr0寄存器的PG位置为1。除此之外，x86还允许创建不同粒度的内存页，这涉及到cr4寄存器。在x86中，一个也目录中可以同时存在两种粒度的内存页，4K或者4M。page dir是必须的，这是一个长度最大为1024的整数数组，如果页目录表项的PS位置为1且cr4寄存器的PSE位置为1，那么CPU自动使用4M大小的内存页，即该页目录表项中保存的就是内存页的起始地址，这相当于进行二级分页而不是更常见的三级分页。如果这两个要求不能同时满足就进行三级分页。注意x86运行两种分页同时存在，比如cr4的PSE位设为1，而有些page dir表项设置PS位而有些则不设置，这样就同时存在两种分页机制。为何要使用4MB页呢，考虑这种场景：kernel img大小大约为1M，如果使用4M页映射kernel img，则TLB只需缓存一个页目录项即可，而如果是4K页则需要256个页目录项，这么多的表项是无法都缓存到TLB中的，这会使得地址翻译变慢很多。所以kernel img部分一般用一个4M页进行映射，而其他则使用4K页。对于xv6来说，使用4M页只是临时，不用创建复杂的页表，如此而已，内核启动之后很快就会重新创建页表。  </p>
+<p>为何要将0~4M进行1:1映射呢？在开启分页之前我们都是小心翼翼的使用“低地址”，<br>而打开分页之后我们将会跳转到“高地址”，低地址还有必要映射吗？有必要。在启动多处理器的时候，还需要从低地址启动，因为这些CPU（non-boot CPU，也叫做AP）要需要从real mode启动，见entryother.S。</p>
+<h1 id="内核初始化"><a href="#内核初始化" class="headerlink" title="内核初始化"></a>内核初始化</h1><p>进入main函数。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">int</span><br><span class="line">main(void)</span><br><span class="line">&#123;</span><br><span class="line">  //根据entry.S里面对栈的设置，可知栈顶位置在end之前。（存疑：根据objdump -h kernel结果和kernel.asm，entry.S里stack的位置并不在.data节内，为什么？）</span><br><span class="line">  //将[end，4M](end先4K对齐)范围free为kmem，此时未开启分页，使用的是硬编码的4m地址映射。</span><br><span class="line">  //kmem锁初始化，处于解锁状态，占有kmem锁的CPU数目为0</span><br><span class="line">  //end: first address after kernel loaded from ELF file</span><br><span class="line">  kinit1(end, P2V(4*1024*1024)); // phys page allocator // see in kalloc.c</span><br><span class="line">  //为scheduler进程创建内核页目录，根据kmap设定将所有涉及范围内的内核空间虚拟地址</span><br><span class="line">  //(从KERNBASE开始,把IO空间、内核镜像等都建立映射，这些空间全都是用户空间可见的，位于2GB以上)按页大小映射到物理地址上，</span><br><span class="line">  //实际上是创建二级页表，并在二级页表项上存储物理地址。将页目录地址存储到cr3中。</span><br><span class="line">  //页目录项所存页表的权限是用户可读写</span><br><span class="line">  //二级页表项所存物理页的权限按照kmap设定</span><br><span class="line">  kvmalloc();      // kernel page table //see in vm.c</span><br><span class="line">  //</span><br><span class="line">  mpinit();        // detect other processors</span><br><span class="line">  lapicinit();     // interrupt controller</span><br><span class="line">  //初始化段寄存器，更新当前cpu</span><br><span class="line">  seginit();       // segment descriptors // see in vm.c</span><br><span class="line">  //</span><br><span class="line">  cprintf(&quot;\ncpu%d: starting xv6\n\n&quot;, cpunum());</span><br><span class="line">  //</span><br><span class="line">  picinit();       // another interrupt controller</span><br><span class="line">  //</span><br><span class="line">  ioapicinit();    // another interrupt controller</span><br><span class="line">  //</span><br><span class="line">  consoleinit();   // console hardware</span><br><span class="line">  //</span><br><span class="line">  uartinit();      // serial port</span><br><span class="line">  //进程表锁初始化，设置进程表处于解锁状态，占有进程表锁的CPU数目为0</span><br><span class="line">  pinit();         // process table //see in proc.c</span><br><span class="line">  //建立正常的中断/陷阱门描述符,中断处理锁初始化，处于解锁状态，占有中断处理锁的CPU数目为0</span><br><span class="line">  tvinit();        // trap vectors //see in trap.c</span><br><span class="line">  //</span><br><span class="line">  binit();         // buffer cache</span><br><span class="line">  //</span><br><span class="line">  fileinit();      // file table</span><br><span class="line">  //</span><br><span class="line">  ideinit();       // disk</span><br><span class="line">  //</span><br><span class="line">  if(!ismp)</span><br><span class="line">    timerinit();   // uniprocessor timer</span><br><span class="line">  //</span><br><span class="line">  startothers();   // start other processors</span><br><span class="line">  //将[4M,PHYSTOP]范围free为kmem，此时已经开启分页。</span><br><span class="line">  //设置计数表示kmem锁处于使用状态</span><br><span class="line">  kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers() // see in kalloc.c</span><br><span class="line"></span><br><span class="line">  //1.</span><br><span class="line">  //在进程表中寻找slot，成功的话更改进程状态embryo和pid，并初始化进程的内核栈</span><br><span class="line">  //2.</span><br><span class="line">  //为进程创建内核页目录，根据kmap设定将所有涉及范围内的内核空间虚拟地址</span><br><span class="line">  //(从KERNBASE开始,把IO空间、内核镜像等都建立映射，这些空间全都是用户空间可见的，位于2GB以上)按页大小映射到物理地址上，</span><br><span class="line">  //实际上是创建二级页表，并在二级页表项上存储物理地址。</span><br><span class="line">  //每个进程都会新建页目录和二级页表</span><br><span class="line">  //页目录项所存页表的权限是用户可读写</span><br><span class="line">  //二级页表项所存物理页的权限按照kmap设定</span><br><span class="line">  //3.</span><br><span class="line">  //从kmem上分配一页的物理空间给进程，在新建进程的页目录上映射[0,PGSIZE]的虚拟地址到分配的物理地址上，将指向内容复制到物理内存上</span><br><span class="line">  //页目录项所存页表的权限是用户可读写</span><br><span class="line">  //二级页表项所存物理页的权限为用户可读写</span><br><span class="line">  //4.</span><br><span class="line">  //设置进程的trapframe</span><br><span class="line">  //设置进程状态runnable</span><br><span class="line">  userinit();      // first user process  //see in proc.c </span><br><span class="line">  //idtinit()加载中断描述符表寄存器</span><br><span class="line">  //scheduler()无限循环寻找进程状态为runnable的进程</span><br><span class="line">  //对于每次循环：</span><br><span class="line">      //开中断运行当前进程</span><br><span class="line">      //找到可执行的进程后，更新全局变量proc为当前被选中的进程</span><br><span class="line">      //设置cpu环境后，加载选中进程的页目录地址到cr3,切换为进程的页目录</span><br><span class="line">      //更改进程状态为running</span><br><span class="line">      //CPU调度</span><br><span class="line">      //加载内核的页目录地址到cr3,切换为内核的页目录</span><br><span class="line">  mpmain();        // finish this processor&apos;s setup</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//vm.c</span><br><span class="line">static struct kmap &#123;</span><br><span class="line">  void *virt;</span><br><span class="line">  uint phys_start;</span><br><span class="line">  uint phys_end;</span><br><span class="line">  int perm;</span><br><span class="line">&#125; kmap[] = &#123;</span><br><span class="line"> &#123; (void*)KERNBASE, 0,             EXTMEM,    PTE_W&#125;, // I/O space</span><br><span class="line"> &#123; (void*)KERNLINK, V2P(KERNLINK), V2P(data), 0&#125;,     // kern text+rodata</span><br><span class="line"> &#123; (void*)data,     V2P(data),     PHYSTOP,   PTE_W&#125;, // kern data+memory</span><br><span class="line"> &#123; (void*)DEVSPACE, DEVSPACE,      0,         PTE_W&#125;, // more devices</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<img src="/2017/08/20/笔记07-xv6-启动到执行第一个进程/1.JPG" title="Layout of a virtual address space">
+<h1 id="启动多处理器"><a href="#启动多处理器" class="headerlink" title="启动多处理器"></a>启动多处理器</h1><p>（此部分待后续理解）<br>多处理器的启动是通过IPI，即Inter-Processor Instructions进行的，这是CPU间的通讯方式。startothers()来启动其他non-boot CPU，做法是：<br>复制启动代码到0x7000处，这部分代码相当于boot CPU的启动扇区代码。<br>为每个AP分配stack（是的，每个CPU都一个自己的stack）。<br>告诉每个AP，kernel入口在哪里(mpenter函数)。<br>告诉每个AP，页目录在哪里(entrypgdir)。<br>然后控制local apic进行CPU间通讯，依次启动其他CPU。启动之后他们会执行mpenter()，进而进入scheduler()开始执行程序。</p>
+<h1 id="启动init进程"><a href="#启动init进程" class="headerlink" title="启动init进程"></a>启动init进程</h1><p>boot CPU启动其他CPU之后，自己继续执行kinit2()初始化剩余的内存空间，然后开始启动init进程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">//proc.c</span><br><span class="line">//在进程表中寻找slot，成功的话更改进程状态embryo和pid，并初始化进程的内核栈</span><br><span class="line">static struct proc*</span><br><span class="line">allocproc(void)</span><br><span class="line">&#123;</span><br><span class="line">  struct proc *p;</span><br><span class="line">  char *sp;</span><br><span class="line"></span><br><span class="line">  acquire(&amp;ptable.lock);</span><br><span class="line"></span><br><span class="line">  for(p = ptable.proc; p &lt; &amp;ptable.proc[NPROC]; p++)</span><br><span class="line">    if(p-&gt;state == UNUSED)</span><br><span class="line">      goto found;</span><br><span class="line"></span><br><span class="line">  release(&amp;ptable.lock);</span><br><span class="line">  return 0;</span><br><span class="line"></span><br><span class="line">found:</span><br><span class="line">  p-&gt;state = EMBRYO;</span><br><span class="line">  p-&gt;pid = nextpid++;</span><br><span class="line"></span><br><span class="line">  release(&amp;ptable.lock);</span><br><span class="line"></span><br><span class="line">  // Allocate kernel stack.</span><br><span class="line">  if((p-&gt;kstack = kalloc()) == 0)&#123;</span><br><span class="line">    p-&gt;state = UNUSED;</span><br><span class="line">    return 0;</span><br><span class="line">  &#125;</span><br><span class="line">  sp = p-&gt;kstack + KSTACKSIZE;</span><br><span class="line"></span><br><span class="line">  // Leave room for trap frame.</span><br><span class="line">  sp -= sizeof *p-&gt;tf;</span><br><span class="line">  p-&gt;tf = (struct trapframe*)sp;</span><br><span class="line"></span><br><span class="line">  // Set up new context to start executing at forkret,</span><br><span class="line">  // which returns to trapret.</span><br><span class="line">  sp -= 4;</span><br><span class="line">  *(uint*)sp = (uint)trapret;</span><br><span class="line"></span><br><span class="line">  sp -= sizeof *p-&gt;context;</span><br><span class="line">  p-&gt;context = (struct context*)sp;</span><br><span class="line">  memset(p-&gt;context, 0, sizeof *p-&gt;context);</span><br><span class="line">  p-&gt;context-&gt;eip = (uint)forkret;</span><br><span class="line"></span><br><span class="line">  return p;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//PAGEBREAK: 32</span><br><span class="line">// Set up first user process.</span><br><span class="line">void</span><br><span class="line">userinit(void)</span><br><span class="line">&#123;</span><br><span class="line">  struct proc *p;</span><br><span class="line">  extern char _binary_initcode_start[], _binary_initcode_size[];</span><br><span class="line"></span><br><span class="line">  //在进程表中寻找slot，成功的话更改进程状态和pid，并初始化进程的内核栈</span><br><span class="line">  p = allocproc();</span><br><span class="line">  </span><br><span class="line">  initproc = p;</span><br><span class="line">  //为进程创建内核页目录，根据kmap设定将所有涉及范围内的内核空间虚拟地址</span><br><span class="line">  //(从KERNBASE开始,把IO空间、内核镜像等都建立映射，这些空间全都是用户空间可见的，位于2GB以上)按页大小映射到物理地址上，</span><br><span class="line">  //实际上是创建二级页表，并在二级页表项上存储物理地址。</span><br><span class="line">  //每个进程都会新建页目录和二级页表</span><br><span class="line">  //页目录项所存页表的权限是用户可读写</span><br><span class="line">  //二级页表项所存物理页的权限按照kmap设定</span><br><span class="line">  if((p-&gt;pgdir = setupkvm()) == 0) //see in vm.c</span><br><span class="line">    panic(&quot;userinit: out of memory?&quot;); </span><br><span class="line">  //从kmem上分配一页的物理空间给进程，在新建进程的页目录上映射[0,PGSIZE]的虚拟地址到分配的物理地址上，将指向内容复制到物理内存上</span><br><span class="line">  //页目录项所存页表的权限是用户可读写</span><br><span class="line">  //二级页表项所存物理页的权限为用户可读写</span><br><span class="line">  inituvm(p-&gt;pgdir, _binary_initcode_start, (int)_binary_initcode_size);//see in vm.c</span><br><span class="line">  p-&gt;sz = PGSIZE;</span><br><span class="line">  memset(p-&gt;tf, 0, sizeof(*p-&gt;tf));</span><br><span class="line">  p-&gt;tf-&gt;cs = (SEG_UCODE &lt;&lt; 3) | DPL_USER; // todo ???</span><br><span class="line">  p-&gt;tf-&gt;ds = (SEG_UDATA &lt;&lt; 3) | DPL_USER; // todo ???</span><br><span class="line">  p-&gt;tf-&gt;es = p-&gt;tf-&gt;ds;</span><br><span class="line">  p-&gt;tf-&gt;ss = p-&gt;tf-&gt;ds;</span><br><span class="line">  p-&gt;tf-&gt;eflags = FL_IF;//allow hardware interrupts</span><br><span class="line">  p-&gt;tf-&gt;esp = PGSIZE;</span><br><span class="line">  p-&gt;tf-&gt;eip = 0;  // beginning of initcode.S</span><br><span class="line"></span><br><span class="line">  safestrcpy(p-&gt;name, &quot;initcode&quot;, sizeof(p-&gt;name));</span><br><span class="line">  p-&gt;cwd = namei(&quot;/&quot;);</span><br><span class="line"></span><br><span class="line">  // this assignment to p-&gt;state lets other cores</span><br><span class="line">  // run this process. the acquire forces the above</span><br><span class="line">  // writes to be visible, and the lock is also needed</span><br><span class="line">  // because the assignment might not be atomic.</span><br><span class="line">  acquire(&amp;ptable.lock);</span><br><span class="line"></span><br><span class="line">  p-&gt;state = RUNNABLE;</span><br><span class="line"></span><br><span class="line">  release(&amp;ptable.lock);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="创建进程数据结构"><a href="#创建进程数据结构" class="headerlink" title="创建进程数据结构"></a>创建进程数据结构</h2><p>allocproc()函数在全局变量ptable中寻找UNUSED的进程结构，如果找到就做必要的初始化，然后将其返回，否则返回0，即空指针。其初始化过程包括修改进程状态，设置进程pid，构建进程的kenel stack（每个进程都有一个对应的内核栈）。进程的内核栈是调用<strong>p-&gt;kstack = kalloc()</strong>分配的，而<strong>p-&gt;tf</strong>和<strong>p-&gt;context</strong>都在内核栈中。<strong>由上可知，进程结构体proc是在内核指令和数据所处的内存空间上，而内核栈是在end[]之后的内存空间上</strong>。<br>每个进程的创建都会调用allocproc()函数，不论是init进程还是fork创建的普通进程。调用allocproc()函数之后，进程的kernel stack初始化状态如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">                     +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                 |   | ss            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | esp           |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | eflags        |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | cs            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | eip           | &lt;-- 这里往上在iret时自动弹出到相关寄存器中</span><br><span class="line">                 |   +---------------+    </span><br><span class="line">                 |   | err           |  </span><br><span class="line">                 |   +---------------+  </span><br><span class="line">                 |   | trapno        |  </span><br><span class="line">                 |   +---------------+                       </span><br><span class="line">                 |   | ds            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | es            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | fs            |                           </span><br><span class="line">struct trapframe |   +---------------+                           </span><br><span class="line">                 |   | gs            |                           </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | eax           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ecx           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | edx           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ebx           |   </span><br><span class="line">                 |   +---------------+                        </span><br><span class="line">                 |   | oesp          |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ebp           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | esi           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | edi           |   </span><br><span class="line">                 \   +---------------+ &lt;-- p-&gt;tf                 </span><br><span class="line">                     | trapret       | &lt;-- 弹出进程tf，执行用户代码                           </span><br><span class="line">                 /   +---------------+ &lt;-- forkret will return to</span><br><span class="line">                 |   | eip(=forkret) | &lt;-- return addr，启动log           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | ebp           |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">  struct context |   | ebx           |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | esi           |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | edi           |                           </span><br><span class="line">                 \   +-------+-------+ &lt;-- p-&gt;context            </span><br><span class="line">                     |       |       |                           </span><br><span class="line">                     |       v       |                           </span><br><span class="line">                     |     empty     |                           </span><br><span class="line">                     +---------------+ &lt;-- p-&gt;kstack</span><br></pre></td></tr></table></figure></p>
+<p>注意trapframe里的eip正是进入用户态之后执行的程序的入口，init进程跟普通进程<br>的差别就在这里了，init进程设置的eip=0（见userinit()函数，可知进程将分配一页空间来存放initcode的指令和数据，其虚拟地址范围为0x0:4K，因此eip=0则会跳转执行initcode的第一条指令），在此之前0这里已经放置了initcode.S的内容，而普通进程这里设置的是elf-&gt;entry，即程序的main()函数。</p>
+<h2 id="构建进程地址空间"><a href="#构建进程地址空间" class="headerlink" title="构建进程地址空间"></a>构建进程地址空间</h2><p>userinit函数调用setupkvm函数为进程创建内核页目录，根据kmap设定将所有涉及范围内的内核空间虚拟地址(从KERNBASE开始,把IO空间、内核镜像等都建立映射，这些空间全都是用户空间可见的，位于2GB以上)按页大小映射到物理地址上，实际上是创建二级页表，并在二级页表项上存储物理地址。每个进程都会新建页目录和二级页表，页目录项所存页表的权限是用户可读写，二级页表项所存物理页的权限按照kmap设定。<strong>根据kmap把kernel也映射到进程空间的原因是：执行initcode代码前将切换为进程页目录，为了能继续执行内核代码，需要把kernel也映射到进程空间。</strong><br>之后userinit函数调用inituvm函数从kmem（end[]之后的内存空间）上分配一页的物理空间给进程，在新建进程的页目录上映射[0,PGSIZE]的虚拟地址到分配的物理地址上，将<code>_binary_initcode_start</code>指向内容复制到物理内存上。页目录项所存页表的权限是用户可读写，二级页表项所存物理页的权限为用户可读写。然后设置进程的tf值，这部分值将在执行trapret时弹出到相关寄存器中，将进程的状态更改为RUNNABLE。</p>
+<h2 id="进入调度器开始执行"><a href="#进入调度器开始执行" class="headerlink" title="进入调度器开始执行"></a>进入调度器开始执行</h2><p>boot CPU继续执行进入scheduler()函数，它线性遍历ptable寻找RUNNABLE的进程，找到之后就执行，无穷循环。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">//proc.c</span><br><span class="line">void</span><br><span class="line">scheduler(void)</span><br><span class="line">&#123;</span><br><span class="line">  struct proc *p;</span><br><span class="line"></span><br><span class="line">  for(;;)&#123;</span><br><span class="line">    // Enable interrupts on this processor.</span><br><span class="line">    //进程开中断</span><br><span class="line">    sti();</span><br><span class="line"></span><br><span class="line">    // Loop over process table looking for process to run.</span><br><span class="line">    acquire(&amp;ptable.lock);</span><br><span class="line">    for(p = ptable.proc; p &lt; &amp;ptable.proc[NPROC]; p++)&#123;</span><br><span class="line">      if(p-&gt;state != RUNNABLE)</span><br><span class="line">        continue;</span><br><span class="line"></span><br><span class="line">      // Switch to chosen process.  It is the process&apos;s job</span><br><span class="line">      // to release ptable.lock and then reacquire it</span><br><span class="line">      // before jumping back to us.</span><br><span class="line">      //更新全局变量proc为当前被选中的进程</span><br><span class="line">      proc = p;</span><br><span class="line">      //设置cpu环境后，加载选中进程的页目录地址到cr3,切换为进程的页目录</span><br><span class="line">      switchuvm(p); //see in vm.c</span><br><span class="line">      //更改进程状态为running</span><br><span class="line">      p-&gt;state = RUNNING;</span><br><span class="line">      swtch(&amp;cpu-&gt;scheduler, p-&gt;context); //see in swtch.S</span><br><span class="line">      //调用swtch之后将不会返回内核，但会将下一条指令的eip进栈，swtch会保存context寄存器，并将cpu-&gt;scheduler指向保存位置，程序执行完毕后应该会返回执行内核代码，重新调度下一个进程。（中断时会执行相关中断处理函数，不会返回这里。）</span><br><span class="line">      //加载内核的页目录地址到cr3,切换为内核的页目录</span><br><span class="line">      switchkvm(); //see in vm.c</span><br><span class="line"></span><br><span class="line">      // Process is done running for now.</span><br><span class="line">      // It should have changed its p-&gt;state before coming back.</span><br><span class="line">      proc = 0;</span><br><span class="line">    &#125;</span><br><span class="line">    release(&amp;ptable.lock);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//vm.c</span><br><span class="line">// 设置cpu环境后，加载进程的页目录地址到cr3</span><br><span class="line">void</span><br><span class="line">switchuvm(struct proc *p)</span><br><span class="line">&#123;</span><br><span class="line">  pushcli();</span><br><span class="line">  cpu-&gt;gdt[SEG_TSS] = SEG16(STS_T32A, &amp;cpu-&gt;ts, sizeof(cpu-&gt;ts)-1, 0);</span><br><span class="line">  cpu-&gt;gdt[SEG_TSS].s = 0;</span><br><span class="line">  cpu-&gt;ts.ss0 = SEG_KDATA &lt;&lt; 3;</span><br><span class="line">  cpu-&gt;ts.esp0 = (uint)proc-&gt;kstack + KSTACKSIZE;</span><br><span class="line">  // setting IOPL=0 in eflags *and* iomb beyond the tss segment limit</span><br><span class="line">  // forbids I/O instructions (e.g., inb and outb) from user space</span><br><span class="line">  cpu-&gt;ts.iomb = (ushort) 0xFFFF;</span><br><span class="line">  ltr(SEG_TSS &lt;&lt; 3);</span><br><span class="line">  if(p-&gt;pgdir == 0)</span><br><span class="line">    panic(&quot;switchuvm: no pgdir&quot;);</span><br><span class="line">  lcr3(V2P(p-&gt;pgdir));  // switch to process&apos;s address space</span><br><span class="line">  popcli();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>switchuvm(p)，它会设置TSS段并且将其中的ss0设置为SEG_KDATA，把esp0设置成p-&gt;kstack+KSTACKSIZE，也就是该进程内核栈的栈底，然后<code>ltr(SEG_TSS&lt;&lt;3)</code>，这会让CPU在执行iret时使用该TSS的内容。设置ss0，esp0的意思是：该进程以后被中断或者trap时，只要进入kernel，就使用这个stack，上述代码表明<strong>trap时将使用进程的内核栈</strong>。然后切换到进程页目录，注意，因为kernel空间也映射进用户也目录了，所以kernel在切换页目录之后依然正常执行，<strong>此时仍然使用的是CPU栈</strong>。标记进程状态为RUNNING之后开始执行swtch，看<code>swtch(&amp;cpu-&gt;scheduler, p-&gt;context);</code>。注意到swtch会将当前context相关寄存器进栈，然后将cpu的context（即scheduler）指针指向当前esp（仍然是cpu栈，即在内核的指令和数据内存空间上），再将esp指向到进程的context，由于会改变cpu的scheduler指针指向，因此需要传递<strong>&amp;cpu-&gt;scheduler</strong>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">//swtch.S</span><br><span class="line">.globl swtch</span><br><span class="line">swtch:</span><br><span class="line">  movl 4(%esp), %eax #load *(esp + 4) into eax, that is &amp;cpu-&gt;scheduler, pointer&apos;s addr</span><br><span class="line">  movl 8(%esp), %edx #load *(esp + 8) into edx, that is p-&gt;context, pointer&apos;s value</span><br><span class="line"></span><br><span class="line">  # Save old callee-save registers #进入swtch函数之前，eip已经进栈</span><br><span class="line">  pushl %ebp</span><br><span class="line">  pushl %ebx</span><br><span class="line">  pushl %esi</span><br><span class="line">  pushl %edi</span><br><span class="line"></span><br><span class="line">  # Switch stacks</span><br><span class="line">  movl %esp, (%eax)  #cpu-&gt;scheduler现在指向了当前cpu栈顶，保存了相关context寄存器</span><br><span class="line">  movl %edx, %esp  #esp指向进程的context</span><br><span class="line"></span><br><span class="line">  # Load new callee-save registers</span><br><span class="line">  popl %edi</span><br><span class="line">  popl %esi</span><br><span class="line">  popl %ebx</span><br><span class="line">  popl %ebp</span><br><span class="line">  ret</span><br></pre></td></tr></table></figure></p>
+<p><strong>swtch的作用是保存相关context寄存器到cpu栈，将当前cpu的scheduler指向保存位置，然后将栈顶指针指向进程的context（进程的内核栈），将相关寄存器弹出之后执行ret指令，由于此时esp指向进程context的eip，因此将从栈中弹出该数据作为eip。该eip实际指向forkret函数入口地址，不同于call指令，调用该函数不会将下一条指令的地址进栈。因此后面forkret启动了一个log之后返回时将继续弹栈作为新的eip，即trapret地址，见tramasm.S。</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//trapasm.S</span><br><span class="line">.globl trapret</span><br><span class="line">trapret:</span><br><span class="line">  popal #弹出通用寄存器中的上下文环境</span><br><span class="line">  popl %gs</span><br><span class="line">  popl %fs</span><br><span class="line">  popl %es</span><br><span class="line">  popl %ds</span><br><span class="line">  addl $0x8, %esp  # trapno and errcode</span><br><span class="line">  iret</span><br></pre></td></tr></table></figure></p>
+<p>popal弹出一堆寄存器值，其中部分寄存器值在userinit函数中被指定了，如cs。popl又弹出一堆，然后<strong>addl $0x8, %esp</strong>越过trapno和errcode，此时esp指向进程tf的eip。执行iret时会把int指令自动压栈的内容再自动恢复回去，这里是eip、cs、eflags、esp、ss。eip在userinit函数中被设置为0，此处已经被inituvm()放置上initcode.S的内容了；esp在userinit函数中被设置为PGSIZE，即进程分配到的物理地址空间的顶部，此处作为栈顶（<strong>由此可以看出esp的地址也是虚拟地址，将根据进程页目录和页表被转化为物理地址</strong>）。之后回到用户空间的起始地址处执行initcode.S的内容。这个文件通过系统调用exec执行/init程序。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">//initcode.S</span><br><span class="line"># exec(init, argv)</span><br><span class="line">.globl start</span><br><span class="line">start:</span><br><span class="line">  pushl $argv</span><br><span class="line">  pushl $init</span><br><span class="line">  pushl $0  // where caller pc would be</span><br><span class="line">  movl $SYS_exec, %eax</span><br><span class="line">  int $T_SYSCALL</span><br><span class="line"></span><br><span class="line">//exec指令用新程序替代当前进程的内存和寄存器，但保留文件描述符、进程id、父进程不变。如果一切运行正常，exec将不会返回到这里，它将执行一个新的名为$init的程序。init进程根据需要创建终端设备文件，以文件描述符0、1、2打开它，然后循环开启一个控制台shell、处理孤立僵尸进程直到shell退出，重复循环。整个系统启动。</span><br><span class="line"># for(;;) exit();</span><br><span class="line">exit:</span><br><span class="line">  movl $SYS_exit, %eax</span><br><span class="line">  int $T_SYSCALL</span><br><span class="line">  jmp exit</span><br><span class="line"></span><br><span class="line"># char init[] = &quot;/init\0&quot;;</span><br><span class="line">init:</span><br><span class="line">  .string &quot;/init\0&quot;</span><br><span class="line"></span><br><span class="line"># char *argv[] = &#123; init, 0 &#125;;</span><br><span class="line">.p2align 2</span><br><span class="line">argv:</span><br><span class="line">  .long init</span><br><span class="line">  .long 0</span><br></pre></td></tr></table></figure></p>
+<p>$argv、$init、$0将被存储在进程物理空间顶部。<code>movl $SYS_exec, %eax</code>把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&gt;tf），之后在类似syscall函数就可以通过proc-&gt;tf-&gt;eax获取trapno了。此时的esp指向0x00000ff4，根据initcode.asm可知int指令的下一条指令地址（即执行int时的eip为）0x00000013。<br>CPU在执行int指令时会执行以下动作：<br>1、栈转换，stack转换到tr寄存器指定的tss里面的ss0:esp0，这是该进程对应的内核栈，esp指向内核栈栈顶。<br>2、自动将相关寄存器的内容进栈：ss、esp、eflag、cs、eip。<br>3、跳转到中断处理程序处（trap.c），也就是vectorXXX处，这里为每个中断设置了一个中断处理程序，xv6的中断处理表是用vector.pl生成的(make之后见vectors.S)，基本每个表项都是一样的。<br>（上述动作还应包含触发中断时的权限检查。）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.globl vector64</span><br><span class="line">vector64:</span><br><span class="line">  pushl $0</span><br><span class="line">  pushl $64</span><br><span class="line">  jmp alltraps</span><br></pre></td></tr></table></figure></p>
+<p>内核栈如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">CPU执行int指令时自动压栈的，加上中断处理程序压栈</span><br><span class="line">                      +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                      | ss            |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | esp           | &lt;-- 0x00000ff4(压进三个参数)                          </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | eflags        |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | cs            |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | eip           | &lt;-- 0x00000013(int指令的下一条指令地址)</span><br><span class="line">                      +---------------+ </span><br><span class="line">                      | err           |</span><br><span class="line">                      +---------------+</span><br><span class="line">                      | trapno        |</span><br><span class="line">                      +---------------+ &lt;-- %esp</span><br></pre></td></tr></table></figure></p>
+<p>跳转到alltrap处执行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">  # vectors.S sends all traps here.</span><br><span class="line">.globl alltraps</span><br><span class="line">alltraps:</span><br><span class="line">  # Build trap frame. //将用户进程的寄存器保存</span><br><span class="line">  pushl %ds</span><br><span class="line">  pushl %es</span><br><span class="line">  pushl %fs</span><br><span class="line">  pushl %gs</span><br><span class="line">  pushal</span><br><span class="line">  </span><br><span class="line">  # Set up data and per-cpu segments.</span><br><span class="line">  #此时已经由p-&gt;tf-&gt;esp指向的进程用户栈切换到ssX:espX指定的栈中，</span><br><span class="line">  #这里是p-&gt;kstack指向的进程内核栈，当前进程相关的寄存器保存到了进程内核栈中。</span><br><span class="line">  movw $(SEG_KDATA&lt;&lt;3), %ax</span><br><span class="line">  movw %ax, %ds</span><br><span class="line">  movw %ax, %es</span><br><span class="line">  movw $(SEG_KCPU&lt;&lt;3), %ax</span><br><span class="line">  movw %ax, %fs</span><br><span class="line">  movw %ax, %gs</span><br><span class="line"></span><br><span class="line">  # Call trap(tf), where tf=%esp</span><br><span class="line">  pushl %esp #push %esp的原因是将当前esp指向的tf结构基地址作为传递的参数</span><br><span class="line">  call trap</span><br><span class="line">  addl $4, %esp</span><br><span class="line"></span><br><span class="line">  # Return falls through to trapret...</span><br><span class="line">.globl trapret</span><br><span class="line">trapret:</span><br><span class="line">  #主要是弹出保存在ssX:espX指定的栈中的进程相关的寄存器，返回执行进程代码。</span><br><span class="line">  #第一次切换到用户态执行代码时，ssX:espX指定的栈中的进程相关的寄存器是在userinit函数中指定的。</span><br><span class="line">  popal #弹出通用寄存器中的上下文环境</span><br><span class="line">  popl %gs</span><br><span class="line">  popl %fs</span><br><span class="line">  popl %es</span><br><span class="line">  popl %ds</span><br><span class="line">  addl $0x8, %esp  # trapno and errcode</span><br><span class="line">  iret</span><br></pre></td></tr></table></figure></p>
+<p>alltraps将进程相关的寄存器压入到ssX:espX指定的栈中，这里是p-&gt;kstack指向的进程内核栈。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">                 /   +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                 |   | ss            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | esp           |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | eflags        |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | cs            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | eip           | &lt;-- 这里往上在iret时自动弹出到相关寄存器中</span><br><span class="line">                 |   +---------------+    </span><br><span class="line">                 |   | err           |  </span><br><span class="line">                 |   +---------------+  </span><br><span class="line">                 |   | trapno        |  </span><br><span class="line">                 |   +---------------+                       </span><br><span class="line">                 |   | ds            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | es            |                           </span><br><span class="line">                 |   +---------------+                           </span><br><span class="line">                 |   | fs            |                           </span><br><span class="line">struct trapframe |   +---------------+                           </span><br><span class="line">                 |   | gs            |                           </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | eax           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ecx           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | edx           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ebx           |   </span><br><span class="line">                 |   +---------------+                        </span><br><span class="line">                 |   | oesp          |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | ebp           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | esi           |   </span><br><span class="line">                 |   +---------------+   </span><br><span class="line">                 |   | edi           |   </span><br><span class="line">                 \   +---------------+ &lt;-- %esp</span><br></pre></td></tr></table></figure></p>
+<p>然后执行<strong>pushl %esp</strong>为trap()函数准备参数，调用trap()函数，处理所有的中断、trap，参数是一个trapframe。完成后弹出之前压栈的参数，%esp又指向trapframe结构了。到此为止，系统调用的实质工作已经完成了，接下来就要返回用户态了，也就是trapret，把进程状态相关的寄存器恢复回去。iret指令把int自动压栈的内容再自动恢复回去，这样程序就回到eip处了，即中断发生的指令处。 </p>
+<h2 id="系统调用的执行结果和参数"><a href="#系统调用的执行结果和参数" class="headerlink" title="系统调用的执行结果和参数"></a>系统调用的执行结果和参数</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//syscall.c</span><br><span class="line">void</span><br><span class="line">syscall(void)</span><br><span class="line">&#123;</span><br><span class="line">  int num; </span><br><span class="line">  num = proc-&gt;tf-&gt;eax;</span><br><span class="line">  if(num &gt; 0 &amp;&amp; num &lt; NELEM(syscalls) &amp;&amp; syscalls[num]) &#123;</span><br><span class="line">    proc-&gt;tf-&gt;eax = syscalls[num]();</span><br><span class="line">    //cprintf(&quot;\n%s -&gt; %d\n&quot;, syscall_name[num], proc-&gt;tf-&gt;eax);</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    cprintf(&quot;%d %s: unknown sys call %d\n&quot;,</span><br><span class="line">            proc-&gt;pid, proc-&gt;name, num);</span><br><span class="line">    proc-&gt;tf-&gt;eax = -1;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>inidcode.S执行<code>movl $SYS_exec, %eax</code>把trapno放到%eax里面，之后int的时候会跳转到alltraps，其会执行pushal将包括eax在内的通用寄存器进栈（其实是保存到proc-&gt;tf），之后在syscall函数就可以通过proc-&gt;tf-&gt;eax获取trapno了。而系统调用的执行结果也放在了eax中。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//syscall.c</span><br><span class="line">// 获取第n个32-bit参数</span><br><span class="line">int</span><br><span class="line">argint(int n, int *ip)</span><br><span class="line">&#123;</span><br><span class="line">  return fetchint(proc-&gt;tf-&gt;esp + 4 + 4*n, ip);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>参考argint等函数，可知道系统调用的参数保存在tf-&gt;esp指向的进程用户栈中，userinit函数中将其指向进程数据和指令物理内存空间的顶端PAGESIZE，initcode传递的参数保存在这里。</p>
+<h2 id="以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。"><a href="#以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。" class="headerlink" title="以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。"></a>以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">//设置cpu环境后，加载选中进程的页目录地址到cr3，切换为进程的页目录。此时仍然使用的是cpu栈（即在内核的指令和数据内存空间上），且由于内核空间映射到了进程页目录中，所以仍可执行内核代码。</span><br><span class="line">当前是swtch阶段，保存当前cpu的context，并将栈顶指针指向进程的context，以下是cpu栈：</span><br><span class="line">                      +---------------+ &lt;-- $(stack + KSTACKSIZE)(see in entry.S)</span><br><span class="line">                      | ...           |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | p-&gt;context    |                            </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      |&amp;cpu-&gt;scheduler|                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | eip           | &lt;-- 调用swtch函数的下一条指令 </span><br><span class="line">                      +---------------+      </span><br><span class="line">                      | ebp           | &lt;-- see in swtch.S </span><br><span class="line">                      +---------------+ </span><br><span class="line">                      | ebx           |</span><br><span class="line">                      +---------------+</span><br><span class="line">                      | esi           |</span><br><span class="line">                      +---------------+</span><br><span class="line">                      | edi           |</span><br><span class="line">                      +---------------+ &lt;-- %esp</span><br><span class="line">esp此时指向上面四个寄存器信息，现在改变cpu-&gt;scheduler指针的指向（指向位置仍然是cpu栈的某个单元），使其指向esp的位置。即让cpu的context变量保存了当前的cpu寄存器状态。</span><br><span class="line">然后esp指向进程的context，其位于进程内核栈内。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">//当前是swtch阶段，栈顶指针指向进程的context，将相关寄存器弹出之后执行ret指令，从栈中弹出数据作为eip，进程context的eip指向forkret函数入口地址。</span><br><span class="line">//forkret启动了一个log之后返回时将继续弹栈作为新的eip（不同于call指令，调用该函数不会将下一条指令的地址进栈。），即trapret地址。转入trapret阶段，弹出已设定的进程状态相关寄存器，由内核态切换到用户态，执行iret指令后开始执行用户代码。这时候esp指针将指进程的用户栈，其位于所分配的进程指令和数据物理地址空间（一页）的顶端。以下是进程内核栈：</span><br><span class="line"></span><br><span class="line">                      +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                  |   | ss            | &lt;-- (SEG_UDATA &lt;&lt; 3) | DPL_USER;  </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esp           | &lt;-- PGSIZE                          </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eflags        | &lt;-- FL_IF(allow hardware interrupts)                          </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | cs            | &lt;-- (SEG_UCODE &lt;&lt; 3) | DPL_USER;</span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eip           | &lt;-- 0(init进程)/main函数入口(其他进程)</span><br><span class="line">                  |   +---------------+ &lt;-- 这里往上在iret时自动弹出到相关寄存器中 </span><br><span class="line">                  |   | err           |  </span><br><span class="line">                  |   +---------------+  </span><br><span class="line">                  |   | trapno        |  </span><br><span class="line">                  |   +---------------+                       </span><br><span class="line">                  |   | ds            | &lt;-- (SEG_UDATA &lt;&lt; 3) | DPL_USER;</span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | es            | &lt;-- (SEG_UDATA &lt;&lt; 3) | DPL_USER; </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | fs            |                           </span><br><span class="line"> struct trapframe |   +---------------+                           </span><br><span class="line">                  |   | gs            |                           </span><br><span class="line">                  |   +---------------+  第一次切换到用户态执行代码前，trapframe </span><br><span class="line">                  |   | eax           |   </span><br><span class="line">                  |   +---------------+  的值是在userinit函数中指定的 </span><br><span class="line">                  |   | ecx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebx           |   </span><br><span class="line">                  |   +---------------+                        </span><br><span class="line">                  |   | oesp          |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebp           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | esi           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edi           |   </span><br><span class="line">                  \   +---------------+ &lt;-- p-&gt;tf                 </span><br><span class="line">                      | trapret       | &lt;-- 跳转到trapret，由allocproc()设置</span><br><span class="line">                  /   +---------------+ &lt;-- forkret返回</span><br><span class="line">                  |   | eip(=forkret) | &lt;-- 由allocproc()设置         </span><br><span class="line">                  |   +---------------+ &lt;-- 执行ret指令，forkret启动log</span><br><span class="line">                  |   | ebp           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">   struct context |   | ebx           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esi           |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | edi           |                           </span><br><span class="line">                  \   +-------+-------+ &lt;-- p-&gt;context, %esp            </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |     empty     |                           </span><br><span class="line">                      +---------------+ &lt;-- p-&gt;kstack</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//当前是initcode阶段，esp指向了进程的用户栈，参数进栈，然后执行int指令调用系统调用。以下是进程的用户栈：</span><br><span class="line"></span><br><span class="line">                      +---------------+ &lt;-- stack base(PGSIZE)</span><br><span class="line">                      | $argv         |   </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | $init         |                            </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | $0            |                             </span><br><span class="line">                      +-------+-------+ &lt;-- %esp            </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      |       |       |                           </span><br><span class="line">                      +---------------+ &lt;-- 0，initcode的代码放置在此</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">//当前是int阶段，stack转换到tr寄存器指定的tss里面的ss0:esp0，这是该进程对应的内核栈。自动将进程相关寄存器的内容进栈：ss、esp、eflag、cs、eip，这样返回用户态之后才能恢复执行。然后跳转到中断处理程序处，将errcode和trapno压栈，再跳转到alltraps处。以下是进程的内核栈：</span><br><span class="line"> </span><br><span class="line">                      +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                      | ss            |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | esp           | &lt;-- 0x00000ff4(压进三个参数)    </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | eflags        |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | cs            |                           </span><br><span class="line">                      +---------------+                           </span><br><span class="line">                      | eip           | &lt;-- 0x00000013(int指令的下一条指令地址)</span><br><span class="line">                      +---------------+ </span><br><span class="line">                      | err           |</span><br><span class="line">                      +---------------+</span><br><span class="line">                      | trapno        |</span><br><span class="line">                      +---------------+ &lt;-- %esp</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">//当前是alltraps阶段，将用户进程的寄存器保存到进程内核栈中，构成tramframe，由用户态切换到内核态。push %esp，将当前esp指向的tf结构基地址作为传递的参数，调用trap函数。以下是内核栈：</span><br><span class="line"></span><br><span class="line">                  /   +---------------+ &lt;-- stack base(= p-&gt;kstack + KSTACKSIZE)</span><br><span class="line">                  |   | ss            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | esp           | &lt;-- 0x00000ff4(压进三个参数)    </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eflags        |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | cs            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | eip           | &lt;-- 0x00000013(int指令的下一条指令地址)</span><br><span class="line">                  |   +---------------+ </span><br><span class="line">                  |   | err           |</span><br><span class="line">                  |   +---------------+</span><br><span class="line">                  |   | trapno        |</span><br><span class="line">                  |   +---------------+     </span><br><span class="line">                  |   | ds            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | es            |                           </span><br><span class="line">                  |   +---------------+                           </span><br><span class="line">                  |   | fs            |                           </span><br><span class="line"> struct trapframe |   +---------------+                           </span><br><span class="line">                  |   | gs            |                           </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | eax           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ecx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edx           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebx           |   </span><br><span class="line">                  |   +---------------+                        </span><br><span class="line">                  |   | oesp          |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | ebp           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | esi           |   </span><br><span class="line">                  |   +---------------+   </span><br><span class="line">                  |   | edi           |   </span><br><span class="line">                  \   +---------------+   </span><br><span class="line">                      | esp           |  </span><br><span class="line">                      +---------------+ &lt;-- %esp</span><br></pre></td></tr></table></figure>
+<p>trap阶段将会使用内核栈，而系统调用所传递的参数将由p-&gt;tf-&gt;esp处取得，这个位置一开始指向了虚拟地址0xPAGE处，即进程的用户栈。系统调用的工作完成后，跳过之前压栈的参数esp，由内核态切换到用户态，弹出保存在ssX:espX指定的栈中的进程相关的寄存器，返回执行进程代码。<br>上述所有阶段关于栈的变化是：<br><strong>切换到进程页目录/使用cpu栈–swtch切换到进程的内核栈–trapret根据设定切换内核态为用户态/使用进程的用户栈–initcode.S调用系统调用切换到进程的内核栈–alltraps保存进程寄存器并切换用户态为内核态–执行系统调用后trapret出栈进程相关的寄存器切换内核态为用户态/使用进程的用户栈</strong></p>
+<h2 id="exec执行“-init”程序。"><a href="#exec执行“-init”程序。" class="headerlink" title="exec执行“/init”程序。"></a>exec执行“/init”程序。</h2><p>进入系统调用时，stack转换到tr寄存器指定的tss里面的ss0:esp0，即该进程对应的内核栈。exec将会执行新程序，替换掉当前执行的用户程序，执行“/init”程序具体如下：1、根据“/init”路径查找对应的inode；2、根据inode读取程序的elf信息；3、调用setupkvm()创建页目录，并映射内核空间（页目录项所存页表的权限是用户可读写，二级页表项所存物理页的权限按照kmap设定）；4、根据inode和elf程序头表偏移量，按段读取程序。每次循环时：4.1、先读取段的程序头表项，程序头表项包含段的虚拟地址及段占据的内存大小，4.2、根据信息调用allocuvm()分配出物理空间，分配过程会将程序的虚拟地址映射到分配到的物理页地址上，二级页表项所存物理页的权限是用户可读写，4.3、根据程序头表项信息（段偏移及段的文件大小）读取段到内存中；5、继续为程序分配两页物理空间，二级页表项所存物理页的权限是用户可读写，取消第一页用户可读写权限，第二页将作为用户栈。6、构建用户栈数据（参数等，见下）；7、更新进程的页目录、用户空间size、进程的tf-&gt;eip为elf.entry(main)、tf-&gt;esp为用户栈指针当前位置，然后调用switchuvm()函数设置cpu环境，加载进程的页目录地址到cr3，释放旧页目录空间；8、返回trapret处，切换为用户态，返回执行init程序代码，不返回initcode.S。<br><img src="/2017/08/20/笔记07-xv6-启动到执行第一个进程/2.JPG" title="构建用户栈数据"><br>由此可以注意到，exec改变的有<strong>进程的页目录、用户空间内容、用户空间size、进程的tf-&gt;eip、tf-&gt;esp、用户栈、进程名</strong>，没有改变的有<strong>进程文件描述符、进程pid、父进程、内核栈、进程状态、当前目录</strong>等。  </p>
+<h1 id="其他问题"><a href="#其他问题" class="headerlink" title="其他问题"></a>其他问题</h1><p><strong>进程的内核栈有没有设置访问权限？</strong><br>所谓的访问权限指的是进程页目录、二级页表的权限。自始自终进程的内核栈都没有映射进页目录，所以不存在设置访问权限的问题，从进程用户的角度来讲，它是无法访问到进程的内核栈的，这是由内核维护的。</p>
+<h1 id="遗留的问题"><a href="#遗留的问题" class="headerlink" title="遗留的问题"></a>遗留的问题</h1><p><code>各种寄存器的作用？</code>   </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/自学项目/" rel="tag"># 自学项目</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/20/笔记06-x86-v6-book-Chapter-1-Operating-system-organization/" rel="next" title="笔记06 - x86 v6 book | Chapter 1 Operating system organization">
+                <i class="fa fa-chevron-left"></i> 笔记06 - x86 v6 book | Chapter 1 Operating system organization
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/20/笔记08-HW3-xv6-system-calls/" rel="prev" title="笔记08 - HW3: xv6 system calls">
+                笔记08 - HW3: xv6 system calls <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#启动分页"><span class="nav-number">1.</span> <span class="nav-text">启动分页</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核初始化"><span class="nav-number">2.</span> <span class="nav-text">内核初始化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动多处理器"><span class="nav-number">3.</span> <span class="nav-text">启动多处理器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动init进程"><span class="nav-number">4.</span> <span class="nav-text">启动init进程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建进程数据结构"><span class="nav-number">4.1.</span> <span class="nav-text">创建进程数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建进程地址空间"><span class="nav-number">4.2.</span> <span class="nav-text">构建进程地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进入调度器开始执行"><span class="nav-number">4.3.</span> <span class="nav-text">进入调度器开始执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#系统调用的执行结果和参数"><span class="nav-number">4.4.</span> <span class="nav-text">系统调用的执行结果和参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。"><span class="nav-number">4.5.</span> <span class="nav-text">以下是scheduler调度器调用swtch函数到initcode调用的第一个系统调用结束的栈变化。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exec执行“-init”程序。"><span class="nav-number">4.6.</span> <span class="nav-text">exec执行“/init”程序。</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他问题"><span class="nav-number">5.</span> <span class="nav-text">其他问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#遗留的问题"><span class="nav-number">6.</span> <span class="nav-text">遗留的问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

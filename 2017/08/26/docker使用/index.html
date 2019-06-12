@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Docker,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="CentOS 7中docker的安装和启动若需要更新源备份/etc/yum.repos.d/CentOS-Base.repo1mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup 下载源文件：1wget http://mirrors.163.com/.help/CentOS7-Base-163.r">
+<meta name="keywords" content="Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docker使用">
+<meta property="og:url" content="http://www.jianzzz.com/2017/08/26/docker使用/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="CentOS 7中docker的安装和启动若需要更新源备份/etc/yum.repos.d/CentOS-Base.repo1mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup 下载源文件：1wget http://mirrors.163.com/.help/CentOS7-Base-163.r">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/3.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/4.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/5.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/6.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/7.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/8.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/9.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2017/08/26/docker使用/10.PNG">
+<meta property="og:updated_time" content="2019-06-12T12:04:32.055Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="docker使用">
+<meta name="twitter:description" content="CentOS 7中docker的安装和启动若需要更新源备份/etc/yum.repos.d/CentOS-Base.repo1mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup 下载源文件：1wget http://mirrors.163.com/.help/CentOS7-Base-163.r">
+<meta name="twitter:image" content="http://www.jianzzz.com/2017/08/26/docker使用/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2017/08/26/docker使用/">
+
+
+
+
+
+  <title>docker使用 | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/docker使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">docker使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T12:04:40+08:00">
+                2017-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工具/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="CentOS-7中docker的安装和启动"><a href="#CentOS-7中docker的安装和启动" class="headerlink" title="CentOS 7中docker的安装和启动"></a>CentOS 7中docker的安装和启动</h1><h2 id="若需要更新源"><a href="#若需要更新源" class="headerlink" title="若需要更新源"></a>若需要更新源</h2><p>备份/etc/yum.repos.d/CentOS-Base.repo<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup</span><br></pre></td></tr></table></figure></p>
+<p>下载源文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://mirrors.163.com/.help/CentOS7-Base-163.repo</span><br></pre></td></tr></table></figure></p>
+<p>运行以下命令生成缓存：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum clean all</span><br><span class="line">yum makecache</span><br></pre></td></tr></table></figure></p>
+<h2 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install docker</span><br></pre></td></tr></table></figure>
+<h2 id="启动docker服务"><a href="#启动docker服务" class="headerlink" title="启动docker服务"></a>启动docker服务</h2><p>安装完成后，使用下面的命令来启动docker服务，并将其设置为开机启动：<br>采用CentOS 7中支持的新式 systemd 语法，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl start docker.service</span><br><span class="line">systemctl enable docker.service</span><br></pre></td></tr></table></figure></p>
+<h1 id="ubuntu14-04安装"><a href="#ubuntu14-04安装" class="headerlink" title="ubuntu14.04安装"></a>ubuntu14.04安装</h1><h2 id="更新源"><a href="#更新源" class="headerlink" title="更新源"></a>更新源</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Precise 12.04 (LTS)	deb https://apt.dockerproject.org/repo ubuntu-precise main</span><br><span class="line">Trusty 14.04 (LTS)	deb https://apt.dockerproject.org/repo ubuntu-trusty main</span><br><span class="line">Wily 15.10	deb https://apt.dockerproject.org/repo ubuntu-wily main</span><br><span class="line">Xenial 16.04 (LTS)	deb https://apt.dockerproject.org/repo ubuntu-xenial main</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;deb https://apt.dockerproject.org/repo ubuntu-trusty main&quot; &gt; /etc/apt/sources.list.d/docker.list</span><br><span class="line">apt-get update</span><br></pre></td></tr></table></figure>
+<h2 id="安装docker-1"><a href="#安装docker-1" class="headerlink" title="安装docker"></a>安装docker</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install docker-engine</span><br></pre></td></tr></table></figure>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker version</span><br><span class="line">service docker start</span><br></pre></td></tr></table></figure>
+<h1 id="使用registry容器"><a href="#使用registry容器" class="headerlink" title="使用registry容器"></a>使用registry容器</h1><h2 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull daocloud.io/library/registry</span><br></pre></td></tr></table></figure>
+<h2 id="启动registry"><a href="#启动registry" class="headerlink" title="启动registry"></a>启动registry</h2><p>HOST_DIR为宿主机目录，存储镜像文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --restart always -p 5000:5000 -v &lt;HOST_DIR&gt;:/tmp/registry daocloud.io/registry</span><br></pre></td></tr></table></figure></p>
+<h2 id="push-docker镜像"><a href="#push-docker镜像" class="headerlink" title="push docker镜像"></a>push docker镜像</h2><p>在需要pull/push的机子上，centos下编辑/etc/sysconfig/docker，ubuntu下修改/etc/default/docker，在OPTIONS项后面加入<code>–insecure-registry ip:5000</code>，然后重启docker。</p>
+<p>按照docker镜像命名规则为镜像打tag：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker tag b477a2162de3 116.56.140.66:5000/jianzzz/red5:v1</span><br></pre></td></tr></table></figure></p>
+<p>push到私有docker-registry：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker push 116.56.140.66:5000/jianzzz/red5:v1</span><br></pre></td></tr></table></figure></p>
+<p>docker中镜像的命名规则，如：<code>registry.domain.com/mycom/base:latest</code>，这是一个完整的image名称，各部分的作用：<br>registry.domain.com： image所在服务器地，如果是官方的hub部分忽略<br>mycom：namespace，被称为命名空间，或者说成是你镜像的一个分类<br>base：这个是镜像的具体名字<br>latest：这是此image的版本号，当然也可能是其它的，如1.1之类的</p>
+<h1 id="使用remote-api"><a href="#使用remote-api" class="headerlink" title="使用remote api"></a>使用remote api</h1><p>Centos docker配置文件位置：<code>/etc/sysconfig/docker</code><br>Ubuntu docker配置文件位置：<code>/etc/default/docker</code></p>
+<p>修改配置文件中的内容如下：<br><code>OPTIONS=&#39;-H tcp://0.0.0.0:[docker_port] -H unix:///var/run/docker.sock --selinux-enabled&#39;</code><br>将docker_port换成想要配置且未被占用的端口号，比如2375   </p>
+<p>ubuntu 14.04为：<code>DOCKER_OPTS=&#39;-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --selinux-enabled&#39;</code></p>
+<p>重启docker服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure></p>
+<p>查看服务启动<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | grep docker</span><br></pre></td></tr></table></figure></p>
+<p>开放防火墙端口<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">systemctl start firewalld</span><br><span class="line">firewall-cmd --zone=public --add-port=2375/tcp --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure></p>
+<p>或<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -I INPUT -p tcp --dport 2375 -j ACCEPT</span><br></pre></td></tr></table></figure></p>
+<h1 id="非root用户直接使用docker"><a href="#非root用户直接使用docker" class="headerlink" title="非root用户直接使用docker"></a>非root用户直接使用docker</h1><p>参考<a href="https://docs.docker.com/engine/installation/linux/centos/" target="_blank" rel="noopener">https://docs.docker.com/engine/installation/linux/centos/</a><br>创建docker组<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo groupadd docker</span><br></pre></td></tr></table></figure></p>
+<p>将当前用户加入到docker组<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo usermod -aG docker your_username</span><br></pre></td></tr></table></figure></p>
+<p>重启docker-daemon<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure></p>
+<p>log out并重新log in </p>
+<h1 id="docker-run权限"><a href="#docker-run权限" class="headerlink" title="docker run权限"></a>docker run权限</h1><p>有时候启动一个容器的时候可能会导致权限问题，导致容器一直restarting，比如启动mysql容器的时候，使用了volume，却发现启动不成功。<br>使用<code>docker logs 容器id</code>可以查看容器运行日志。</p>
+<p>Centos7 可能出现<code>Permission denied</code>的问题。<br>原因：CentOS7中的安全模块selinux把权限禁掉了，至少有以下三种方式解决挂载的目录没有权限的问题：<br>1、在运行容器的时候，给容器加特权，及加上 –privileged 参数。使用该参数，container内的root拥有真正的root权限。该方法在centos7下有效，但在ubuntu14.04会出现docker run不成功的情况（ubuntu14.04倒不会出现<code>Permission denied</code>的问题）。<br>2、关闭selinux：<br>查看SELinux状态命令：/usr/sbin/sestatus -v  或 getenforce<br>临时关闭：<br>setenforce 0 #设置SELinux 成为permissive模式<br>setenforce 1 #设置SELinux 成为enforcing模式<br>永久关闭，需要重启机器：修改<code>/etc/selinux/config</code>文件，将<code>SELINUX=enforcing</code>改为<code>SELINUX=disabled</code>，重启机器。<br>3、添加selinux规则，改变要挂载的目录的安全性文本。<br>更改安全性文本的格式如下<br>chcon [-R] [-t type] [-u user] [-r role] 文件或者目录</p>
+<p>Docker Volume权限管理可参考： <a href="https://yq.aliyun.com/articles/53990" target="_blank" rel="noopener">https://yq.aliyun.com/articles/53990</a></p>
+<h1 id="dockerfile中entrypoint和cmd"><a href="#dockerfile中entrypoint和cmd" class="headerlink" title="dockerfile中entrypoint和cmd"></a>dockerfile中entrypoint和cmd</h1><p>1、ENTRYPOINT，表示镜像在初始化时需要执行的命令，不可被重写覆盖，需谨记。<br>2、CMD，表示镜像运行默认参数，可被重写覆盖。<br>3、ENTRYPOINT/CMD都只能在文件中存在一次，并且最后一个生效 多个存在，只有最后一个生效，其它无效！<br>4、需要初始化运行多个命令，彼此之间可以使用 &amp;&amp; 隔开，但最后一个须要为无限运行的命令，需切记！</p>
+<p>参考 <a href="http://crosbymichael.com/dockerfile-best-practices.html" target="_blank" rel="noopener">Dockerfile Best Practices</a>和<a href="http://cloud.51cto.com/art/201411/457338.htm" target="_blank" rel="noopener">论docker中 CMD 与 ENTRYPOINT 的区别</a>  </p>
+<h2 id="cmd的两种格式"><a href="#cmd的两种格式" class="headerlink" title="cmd的两种格式"></a>cmd的两种格式</h2><p><strong>entrypoint类似</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CMD /bin/echo</span><br><span class="line"># or</span><br><span class="line">CMD [&quot;/bin/echo&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>格式1不是数组，命令在执行前会被加上<code>/bin/sh -c</code>；格式2是数组，执行效果如愿。</p>
+<h2 id="给entrypoint传递参数"><a href="#给entrypoint传递参数" class="headerlink" title="给entrypoint传递参数"></a>给entrypoint传递参数</h2><p><code>docker run</code>期间可以给entrypoint传递参数。CMD 和 ENTRYPOINT 放在一起效果更佳：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ENTRYPOINT [&quot;/usr/bin/mysql&quot;]</span><br><span class="line"></span><br><span class="line">CMD [&quot;--help&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>一旦设置了entrypoint，<code>docker run</code>期间传递的所有参数将作为ENTRYPOINT（”/usr/bin/mysql”）的参数。而CMD默认被设为<code>[&quot;--help&quot;]</code>，一旦<code>docker run</code>期间没有传递任何参数，则<code>docker run</code>会输出help的信息。</p>
+<h1 id="基于mysql镜像构建新镜像"><a href="#基于mysql镜像构建新镜像" class="headerlink" title="基于mysql镜像构建新镜像"></a>基于mysql镜像构建新镜像</h1><p><a href="https://github.com/docker-library/mysql/blob/c207cc19a272a6bfe1916c964ed8df47f18479e7/5.7/Dockerfile" target="_blank" rel="noopener">https://github.com/docker-library/mysql/blob/c207cc19a272a6bfe1916c964ed8df47f18479e7/5.7/Dockerfile</a><br>查看docker hub上mysql的Dockerfile：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ENTRYPOINT [&quot;docker-entrypoint.sh&quot;]</span><br><span class="line"></span><br><span class="line">EXPOSE 3306</span><br><span class="line">CMD [&quot;mysqld&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>可以看出该Dockerfile已经占据了ENTRYPOINT和CMD，且”mysqld”作为”docker-entrypoint.sh”的默认参数。假设我们扩展该镜像，加上vnc等服务，则可以将mysql启动放置到supervisor中，并且在新的dockerfile中直接运行supervisor。请注意在supervisor中启动mysql并不是<code>command=docker-entrypoint.sh</code>或<code>command=mysqld</code>，而是<code>command=docker-entrypoint.sh mysqld</code>。</p>
+<p>Dockerfile<br><img src="/2017/08/26/docker使用/1.PNG" title="Dockerfile"><br>vnc.sh<br><img src="/2017/08/26/docker使用/2.PNG" title="vnc.sh"><br>supervisord.conf<br><img src="/2017/08/26/docker使用/3.PNG" title="supervisord.conf">  </p>
+<p><strong>上述方案的缺点是：</strong>假如我们使用该镜像启动了一个容器，并且启动另一个容器连接该镜像，然后执行数据库导入语句，如<code>docker run -v /home/ubuntu/Desktop/web/db/mysql_5_7_16_vnc_latest_1482889787/data:/tmp/data:rw --link mysql_5_7_16_vnc_latest_1482889787:mysql --rm mysql-5.7.16-vnc:latest /bin/sh -c &#39;mysql -h&quot;$MYSQL_PORT_3306_TCP_ADDR&quot; -P&quot;$MYSQL_PORT_3306_TCP_PORT&quot; -uroot -p&quot;$MYSQL_ENV_MYSQL_ROOT_PASSWORD&quot; -e &quot;DROP DATABASE IF EXISTS expand;CREATE DATABASE expand DEFAULT CHARSET utf8 COLLATE utf8_general_ci;use expand;source tmp/data/system-expand.sql;&quot;&#39;</code>。关于第二个容器，因为它要执行mysql语句，因此需要mysql服务，一般选择跟第一个容器相同的mysql镜像来启动第二个连接容器。但由于我们将supervisor作为ENTRYPOINT，因此可能会出现以下错误：<br><img src="/2017/08/26/docker使用/4.PNG" title="supervisor错误"><br>出错原因是docker run的参数被当作supervisor的参数了，因此我们继续修改上述文件，将supervisor放到脚本中执行：<br>Dockerfile<br><img src="/2017/08/26/docker使用/5.PNG" title="Dockerfile"><br>vnc.sh<br><img src="/2017/08/26/docker使用/6.PNG" title="vnc.sh"><br>supervisord.conf<br><img src="/2017/08/26/docker使用/7.PNG" title="supervisord.conf"> </p>
+<p><strong>继续完善：</strong>上述方案仍有缺陷，连接容器是基于vnc-mysql镜像启动的，但是并不需要vnc等相关服务，因此应该添加一个环境变量控制是否启动vnc。另外，vnc.sh会wait等待supervisor进程，因此为了使得docker run过程指定的<code>/bin/sh -c &quot;...&quot;</code>能够生效，应该在wait之前添加<code>exec &quot;$@&quot;</code>。<br>Dockerfile<br><img src="/2017/08/26/docker使用/8.PNG" title="Dockerfile"><br>vnc.sh<br><img src="/2017/08/26/docker使用/9.PNG" title="vnc.sh"><br>supervisord.conf<br><img src="/2017/08/26/docker使用/10.PNG" title="supervisord.conf"> </p>
+<p>最终的docker run实例：  </p>
+<pre><code>docker run -v /home/ubuntu/Desktop/web/db/mysql_5_7_16_vnc_latest_1482889787/data:/tmp/data:rw --link mysql_5_7_16_vnc_latest_1482889787:mysql -e MYSQL_ROOT_PASSWORD=any_noused -e RUN_VNC=no --rm mysql-5.7.16-vnc:latest /bin/sh -c &apos;mysql -h&quot;$MYSQL_PORT_3306_TCP_ADDR&quot; -P&quot;$MYSQL_PORT_3306_TCP_PORT&quot; -uroot -p&quot;$MYSQL_ENV_MYSQL_ROOT_PASSWORD&quot; -e &quot;DROP DATABASE IF EXISTS expand;CREATE DATABASE expand DEFAULT CHARSET utf8 COLLATE utf8_general_ci;use expand;source tmp/data/system-expand.sql;&quot;&apos;
+</code></pre><p>奇怪的是，原本不使用supervisor管理mysqld的时候，连接容器是不需要指定<code>MYSQL_ROOT_PASSWORD</code>的（奇怪于为什么不需要，因为mysql容器的启动是需要指定<code>MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD,MYSQL_RANDOM_ROOT_PASSWORD</code>其中之一的），而使用supervisor之后就需要指定了，虽然这个密码在这里是没有实际作用的。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/26/孤儿进程和僵尸进程/" rel="next" title="孤儿进程和僵尸进程">
+                <i class="fa fa-chevron-left"></i> 孤儿进程和僵尸进程
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/Learn-Git-Branching-学习笔记/" rel="prev" title="Learn Git Branching 学习笔记">
+                Learn Git Branching 学习笔记 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CentOS-7中docker的安装和启动"><span class="nav-number">1.</span> <span class="nav-text">CentOS 7中docker的安装和启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#若需要更新源"><span class="nav-number">1.1.</span> <span class="nav-text">若需要更新源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装docker"><span class="nav-number">1.2.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动docker服务"><span class="nav-number">1.3.</span> <span class="nav-text">启动docker服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ubuntu14-04安装"><span class="nav-number">2.</span> <span class="nav-text">ubuntu14.04安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#更新源"><span class="nav-number">2.1.</span> <span class="nav-text">更新源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装docker-1"><span class="nav-number">2.2.</span> <span class="nav-text">安装docker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动"><span class="nav-number">2.3.</span> <span class="nav-text">启动</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用registry容器"><span class="nav-number">3.</span> <span class="nav-text">使用registry容器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#拉取镜像"><span class="nav-number">3.1.</span> <span class="nav-text">拉取镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动registry"><span class="nav-number">3.2.</span> <span class="nav-text">启动registry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#push-docker镜像"><span class="nav-number">3.3.</span> <span class="nav-text">push docker镜像</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用remote-api"><span class="nav-number">4.</span> <span class="nav-text">使用remote api</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#非root用户直接使用docker"><span class="nav-number">5.</span> <span class="nav-text">非root用户直接使用docker</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-run权限"><span class="nav-number">6.</span> <span class="nav-text">docker run权限</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dockerfile中entrypoint和cmd"><span class="nav-number">7.</span> <span class="nav-text">dockerfile中entrypoint和cmd</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#cmd的两种格式"><span class="nav-number">7.1.</span> <span class="nav-text">cmd的两种格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#给entrypoint传递参数"><span class="nav-number">7.2.</span> <span class="nav-text">给entrypoint传递参数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基于mysql镜像构建新镜像"><span class="nav-number">8.</span> <span class="nav-text">基于mysql镜像构建新镜像</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
