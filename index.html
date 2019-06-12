@@ -392,7 +392,7 @@
       
         
           
-            <h1 id="fork私有项目"><a href="#fork私有项目" class="headerlink" title="fork私有项目"></a>fork私有项目</h1><h2 id="删除配置"><a href="#删除配置" class="headerlink" title="删除配置"></a>删除配置</h2><p>创建全新分支，不保留任何历史，但是包含当前分支所有文件<br>git checkout –orphan new</p>
+            <h1 id="fork私有项目"><a href="#fork私有项目" class="headerlink" title="fork私有项目"></a>fork私有项目</h1><h2 id="删除敏感配置"><a href="#删除敏感配置" class="headerlink" title="删除敏感配置"></a>删除敏感配置</h2><p>创建全新分支，不保留任何历史，但是包含当前分支所有文件<br>git checkout –orphan new</p>
 <p>git add -A</p>
 <p>删除不必要的文件：<br>git rm xxx -f</p>
 <p>git commit -m “init”</p>
@@ -401,16 +401,17 @@
 <p>git branch -a</p>
 <p>git branch -m master</p>
 <p>git push -f origin master</p>
-<h2 id="删除多余分支，比如私有项目的mr分支"><a href="#删除多余分支，比如私有项目的mr分支" class="headerlink" title="删除多余分支，比如私有项目的mr分支"></a>删除多余分支，比如私有项目的mr分支</h2><p>git branch -D -r origin/mr</p>
+<h2 id="删除多余分支"><a href="#删除多余分支" class="headerlink" title="删除多余分支"></a>删除多余分支</h2><p>git branch -D -r origin/mr</p>
 <p>git push origin :mr</p>
-<h2 id="至此，项目可以开源了"><a href="#至此，项目可以开源了" class="headerlink" title="至此，项目可以开源了"></a>至此，项目可以开源了</h2><h1 id="私有项目提交后"><a href="#私有项目提交后" class="headerlink" title="私有项目提交后"></a>私有项目提交后</h1><h2 id="移除mr分支，创建新分支"><a href="#移除mr分支，创建新分支" class="headerlink" title="移除mr分支，创建新分支"></a>移除mr分支，创建新分支</h2><p>git branch -D -r origin/mr</p>
+<p>至此，项目可以开源了</p>
+<h1 id="私有项目更新合并"><a href="#私有项目更新合并" class="headerlink" title="私有项目更新合并"></a>私有项目更新合并</h1><h2 id="创建新mr分支"><a href="#创建新mr分支" class="headerlink" title="创建新mr分支"></a>创建新mr分支</h2><p>git branch -D -r origin/mr</p>
 <p>git push origin :mr</p>
 <p>git checkout –orphan mr</p>
 <p>git add -A</p>
 <p>删除不必要的文件：<br>git rm xxx -f</p>
 <p>git commit -m “你的注释”</p>
 <p>git push origin mr</p>
-<h1 id="提交合并"><a href="#提交合并" class="headerlink" title="提交合并"></a>提交合并</h1><p>开源项目使用合并请求</p>
+<h1 id="提交合并"><a href="#提交合并" class="headerlink" title="提交合并"></a>提交合并</h1><p>开源项目使用合并请求，合并私有项目mr分支</p>
 
           
         
