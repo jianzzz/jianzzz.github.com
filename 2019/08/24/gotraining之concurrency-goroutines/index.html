@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+<meta name="google-site-verification" content="tWqzAeLYHxufjgoQXpm3qh6YTje2bah03cY7dTfBvWw">
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="go,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="设计指南concurrent-software-design 并发软件设计并发意味着“无序”执行。取一组本来会按顺序执行的指令，然后找到一种方法，在不按顺序执行它们的情况下，仍然生成相同的结果。无序执行需要能够在复出复杂性成本的同时增加足够的性能收益。根据问题，无序执行可能是合适的，甚至是没有意义的。并发不同于并行。并行意味着同时执行两条或多条指令。只有当至少有2个操作系统(OS)和硬件线程可用，">
+<meta name="keywords" content="go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gotraining之concurrency-goroutines">
+<meta property="og:url" content="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/index.html">
+<meta property="og:site_name" content="蓝色步行者">
+<meta property="og:description" content="设计指南concurrent-software-design 并发软件设计并发意味着“无序”执行。取一组本来会按顺序执行的指令，然后找到一种方法，在不按顺序执行它们的情况下，仍然生成相同的结果。无序执行需要能够在复出复杂性成本的同时增加足够的性能收益。根据问题，无序执行可能是合适的，甚至是没有意义的。并发不同于并行。并行意味着同时执行两条或多条指令。只有当至少有2个操作系统(OS)和硬件线程可用，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/1.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/2.PNG">
+<meta property="og:image" content="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/3.PNG">
+<meta property="og:updated_time" content="2019-09-01T12:38:34.633Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="gotraining之concurrency-goroutines">
+<meta name="twitter:description" content="设计指南concurrent-software-design 并发软件设计并发意味着“无序”执行。取一组本来会按顺序执行的指令，然后找到一种方法，在不按顺序执行它们的情况下，仍然生成相同的结果。无序执行需要能够在复出复杂性成本的同时增加足够的性能收益。根据问题，无序执行可能是合适的，甚至是没有意义的。并发不同于并行。并行意味着同时执行两条或多条指令。只有当至少有2个操作系统(OS)和硬件线程可用，">
+<meta name="twitter:image" content="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/1.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/">
+
+
+
+
+
+  <title>gotraining之concurrency-goroutines | 蓝色步行者</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">蓝色步行者</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">每个人都有自己的梦想</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">gotraining之concurrency-goroutines</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-24T15:35:41+08:00">
+                2019-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Go/" itemprop="url" rel="index">
+                    <span itemprop="name">Go</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="设计指南"><a href="#设计指南" class="headerlink" title="设计指南"></a>设计指南</h1><p><a href="https://github.com/ardanlabs/gotraining/tree/master/topics/go#concurrent-software-design" target="_blank" rel="noopener">concurrent-software-design</a></p>
+<h2 id="并发软件设计"><a href="#并发软件设计" class="headerlink" title="并发软件设计"></a>并发软件设计</h2><p>并发意味着“无序”执行。取一组本来会按顺序执行的指令，然后找到一种方法，在不按顺序执行它们的情况下，仍然生成相同的结果。无序执行需要能够在复出复杂性成本的同时增加足够的性能收益。根据问题，无序执行可能是合适的，甚至是没有意义的。<br>并发不同于并行。并行意味着同时执行两条或多条指令。只有当至少有2个操作系统(OS)和硬件线程可用，并且至少有2个goroutine，每个goroutine在每个OS/硬件线程上独立执行指令时，才可能实现并行。<br>开发者和运行时都有责任管理应用程序的并发性。</p>
+<h3 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h3><ul>
+<li>应用程序必须完整地启动和关闭<ul>
+<li>知道创建的每个goroutine如何以及何时终止</li>
+<li>创建的所有goroutine都应该在main返回之前终止</li>
+<li>应用程序应该能够按需关闭，甚至在负载下，以一种受控的方式关闭<ul>
+<li>您希望停止接受新请求，并完成已有的请求（减载）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>识别和监视应用程序中可能存在的背压临界点<ul>
+<li>当goroutine需要等待时，通道、互斥锁和原子函数会产生背压</li>
+<li>有一点背压是好的，这意味着有一个良好的平衡</li>
+<li>很多背压是不好的，这意味着事情是不平衡的</li>
+<li>背压不平衡会导致：<ul>
+<li>软件内部和整个平台的故障</li>
+<li>您的应用程序要崩溃、内爆或冻结</li>
+</ul>
+</li>
+<li>测量背压是测量应用程序健康状况的一种方法</li>
+</ul>
+</li>
+<li>速率限制，以防止应用程序存在压倒性的背压<ul>
+<li>每个系统都有一个断点，您必须知道它对于您的应用程序是什么</li>
+<li>一旦新请求过载，应用程序应该尽早拒绝它们<ul>
+<li>不要做超过你一次合理工作量的工作</li>
+<li>当你处于临界质量时，把它往后推。创建自己的外部背压</li>
+</ul>
+</li>
+<li>在合理和实用的情况下，使用外部系统进行速率限制</li>
+</ul>
+</li>
+<li>使用超时来释放应用程序中的背压<ul>
+<li>任何请求或任务都不允许长时间执行</li>
+<li>确定用户愿意等待多长时间</li>
+<li>高级调用应该告诉低级调用它们必须运行多长时间</li>
+<li>在顶层，用户应该决定他们愿意等待多久</li>
+<li>使用Context包<ul>
+<li>用户等待的函数应该具有上下文Context<ul>
+<li>这些函数应该select &lt;-ctx.Done()，否则它们将无限期阻塞</li>
+</ul>
+</li>
+<li>只有当您有充分的理由认为函数的执行有实际的时间限制时，才可以在Context中设置超时</li>
+<li>允许上游调用程序决定何时应该取消Context</li>
+<li>当用户放弃或显式中止调用时，取消Context</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>应用架构师需要：<ul>
+<li>当问题发生时，找出它们</li>
+<li>止血</li>
+<li>将系统恢复到正常状态</li>
+</ul>
+</li>
+</ul>
+<h1 id="Scheduling-In-Go-Part-I-OS-Scheduler"><a href="#Scheduling-In-Go-Part-I-OS-Scheduler" class="headerlink" title="Scheduling In Go : Part I - OS Scheduler"></a>Scheduling In Go : Part I - OS Scheduler</h1><p><a href="https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html" target="_blank" rel="noopener">Scheduling In Go : Part I - OS Scheduler</a><br>这部分主讲OS调度器。要正确地设计多线程软件，对OS和Go调度程序的工作原理有一个全面而有代表性的理解是很重要的。这篇文章重点介绍OS调度程序的高级机制和语义。</p>
+<h2 id="OS调度程序"><a href="#OS调度程序" class="headerlink" title="OS调度程序"></a>OS调度程序</h2><p>程序是一系列需要依次执行的机器指令。为了实现这一点，操作系统使用线程的概念。线程的任务是解释并顺序执行分配给它的一组指令。继续执行，直到没有更多的指令供线程执行为止。<br>每个程序运行时都创建一个进程，每个进程都有一个初始线程。线程能够创建更多的线程。所有这些不同的线程都是独立运行的，并且调度决策是在线程级别而不是在进程级别做出的。线程可以并发运行（每个线程轮流运行一个单独的内核），也可以并行运行（每个线程同时运行在不同的内核上）。线程还维护自己的状态，以便安全、本地和独立地执行它们的指令。<br>如果有线程可以执行，OS调度程序负责确保内核不是空闲的。它还必须创建一个假象，即所有可以执行的线程都在同时执行。在创建这个假象的过程中，调度程序需要运行优先级较高的线程，而不是优先级较低的线程。但是，具有较低优先级的线程不能缺少执行时间。调度程序还需要通过快速、明智的决策尽可能减少调度延迟。</p>
+<h2 id="执行指令"><a href="#执行指令" class="headerlink" title="执行指令"></a>执行指令</h2><p>程序计数器（PC）有时称为指令指针（IP），它允许线程跟踪要执行的下一条指令。在大多数处理器中，PC指向下一条指令，而不是当前指令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">goroutine 1 [running]:</span><br><span class="line">   main.example(0xc000042748, 0x2, 0x4, 0x106abae, 0x5, 0xa)</span><br><span class="line">       stack_trace/example1/example1.go:13 +0x39                 &lt;- LOOK HERE</span><br><span class="line">   main.main()</span><br><span class="line">       stack_trace/example1/example1.go:8 +0x72                  &lt;- LOOK HERE</span><br></pre></td></tr></table></figure></p>
+<p>这些数字表示从各自函数顶部偏移的PC值。+0x39 PC偏移量表示如果程序没有panic，线程将在example函数中执行的下一条指令。如果返回到main函数，则main函数中的下一条指令是0+x72 PC偏移量。更重要的是，指针之前的指令表示正在执行什么指令。</p>
+<h2 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h2><p>线程状态指示调度程序在线程中所扮演的角色。线程可以处于三种状态之一：等待、可运行或执行。</p>
+<ul>
+<li>Waiting<br>线程被停止并等待唤醒。可能是由于等待硬件（磁盘、网络）、操作系统（系统调用）或同步调用（原子、互斥）等原因。这些类型的延迟是性能差的根本原因。</li>
+<li>Runnable<br>线程需要内核时间以便能够执行分配给它的机器指令。如果有很多线程需要时间，那么线程必须等待更长时间才能获得时间。而且，随着更多的线程争夺时间，任何给定线程获得的单个时间量都会缩短。这种类型的调度延迟也可能导致性能下降。</li>
+<li>Executing<br>线程已被放置在一个核上，并且正在执行它的机器指令。</li>
+</ul>
+<h2 id="工作类型"><a href="#工作类型" class="headerlink" title="工作类型"></a>工作类型</h2><p>线程可以做两种类型的工作：cpu绑定和io绑定。<br>CPU-Bound：CPU-Bound工作是不断进行计算的，不会导致线程处于Waiting状态。例子：计算Pi到第n位数字。<br>IO-Bound：这是导致线程进入Waiting状态的工作。这项工作包括请求通过网络访问资源或对操作系统进行系统调用。需要访问数据库的线程将是io绑定的。</p>
+<h2 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>在核上交换线程的物理行为称为上下文切换。当调度程序将Executing线程从核中取出并用Runnable线程替换它时，将发生上下文切换。从运行队列中选择的线程将进入Executing状态。被拉出的线程可以回到Runnable状态（如果它仍然有能力运行），或者进入Waiting状态（如果由于io绑定类型的请求而被替换）。<br>上下文切换被认为是昂贵的，因为它需要时间来切换线程上、下核。实际上，程序正在失去在上下文切换期间执行大量指令的能力。<br>如果有一个专注于io绑定工作的程序，那么上下文切换将是一个优势。一旦一个线程进入Waiting状态，另一个处于Runnable状态的线程将代替它。这使得核总是在工作。<br>如果程序专注于cpu绑定的工作，那么上下文切换将成为性能噩梦。由于线程总是有工作要做，上下文切换会阻止工作的进展。</p>
+<h2 id="少即是多"><a href="#少即是多" class="headerlink" title="少即是多"></a>少即是多</h2><p>早期处理器只有一个核，因为只有一个处理器和一个核心，所以在任何给定时间只能执行一个线程。其思想是定义一个调度程序周期，并尝试在此期间执行所有可运行线程：将调度周期除以需要执行的线程数。<br>如果将调度程序周期定义为10ms，并且有两个线程，那么每个线程将得到5ms。如果有5个线程，每个线程将得到2ms。但是，当有100个线程时，给每个线程一个时间片10μs不起作用，因为会花大量的时间在上下文切换。<br>需要的是限制时间片的长度。在上一个场景中，如果最小时间片是2ms，并且有100个线程，那么调度程序周期需要增加到2000ms或2s。如果有1000个线程，现在您看到的调度程序周期是20s。在这个简单的例子中，如果每个线程都使用它的全时间片，那么所有线程运行一次需要20秒。<br>在制定调度决策时，调度程序需要考虑和处理更多的事情。开发者可以控制应用程序中使用的线程数。当有更多的线程需要考虑，并且执行io绑定的工作时，就会出现更多的混乱和不确定性行为。<br>少即是多的规则：处于可运行状态的线程越少，调度开销就越小，每个线程的时间也就越多。处于可运行状态的线程越多，意味着每个线程超时的时间就越少。这意味着随着时间的推移，完成的工作也会越来越少。</p>
+<h2 id="平衡"><a href="#平衡" class="headerlink" title="平衡"></a>平衡</h2><p>开发者需要在拥有的内核数量和获得应用程序最佳吞吐量所需的线程数量之间找到一个平衡。当涉及到管理这种平衡时，线程池是一个很好的答案，但在Go中不再需要这样做。<br>作为一名工程师，需要计算出需要多少线程池，以及给定线程池的最大线程数，以便最大限度地提高给定内核数量的吞吐量。<br>如果每个内核使用线程数低了，那么完成所有的工作将花费更长的时间。如果每个内核使用线程数高了，也会花费更长的时间，因为在上下文切换中有更多的延迟。对于所有不同的工作负载，可能不可能找到一个始终有效的神奇数字。当涉及到使用线程池来调优服务的性能时，要找到正确的一致配置可能会变得非常复杂。</p>
+<h2 id="缓存行"><a href="#缓存行" class="headerlink" title="缓存行"></a>缓存行</h2><p>从主存访问数据的延迟成本非常高（大约100到300个时钟周期），以至于处理器和核都有本地缓存，以便将数据保存在需要数据的硬件线程附近。根据访问的缓存，从缓存访问数据的成本要低得多（大约3到40个时钟周期）。如今，性能的一个方面是如何有效地将数据输入处理器以减少这些数据访问延迟。编写改变状态的多线程应用程序需要考虑缓存系统的机制。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/1.PNG" title="Corei7-9xx缓存体系"><br>数据通过高速缓存行在处理器和主存之间交换。高速缓存行是主存和高速缓存系统之间交换的64字节内存块。每个核心都有它自己需要的高速缓存行的副本，这意味着硬件使用了值语义。这就是多线程应用程序中内存的变化会导致性能噩梦的原因。<br>当多个并行运行的线程正在访问相同的数据值，甚至是相邻的数据值时，它们将访问同一高速缓存行上的数据。在任何核心上运行的任何线程都将从相同的高速缓存行进行拷贝。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/2.PNG" title="错误共享"><br>如果给定核上的一个线程对其高速缓存行的副本进行更改，必须将同一高速缓存行的所有其他副本标记为dirty。当线程尝试对脏缓存行进行读写访问时，需要主内存访问来获得缓存行的新副本。<br>如果32核处理器同时运行32个线程，并且在同一高速缓存行上访问和修改数据，因为处理器到处理器通信增加了延迟。应用程序将在内存中反复运行，性能将非常糟糕，而且很可能开发者无法理解其中的原因。<br>这被称为缓存一致性问题，同时也引入了错误共享等问题。在编写将改变共享状态的多线程应用程序时，需要考虑缓存系统。</p>
+<h2 id="调度决策场景"><a href="#调度决策场景" class="headerlink" title="调度决策场景"></a>调度决策场景</h2><p>编写OS调度程序时，考虑这个场景：启动应用程序，创建主线程并在core 1上执行。当线程开始执行指令时，由于需要数据，将检索高速缓存行。线程现在决定为一些并发处理创建一个新线程。一旦线程创建并准备好运行，调度程序应该:</p>
+<ul>
+<li>上下文切换掉core 1的主线程？这样做可以提高性能，因为这个新线程很可能需要相同数据，且已被缓存。但是主线程没有得到它的全时间片。</li>
+<li>线程是否在主线程的时间片完成之前等待core 1可用？线程没有被运行，但当它启动时，获取数据需要的延迟将被消除。</li>
+<li>线程是否等待下一个可用核？如果是，所选核的高速缓存行将被刷新、检索和拷贝，从而导致延迟。然而，线程会启动得更快，主线程可以完成它的时间片。</li>
+</ul>
+<p>在制定调度决策时，OS调度程序需要考虑这些问题。幸运的是，开发者不需要做。如果有一个空闲内核，它将被使用。因为我们希望线程在可以运行的时候运行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这部分提供了关于在编写多线程应用程序时必须考虑的线程和OS调度程序的一些见解。这些也是Go调度程序要考虑的事情。</p>
+<h1 id="Scheduling-In-Go-Part-II-Go-Scheduler"><a href="#Scheduling-In-Go-Part-II-Go-Scheduler" class="headerlink" title="Scheduling In Go : Part II - Go Scheduler"></a>Scheduling In Go : Part II - Go Scheduler</h1><p><a href="https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part2.html" target="_blank" rel="noopener">Scheduling In Go : Part II - Go Scheduler</a><br>这部分将从语义层面解释Go调度程序的工作原理，并重点介绍高级行为。通过好的模型来描述Go调度器的工作和行为，方便开发者做出更好的工程决策。</p>
+<h2 id="程序启动"><a href="#程序启动" class="headerlink" title="程序启动"></a>程序启动</h2><p>Go程序启动时，会为主机上标识的每个虚拟内核提供一个逻辑处理器P。如果有一个处理器，处理器的每个物理内核都有多个硬件线程（超线程），那么每个硬件线程将作为一个虚拟内核呈现给Go程序。虚拟内核个数通过<code>runtime.NumCPU()</code>获取。<br>每个P分配一个OS线程M。M代表机器。这个线程M仍然由OS管理，OS仍然负责将线程放在核上执行。如果机器上有8个虚拟内核，这意味着在机器上运行一个Go程序时，有8个线程可用来执行工作，每个线程独立地附加到一个P。<br>每个Go程序都有一个初始goroutine G，这是Go程序的执行路径。goroutine本质上是一个协程Coroutine，用G替换字母C，就得到了goroutine。可以将goroutine视为应用程序级线程，区别在于操作系统线程是在核切换上下文，goroutine是在M切换上下文。<br>Go调度程序中有两个不同的运行队列：全局运行队列GRQ和本地运行队列LRQ。每个P给定一个LRQ，用于在P的上下文中管理被分配执行的goroutine。这些goroutine轮流在M中切换上下文。GRQ用于尚未尚未分配给P的goroutines。专门有一个process负责将goroutines从GRQ移动到LRQ。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/3.PNG" title="GMP模型"></p>
+<h2 id="协作式调度器"><a href="#协作式调度器" class="headerlink" title="协作式调度器"></a>协作式调度器</h2><p>OS调度程序是一种抢占式调度程序。本质上，这意味着不能预测调度程序在任何给定的时间将要做什么。运行在操作系统之上的应用程序无法控制内核内部的调度，除非它们利用原子指令和互斥调用等同步原语。<br>Go调度程序是Go运行时的一部分，Go运行时构建到应用程序中。这意味着Go调度程序在内核之上的用户空间中运行。Go调度器的当前实现不是抢占式调度器，而是协作式调度器。作为协作调度程序意味着调度程序需要定义良好的用户空间事件，这些事件发生在代码中的安全点，以便做出调度决策。<br>Go协作调度程序的绝妙之处在于它看起来是抢占式的。开发者无法预测Go调度程序将要做什么，因为这个协作调度程序的决策取决于Go运行时。将Go调度程序视为抢占式调度程序是很重要的。</p>
+<h2 id="协程状态"><a href="#协程状态" class="headerlink" title="协程状态"></a>协程状态</h2><p>goroutine具有Waiting、Runnable、Executing三个高级状态。这些状态指示了Go调度程序在任何给定goroutine中所扮演的角色。<br>Waiting：这意味着goroutine停止了，等待调度。可能是由于等待操作系统（系统调用）或同步调用（原子和互斥操作）等原因。这些类型的延迟是性能差的根本原因。<br>Runnable：这意味着goroutine需要一个M上的时间以执行指定的指令。如果有很多goroutine需要时间，那么goroutine就需要等待更长的时间才能得到时间。随着更多的goroutine争夺时间，任何给定goroutine获得的时间量都会缩短。这种类型的调度延迟也可能导致性能下降。<br>Executing：这意味着goroutine已被放置在M上，并正在执行它的指令。</p>
+<h2 id="上下文切换-1"><a href="#上下文切换-1" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>Go调度程序要求定义良好的用户空间事件，这些事件发生在代码中的安全点，以便上下文切换。这些事件和安全点在函数调用中表现出来。函数调用对Go调度程序的健康状况至关重要。在Go 1.11或更低版本中，如果运行任何不执行函数调用的紧密循环，就会在调度程序和垃圾收集中造成延迟。在合理的时间范围内发生函数调用是非常重要的。<br>NOTE：有一个1.12的提议被接受，即在Go调度程序中应用非协作抢占技术，以允许抢占紧密循环。<br>Go程序中四类事件允许调度程序做出调度决策。这并不意味着这些事件总是发生，而是意味着调度程序得到了机会。</p>
+<ul>
+<li>关键词go的使用</li>
+<li>垃圾回收</li>
+<li>系统调用</li>
+<li>同步和编排</li>
+</ul>
+<h3 id="关键词go的使用"><a href="#关键词go的使用" class="headerlink" title="关键词go的使用"></a>关键词go的使用</h3><p>关键字go用于创建goroutine。一旦创建了一个新的goroutine，它就为调度程序提供了一个做出调度决策的机会。</p>
+<h3 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h3><p>由于GC使用自己的goroutine集运行，所以这些goroutine需要在M上的运行时间。这将导致GC创建大量的调度混乱。然而，调度程序能智能感知goroutine正在做什么并做出明智的决策。例如，GC期间上下文切换，将接触堆的goroutine切换为不接触堆的goroutine。当GC运行时，会做出许多调度决策。</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>当goroutine调用系统调用时，将阻塞M，有时候调度器能够把该goroutine从M切换下来，并且切换新的goroutine到相同的M。但是，有时候需要一个新的M来继续执行在P中排队的goroutine。</p>
+<h3 id="同步和编排"><a href="#同步和编排" class="headerlink" title="同步和编排"></a>同步和编排</h3><p>如果原子、互斥或通道操作调用会导致goroutine阻塞，则调度程序可以上下文切换一个新的goroutine来运行。一旦goroutine可以再次运行，它就可以重新排队，并最终切换回M。</p>
+<h2 id="异步系统调用"><a href="#异步系统调用" class="headerlink" title="异步系统调用"></a>异步系统调用</h2><p>当运行的操作系统具有处理异步系统调用的能力时，可以使用<a href="https://golang.org/src/runtime/netpoll.go" target="_blank" rel="noopener">网络轮询器</a>来更有效地处理系统调用，这是通过在这些操作系统中使用kqueue（MacOS）、epoll（Linux）或iocp（Windows）来实现的<br>基于网络的系统调用可以由今天使用的许多操作系统进行异步处理。这就是网络轮询器的名称由来，因为它的主要用途是处理网络操作。通过使用网络轮询器进行网络系统调用，调度程序可以防止goroutine在进行这些系统调用时阻塞M。这有助于保持M可用，从而执行P的LRQ中的其他goroutine，而不需要创建新的M，有助于减少操作系统上的调度负载。<br>假设只调度LRQ，当goroutine-1希望进行网络系统调用时，将移动到网络轮询器，并处理异步网络系统调用。M可用，切换LRQ的goroutine-2到M。当网络轮询器完成异步网络系统调用，goroutine-1被移回LRQ。这里的好处是要执行网络系统调用，不需要额外的M。网络轮询器有一个OS线程用于处理有效的事件循环。</p>
+<h2 id="同步系统调用"><a href="#同步系统调用" class="headerlink" title="同步系统调用"></a>同步系统调用</h2><p>当goroutine发出一个不能异步执行的系统调用时，无法使用网络轮询器，发出系统调用的goroutine将阻塞M。一个例子是基于文件的系统调用。如果使用CGO，可能在其他情况下调用C函数也会阻塞M。<br>NOTE：Windows OS具有异步执行基于文件的系统调用的功能。从技术上讲，当运行在Windows上时，可以使用网络轮询器。<br>假设只调度LRQ，调度程序识别出goroutine-1已导致M1阻塞后，将M1从P中分离出来，M1仍旧依附着阻塞的goroutine-1。然后，调度程序引入一个新的M2来为P服务。此时，可以从LRQ中选择goroutine-2并切换到M2。如果由于之前的切换而已经存在一个M，那么这种切换比创建一个新的M要快。goroutine-1完成了阻塞系统调用后，可以回到LRQ中，再次由P提供服务。M1将放在一边以便将来面对相同的情况下可以使用。</p>
+<h2 id="工作窃取"><a href="#工作窃取" class="headerlink" title="工作窃取"></a>工作窃取</h2><p>调度程序能够窃取工作，这在一些方面有助于保证调度效率。一旦M进入等待状态，操作系统将从核上切走M。这意味着即使有goroutine处于可运行状态，P也不能完成任何工作，直到M被上下文切换回核。工作窃取还有助于平衡所有P的goroutine，保证工作更好地分配，更有效地完成。<br>当P1的LRQ中所有goroutine都执行完，且P2的LRQ和全局GRQ都存在可运行的goroutine时，工作窃取规则如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">runtime.schedule() &#123;</span><br><span class="line">    // only 1/61 of the time, check the global runnable queue for a G.</span><br><span class="line">    // if not found, check the local queue.</span><br><span class="line">    // if not found,</span><br><span class="line">    //     try to steal from other Ps.</span><br><span class="line">    //     if not, check the global runnable queue.</span><br><span class="line">    //     if not found, poll network.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当P1从P2窃取goroutine时，会窃取一半的数量。工作窃取可以参考<a href="https://rakyll.org/scheduler/" target="_blank" rel="noopener">Go’s work-stealing scheduler</a>。</p>
+<h2 id="实际例子"><a href="#实际例子" class="headerlink" title="实际例子"></a>实际例子</h2><p>设想一个用C语言编写的多线程应用程序，其中程序管理两个OS线程，这两个线程相互传递消息，线程传递完消息后进入Waiting状态，而接受到消息的线程则由Waiting状态转入Runnable状态。在C语言的实现中，所有上下文切换和状态更改都需要执行时间，这限制了完成工作的速度。由于每个上下文切换潜在的延迟约为1000纳秒，而硬件每纳秒约执行12条指令，所以约12k条指令没能在上下文切换期间执行。由于这些线程也在不同的核之间跳跃，所以很可能由于缓存行丢失而导致额外延迟。<br>而当使用goroutine实现时，同样会发生上下文切换和状态更改。然而，使用线程和goroutine之间有一个主要的区别，在使用goroutine的情况下，所有的处理都使用相同的OS线程和内核。这意味着，从OS的角度来看，OS线程永远不会进入等待状态。因此，在使用线程时由于上下文切换而没能执行12k条指令的情况，在使用goroutine时不会出现。<br>本质上，Go已经将IO/阻塞工作转换为操作系统级别的CPU绑定工作，所有的上下文切换都发生在应用程序级。在Go中，同样的上下文切换将花费约200纳秒或约2.4k的指令。调度程序还有助于提高缓存行效率和NUMA。这就是为什么不需要拥有比虚拟内核更多的线程。在Go中，随着时间的推移可以完成更多的工作，因为Go调度程序尝试使用更少的线程，在每个线程上做更多的工作，这有助于减少操作系统和硬件上的负载。</p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>Go调度器在设计中考虑了操作系统和硬件工作的复杂性，将IO/阻塞工作转换为操作系统级别的CPU绑定工作，是在利用更多CPU容量方面取得的重大胜利，也是不需要比虚拟内核更多的操作系统线程的原因。可以合理地期望通过一个OS线程/每个虚拟内核来完成所有工作（CPU和IO/阻塞绑定）。这种做法对于网络应用程序和其他不需要系统调用（阻塞OS线程）的应用程序是可能的。<br>开发人员仍然需要了解应用程序在处理哪些类型的工作，不可能在创建无限数量的goroutine的同时还期望获得惊人的性能。少即是多，通过理解这些Go-scheduler语义，可以做出更好的工程决策。</p>
+<h1 id="Scheduling-In-Go-Part-III-Concurrency"><a href="#Scheduling-In-Go-Part-III-Concurrency" class="headerlink" title="Scheduling In Go : Part III - Concurrency"></a>Scheduling In Go : Part III - Concurrency</h1><p><a href="https://www.ardanlabs.com/blog/2018/12/scheduling-in-go-part3.html" target="_blank" rel="noopener">Scheduling In Go : Part III - Concurrency</a></p>
+<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><p>并发与并行的区别参考文章开头。注意，在没有并行的情况下利用并发有时会降低吞吐量。同样有趣的是，有时候在有并行的情况下利用并发并不能带来更大的性能收益。</p>
+<h2 id="工作负载"><a href="#工作负载" class="headerlink" title="工作负载"></a>工作负载</h2><p>了解工作负载类型，有助于理清“无序”执行是否是有意义的。在考虑并发性时，需要了解CPU-Bound和IO-Bound这两种类型的工作负载。<br>对于CPU-Bound工作负载，需要在有并行的情况下利用并发。一个OS/硬件线程处理多个goroutine的话效率不高，因为作为工作负载的一部分，goroutine不会切换出/入等待状态。若goroutine数目比OS/硬件线程数多，会降低执行速度，因为OS/硬件线程切换goroutine需要一定的延迟成本。上下文切换为当前工作负载创建一个Stop The World事件：切换期间，工作负载不被执行。<br>对于IO-Bound工作负载，不需要并行的情况下可以利用并发。作为工作负载的一部分，goroutine会自然切换出/入等待状态，OS/硬件线程可以高效处理多个goroutine。若goroutine数目比OS/硬件线程数多，可以加快工作负载执行速度，因为在OS/硬件线程切换goroutine的延迟成本不会创建Stop the World事件。工作负载会自然停止，允许另一个goroutine有效地利用相同的OS/硬件线程，而不是让OS/硬件线程处于空闲状态。<br>对于每个OS/硬件线程，需要考虑多少goroutine能提供最佳吞吐量。goroutine太少，会有更多空闲时间。goroutine太多，会有更多的上下文切换延迟时间。本文不作研究。需要强调的是，检查代码以确定工作负载何时可以利用并发性、何时不能利用并发性以及是否需要并行性，是非常重要的。</p>
+<h2 id="案例：求和"><a href="#案例：求和" class="headerlink" title="案例：求和"></a>案例：求和</h2><p><a href="https://play.golang.org/p/r9LdqUsEzEz" target="_blank" rel="noopener">https://play.golang.org/p/r9LdqUsEzEz</a><br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func add(numbers []int) int &#123;</span><br><span class="line">  var v int</span><br><span class="line">  for _, n := range numbers &#123;</span><br><span class="line">    v += n</span><br><span class="line">  &#125;</span><br><span class="line">  return v</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：add函数是一个适合无序执行的工作负载吗？是的。整数集合可以分解为较小的列表，并且可以同时处理这些列表。 一旦将所有较小的列表相加，就可以将这组和加在一起以产生与顺序版本相同的答案。<br>问题：应该独立创建和处理多少个较小的列表以获得最佳吞吐量？要回答这个问题，需要知道工作负载类型。add函数正在执行CPU-BOUND工作负载，因为算法正在执行纯数学运算，并且它不会导致goroutine进入等待状态。 这意味着每个OS/硬件线程使用一个goroutine就可以获得良好的吞吐量。<br>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">func addConcurrent(goroutines int, numbers []int) int &#123;</span><br><span class="line">  var v int64</span><br><span class="line">  totalNumbers := len(numbers)</span><br><span class="line">  lastGoroutine := goroutines - 1</span><br><span class="line">  stride := totalNumbers / goroutines</span><br><span class="line"></span><br><span class="line">  var wg sync.WaitGroup</span><br><span class="line">  wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">  for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">    go func(g int) &#123;</span><br><span class="line">      start := g * stride</span><br><span class="line">      end := start + stride</span><br><span class="line">      if g == lastGoroutine &#123;</span><br><span class="line">        end = totalNumbers</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      var lv int</span><br><span class="line">      for _, n := range numbers[start:end] &#123;</span><br><span class="line">        lv += n</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      atomic.AddInt64(&amp;v, int64(lv))</span><br><span class="line">      wg.Done()</span><br><span class="line">    &#125;(g)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  wg.Wait()</span><br><span class="line"></span><br><span class="line">  return int(v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：并发版本比顺序版本更复杂，带来的性能如何？要回答这个问题，最好创建一个基准。以下基准测试使用了1000万个数字的集合，关闭了垃圾收集器。<br>测试程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func BenchmarkSequential(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        add(numbers)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func BenchmarkConcurrent(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        addConcurrent(runtime.NumCPU(), numbers)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有并行情况下使用并发，cpu指定为1，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。顺序版本优于并发版本，因为并发版本具有单个OS线程上的上下文切换和goroutine管理的开销。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Million Numbers using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITHOUT Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 1 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/cpu-bound</span><br><span class="line">BenchmarkSequential           1000     5720764 ns/op : ~10% Faster</span><br><span class="line">BenchmarkConcurrent           1000     6387344 ns/op</span><br><span class="line">BenchmarkSequentialAgain      1000     5614666 ns/op : ~13% Faster</span><br><span class="line">BenchmarkConcurrentAgain      1000     6482612 ns/op</span><br></pre></td></tr></table></figure></p>
+<p>并行情况下使用并发，cpu指定为8，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。并发版本优于顺序版本，因为所有goroutine并行运行，八个goroutine同时执行工作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Million Numbers using 8 goroutines with 8 cores</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITH Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 8 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/cpu-bound</span><br><span class="line">BenchmarkSequential-8             1000     5910799 ns/op</span><br><span class="line">BenchmarkConcurrent-8             2000     3362643 ns/op : ~43% Faster</span><br><span class="line">BenchmarkSequentialAgain-8        1000     5933444 ns/op</span><br><span class="line">BenchmarkConcurrentAgain-8        2000     3477253 ns/op : ~41% Faster</span><br></pre></td></tr></table></figure></p>
+<h2 id="案例：排序"><a href="#案例：排序" class="headerlink" title="案例：排序"></a>案例：排序</h2><p>并非所有CPU-BOUND工作负载都适合并发。基本上，当分解工作或将所有结果组合起来的代价很高时，就不适合并发，如冒泡排序。<a href="https://play.golang.org/p/S0Us1wYBqG6" target="_blank" rel="noopener">https://play.golang.org/p/S0Us1wYBqG6</a><br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">func bubbleSort(numbers []int) &#123;</span><br><span class="line">  n := len(numbers)</span><br><span class="line">  for i := 0; i &lt; n; i++ &#123;</span><br><span class="line">    if !sweep(numbers, i) &#123;</span><br><span class="line">      return</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func sweep(numbers []int, currentPass int) bool &#123;</span><br><span class="line">  var idx int</span><br><span class="line">  idxNext := idx + 1</span><br><span class="line">  n := len(numbers)</span><br><span class="line">  var swap bool</span><br><span class="line"></span><br><span class="line">  for idxNext &lt; (n - currentPass) &#123;</span><br><span class="line">    a := numbers[idx]</span><br><span class="line">    b := numbers[idxNext]</span><br><span class="line">    if a &gt; b &#123;</span><br><span class="line">      numbers[idx] = b</span><br><span class="line">      numbers[idxNext] = a</span><br><span class="line">      swap = true</span><br><span class="line">    &#125;</span><br><span class="line">    idx++</span><br><span class="line">    idxNext = idx + 1</span><br><span class="line">  &#125;</span><br><span class="line">  return swap</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：bubbleSort函数是适合于无序执行的工作负载吗？不是。整数的集合可以分解成更小的列表，这些列表可以同时排序。然而，在完成所有并发工作之后，没有有效的方法将较小的列表排序在一起。<br>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">func bubbleSortConcurrent(goroutines int, numbers []int) &#123;</span><br><span class="line">    totalNumbers := len(numbers)</span><br><span class="line">    lastGoroutine := goroutines - 1</span><br><span class="line">    stride := totalNumbers / goroutines</span><br><span class="line"></span><br><span class="line">    var wg sync.WaitGroup</span><br><span class="line">    wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">    for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">        go func(g int) &#123;</span><br><span class="line">            start := g * stride</span><br><span class="line">            end := start + stride</span><br><span class="line">            if g == lastGoroutine &#123;</span><br><span class="line">                end = totalNumbers</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            bubbleSort(numbers[start:end])</span><br><span class="line">            wg.Done()</span><br><span class="line">        &#125;(g)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    wg.Wait()</span><br><span class="line"></span><br><span class="line">    // Ugh, we have to sort the entire list again.</span><br><span class="line">    bubbleSort(numbers)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于冒泡排序的本质是遍历列表，因此最后对bubbleSort的调用将抵消使用并发带来的任何潜在收益。对于冒泡排序，使用并发性不会提高性能。</p>
+<h2 id="案例：读取文件"><a href="#案例：读取文件" class="headerlink" title="案例：读取文件"></a>案例：读取文件</h2><p>文件读取是IO-BOUND工作负载。<br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func read(doc string) ([]item, error) &#123;</span><br><span class="line">  time.Sleep(time.Millisecond) // Simulate blocking disk read.</span><br><span class="line">  var d document</span><br><span class="line">  if err := xml.Unmarshal([]byte(file), &amp;d); err != nil &#123;</span><br><span class="line">    return nil, err</span><br><span class="line">  &#125;</span><br><span class="line">  return d.Channel.Items, nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func find(topic string, docs []string) int &#123;</span><br><span class="line">  var found int</span><br><span class="line">  for _, doc := range docs &#123;</span><br><span class="line">    items, err := read(doc)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      continue</span><br><span class="line">    &#125;</span><br><span class="line">    for _, item := range items &#123;</span><br><span class="line">      if strings.Contains(item.Description, topic) &#123;</span><br><span class="line">        found++</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return found</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">func findConcurrent(goroutines int, topic string, docs []string) int &#123;</span><br><span class="line">  var found int64</span><br><span class="line"></span><br><span class="line">  ch := make(chan string, len(docs))</span><br><span class="line">  for _, doc := range docs &#123;</span><br><span class="line">    ch &lt;- doc</span><br><span class="line">  &#125;</span><br><span class="line">  close(ch)</span><br><span class="line"></span><br><span class="line">  var wg sync.WaitGroup</span><br><span class="line">  wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">  for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">    go func() &#123;</span><br><span class="line">      var lFound int64</span><br><span class="line">      for doc := range ch &#123;</span><br><span class="line">        items, err := read(doc)</span><br><span class="line">        if err != nil &#123;</span><br><span class="line">          continue</span><br><span class="line">        &#125;</span><br><span class="line">        for _, item := range items &#123;</span><br><span class="line">          if strings.Contains(item.Description, topic) &#123;</span><br><span class="line">            lFound++</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      atomic.AddInt64(&amp;found, lFound)</span><br><span class="line">      wg.Done()</span><br><span class="line">    &#125;()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  wg.Wait()</span><br><span class="line"></span><br><span class="line">  return int(found)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实现该并发版本的目的是控制用于处理未知数量文档的goroutine的数量，选择了一种池模式，其中通道用于为goroutine池提供数据。<br>问题：并发版本比顺序版本更复杂，带来的性能如何？要回答这个问题，最好创建一个基准。以下基准测试使用了1000个文档集合，关闭了垃圾收集器。<br>测试程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func BenchmarkSequential(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        find(&quot;test&quot;, docs)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func BenchmarkConcurrent(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        findConcurrent(runtime.NumCPU(), &quot;test&quot;, docs)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有并行情况下使用并发，cpu指定为1，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。并发版本优于顺序版本，因为所有goroutine都有效地共享一个OS/硬件线程。对于read调用上的每个goroutine，上下文切换允许在单个OS/硬件线程上执行更多的工作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Thousand Documents using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITHOUT Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 1 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/io-bound</span><br><span class="line">BenchmarkSequential              3  1483458120 ns/op</span><br><span class="line">BenchmarkConcurrent             20   188941855 ns/op : ~87% Faster</span><br><span class="line">BenchmarkSequentialAgain         2  1502682536 ns/op</span><br><span class="line">BenchmarkConcurrentAgain        20   184037843 ns/op : ~88% Faster</span><br></pre></td></tr></table></figure></p>
+<p>并行情况下使用并发，cpu指定为8，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。引入额外的OS/硬件线程并不能提供更好的性能。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Thousand Documents using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITH Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/io-bound</span><br><span class="line">BenchmarkSequential-8                3  1490947198 ns/op</span><br><span class="line">BenchmarkConcurrent-8               20   187382200 ns/op : ~88% Faster</span><br><span class="line">BenchmarkSequentialAgain-8           3  1416126029 ns/op</span><br><span class="line">BenchmarkConcurrentAgain-8          20   185965460 ns/op : ~87% Faster</span><br></pre></td></tr></table></figure></p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>本文的目标是提供语义方面的指导，以确定工作负载是否适合使用并发性。通过不同类型的算法和工作负载的示例，以便察觉语义上的差异以及不同的工程决策。<br>可以看到，在使用IO-BOUND的工作负载时，并不需要并行性来获得性能的大幅提升。这与CPU-BOUND的工作是相反的。当涉及到像冒泡排序这样的算法时，使用并发会增加复杂性，而不会带来真正的性能优势。我们需要先确定工作负载是否适合并发，然后根据工作负载类型使用正确的语义。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/16/探讨下kubernetes的证书体系/" rel="next" title="探讨下kubernetes的证书体系">
+                <i class="fa fa-chevron-left"></i> 探讨下kubernetes的证书体系
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      
+        <div onclick="ShowGitment()" id="gitment-display-button">显示 Gitment 评论</div>
+        <div id="gitment-container" style="display:none"></div>
+      
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/zoro.jpg" alt="zoro">
+          <p class="site-author-name" itemprop="name">zoro</p>
+           
+              <p class="site-description motion-element" itemprop="description">如果我后退的话，我曾重视的誓言和约定就会全部消失，然后，再也不会回来这个地方了</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">65</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计指南"><span class="nav-number">1.</span> <span class="nav-text">设计指南</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#并发软件设计"><span class="nav-number">1.1.</span> <span class="nav-text">并发软件设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设计理念"><span class="nav-number">1.1.1.</span> <span class="nav-text">设计理念</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scheduling-In-Go-Part-I-OS-Scheduler"><span class="nav-number">2.</span> <span class="nav-text">Scheduling In Go : Part I - OS Scheduler</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#OS调度程序"><span class="nav-number">2.1.</span> <span class="nav-text">OS调度程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行指令"><span class="nav-number">2.2.</span> <span class="nav-text">执行指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程状态"><span class="nav-number">2.3.</span> <span class="nav-text">线程状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作类型"><span class="nav-number">2.4.</span> <span class="nav-text">工作类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文切换"><span class="nav-number">2.5.</span> <span class="nav-text">上下文切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#少即是多"><span class="nav-number">2.6.</span> <span class="nav-text">少即是多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#平衡"><span class="nav-number">2.7.</span> <span class="nav-text">平衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存行"><span class="nav-number">2.8.</span> <span class="nav-text">缓存行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调度决策场景"><span class="nav-number">2.9.</span> <span class="nav-text">调度决策场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.10.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scheduling-In-Go-Part-II-Go-Scheduler"><span class="nav-number">3.</span> <span class="nav-text">Scheduling In Go : Part II - Go Scheduler</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序启动"><span class="nav-number">3.1.</span> <span class="nav-text">程序启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#协作式调度器"><span class="nav-number">3.2.</span> <span class="nav-text">协作式调度器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#协程状态"><span class="nav-number">3.3.</span> <span class="nav-text">协程状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文切换-1"><span class="nav-number">3.4.</span> <span class="nav-text">上下文切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关键词go的使用"><span class="nav-number">3.4.1.</span> <span class="nav-text">关键词go的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收"><span class="nav-number">3.4.2.</span> <span class="nav-text">垃圾回收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统调用"><span class="nav-number">3.4.3.</span> <span class="nav-text">系统调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步和编排"><span class="nav-number">3.4.4.</span> <span class="nav-text">同步和编排</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异步系统调用"><span class="nav-number">3.5.</span> <span class="nav-text">异步系统调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同步系统调用"><span class="nav-number">3.6.</span> <span class="nav-text">同步系统调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作窃取"><span class="nav-number">3.7.</span> <span class="nav-text">工作窃取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实际例子"><span class="nav-number">3.8.</span> <span class="nav-text">实际例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结-1"><span class="nav-number">3.9.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scheduling-In-Go-Part-III-Concurrency"><span class="nav-number">4.</span> <span class="nav-text">Scheduling In Go : Part III - Concurrency</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#并发"><span class="nav-number">4.1.</span> <span class="nav-text">并发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作负载"><span class="nav-number">4.2.</span> <span class="nav-text">工作负载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例：求和"><span class="nav-number">4.3.</span> <span class="nav-text">案例：求和</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例：排序"><span class="nav-number">4.4.</span> <span class="nav-text">案例：排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例：读取文件"><span class="nav-number">4.5.</span> <span class="nav-text">案例：读取文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">4.6.</span> <span class="nav-text">结论</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">zoro</span>
+
+  
+</div>
+
+
+  <div class="powered-by">
+    由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+  </div>
+
+  <span class="post-meta-divider">|</span>
+
+  <div class="theme-info">
+    主题 &mdash;
+    <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+      NexT.Gemini
+    </a>
+  </div>
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="/js/gitment.browser.js"></script>
+  
+    <script type="text/javascript">
+      function ShowGitment(){
+        document.getElementById("gitment-display-button").style.display = "none";
+        document.getElementById("gitment-container").style.display = "block";
+        var gitment = new Gitment({
+          id: document.location.href, 
+          owner: 'jianzzz',
+          repo: 'blog-comment',
+          oauth: {
+            client_id: '956e5ce77224160fc0d3',
+            client_secret: 'fa469f545631edd86de345f8da7b85347aedeb15',
+          }});
+        gitment.render('gitment-container');
+      }
+    </script>
+  
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

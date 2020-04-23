@@ -299,6 +299,266 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2019/08/24/gotraining之concurrency-goroutines/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/24/gotraining之concurrency-goroutines/" itemprop="url">gotraining之concurrency-goroutines</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-24T15:35:41+08:00">
+                2019-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Go/" itemprop="url" rel="index">
+                    <span itemprop="name">Go</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="设计指南"><a href="#设计指南" class="headerlink" title="设计指南"></a>设计指南</h1><p><a href="https://github.com/ardanlabs/gotraining/tree/master/topics/go#concurrent-software-design" target="_blank" rel="noopener">concurrent-software-design</a></p>
+<h2 id="并发软件设计"><a href="#并发软件设计" class="headerlink" title="并发软件设计"></a>并发软件设计</h2><p>并发意味着“无序”执行。取一组本来会按顺序执行的指令，然后找到一种方法，在不按顺序执行它们的情况下，仍然生成相同的结果。无序执行需要能够在复出复杂性成本的同时增加足够的性能收益。根据问题，无序执行可能是合适的，甚至是没有意义的。<br>并发不同于并行。并行意味着同时执行两条或多条指令。只有当至少有2个操作系统(OS)和硬件线程可用，并且至少有2个goroutine，每个goroutine在每个OS/硬件线程上独立执行指令时，才可能实现并行。<br>开发者和运行时都有责任管理应用程序的并发性。</p>
+<h3 id="设计理念"><a href="#设计理念" class="headerlink" title="设计理念"></a>设计理念</h3><ul>
+<li>应用程序必须完整地启动和关闭<ul>
+<li>知道创建的每个goroutine如何以及何时终止</li>
+<li>创建的所有goroutine都应该在main返回之前终止</li>
+<li>应用程序应该能够按需关闭，甚至在负载下，以一种受控的方式关闭<ul>
+<li>您希望停止接受新请求，并完成已有的请求（减载）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>识别和监视应用程序中可能存在的背压临界点<ul>
+<li>当goroutine需要等待时，通道、互斥锁和原子函数会产生背压</li>
+<li>有一点背压是好的，这意味着有一个良好的平衡</li>
+<li>很多背压是不好的，这意味着事情是不平衡的</li>
+<li>背压不平衡会导致：<ul>
+<li>软件内部和整个平台的故障</li>
+<li>您的应用程序要崩溃、内爆或冻结</li>
+</ul>
+</li>
+<li>测量背压是测量应用程序健康状况的一种方法</li>
+</ul>
+</li>
+<li>速率限制，以防止应用程序存在压倒性的背压<ul>
+<li>每个系统都有一个断点，您必须知道它对于您的应用程序是什么</li>
+<li>一旦新请求过载，应用程序应该尽早拒绝它们<ul>
+<li>不要做超过你一次合理工作量的工作</li>
+<li>当你处于临界质量时，把它往后推。创建自己的外部背压</li>
+</ul>
+</li>
+<li>在合理和实用的情况下，使用外部系统进行速率限制</li>
+</ul>
+</li>
+<li>使用超时来释放应用程序中的背压<ul>
+<li>任何请求或任务都不允许长时间执行</li>
+<li>确定用户愿意等待多长时间</li>
+<li>高级调用应该告诉低级调用它们必须运行多长时间</li>
+<li>在顶层，用户应该决定他们愿意等待多久</li>
+<li>使用Context包<ul>
+<li>用户等待的函数应该具有上下文Context<ul>
+<li>这些函数应该select &lt;-ctx.Done()，否则它们将无限期阻塞</li>
+</ul>
+</li>
+<li>只有当您有充分的理由认为函数的执行有实际的时间限制时，才可以在Context中设置超时</li>
+<li>允许上游调用程序决定何时应该取消Context</li>
+<li>当用户放弃或显式中止调用时，取消Context</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>应用架构师需要：<ul>
+<li>当问题发生时，找出它们</li>
+<li>止血</li>
+<li>将系统恢复到正常状态</li>
+</ul>
+</li>
+</ul>
+<h1 id="Scheduling-In-Go-Part-I-OS-Scheduler"><a href="#Scheduling-In-Go-Part-I-OS-Scheduler" class="headerlink" title="Scheduling In Go : Part I - OS Scheduler"></a>Scheduling In Go : Part I - OS Scheduler</h1><p><a href="https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html" target="_blank" rel="noopener">Scheduling In Go : Part I - OS Scheduler</a><br>这部分主讲OS调度器。要正确地设计多线程软件，对OS和Go调度程序的工作原理有一个全面而有代表性的理解是很重要的。这篇文章重点介绍OS调度程序的高级机制和语义。</p>
+<h2 id="OS调度程序"><a href="#OS调度程序" class="headerlink" title="OS调度程序"></a>OS调度程序</h2><p>程序是一系列需要依次执行的机器指令。为了实现这一点，操作系统使用线程的概念。线程的任务是解释并顺序执行分配给它的一组指令。继续执行，直到没有更多的指令供线程执行为止。<br>每个程序运行时都创建一个进程，每个进程都有一个初始线程。线程能够创建更多的线程。所有这些不同的线程都是独立运行的，并且调度决策是在线程级别而不是在进程级别做出的。线程可以并发运行（每个线程轮流运行一个单独的内核），也可以并行运行（每个线程同时运行在不同的内核上）。线程还维护自己的状态，以便安全、本地和独立地执行它们的指令。<br>如果有线程可以执行，OS调度程序负责确保内核不是空闲的。它还必须创建一个假象，即所有可以执行的线程都在同时执行。在创建这个假象的过程中，调度程序需要运行优先级较高的线程，而不是优先级较低的线程。但是，具有较低优先级的线程不能缺少执行时间。调度程序还需要通过快速、明智的决策尽可能减少调度延迟。</p>
+<h2 id="执行指令"><a href="#执行指令" class="headerlink" title="执行指令"></a>执行指令</h2><p>程序计数器（PC）有时称为指令指针（IP），它允许线程跟踪要执行的下一条指令。在大多数处理器中，PC指向下一条指令，而不是当前指令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">goroutine 1 [running]:</span><br><span class="line">   main.example(0xc000042748, 0x2, 0x4, 0x106abae, 0x5, 0xa)</span><br><span class="line">       stack_trace/example1/example1.go:13 +0x39                 &lt;- LOOK HERE</span><br><span class="line">   main.main()</span><br><span class="line">       stack_trace/example1/example1.go:8 +0x72                  &lt;- LOOK HERE</span><br></pre></td></tr></table></figure></p>
+<p>这些数字表示从各自函数顶部偏移的PC值。+0x39 PC偏移量表示如果程序没有panic，线程将在example函数中执行的下一条指令。如果返回到main函数，则main函数中的下一条指令是0+x72 PC偏移量。更重要的是，指针之前的指令表示正在执行什么指令。</p>
+<h2 id="线程状态"><a href="#线程状态" class="headerlink" title="线程状态"></a>线程状态</h2><p>线程状态指示调度程序在线程中所扮演的角色。线程可以处于三种状态之一：等待、可运行或执行。</p>
+<ul>
+<li>Waiting<br>线程被停止并等待唤醒。可能是由于等待硬件（磁盘、网络）、操作系统（系统调用）或同步调用（原子、互斥）等原因。这些类型的延迟是性能差的根本原因。</li>
+<li>Runnable<br>线程需要内核时间以便能够执行分配给它的机器指令。如果有很多线程需要时间，那么线程必须等待更长时间才能获得时间。而且，随着更多的线程争夺时间，任何给定线程获得的单个时间量都会缩短。这种类型的调度延迟也可能导致性能下降。</li>
+<li>Executing<br>线程已被放置在一个核上，并且正在执行它的机器指令。</li>
+</ul>
+<h2 id="工作类型"><a href="#工作类型" class="headerlink" title="工作类型"></a>工作类型</h2><p>线程可以做两种类型的工作：cpu绑定和io绑定。<br>CPU-Bound：CPU-Bound工作是不断进行计算的，不会导致线程处于Waiting状态。例子：计算Pi到第n位数字。<br>IO-Bound：这是导致线程进入Waiting状态的工作。这项工作包括请求通过网络访问资源或对操作系统进行系统调用。需要访问数据库的线程将是io绑定的。</p>
+<h2 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>在核上交换线程的物理行为称为上下文切换。当调度程序将Executing线程从核中取出并用Runnable线程替换它时，将发生上下文切换。从运行队列中选择的线程将进入Executing状态。被拉出的线程可以回到Runnable状态（如果它仍然有能力运行），或者进入Waiting状态（如果由于io绑定类型的请求而被替换）。<br>上下文切换被认为是昂贵的，因为它需要时间来切换线程上、下核。实际上，程序正在失去在上下文切换期间执行大量指令的能力。<br>如果有一个专注于io绑定工作的程序，那么上下文切换将是一个优势。一旦一个线程进入Waiting状态，另一个处于Runnable状态的线程将代替它。这使得核总是在工作。<br>如果程序专注于cpu绑定的工作，那么上下文切换将成为性能噩梦。由于线程总是有工作要做，上下文切换会阻止工作的进展。</p>
+<h2 id="少即是多"><a href="#少即是多" class="headerlink" title="少即是多"></a>少即是多</h2><p>早期处理器只有一个核，因为只有一个处理器和一个核心，所以在任何给定时间只能执行一个线程。其思想是定义一个调度程序周期，并尝试在此期间执行所有可运行线程：将调度周期除以需要执行的线程数。<br>如果将调度程序周期定义为10ms，并且有两个线程，那么每个线程将得到5ms。如果有5个线程，每个线程将得到2ms。但是，当有100个线程时，给每个线程一个时间片10μs不起作用，因为会花大量的时间在上下文切换。<br>需要的是限制时间片的长度。在上一个场景中，如果最小时间片是2ms，并且有100个线程，那么调度程序周期需要增加到2000ms或2s。如果有1000个线程，现在您看到的调度程序周期是20s。在这个简单的例子中，如果每个线程都使用它的全时间片，那么所有线程运行一次需要20秒。<br>在制定调度决策时，调度程序需要考虑和处理更多的事情。开发者可以控制应用程序中使用的线程数。当有更多的线程需要考虑，并且执行io绑定的工作时，就会出现更多的混乱和不确定性行为。<br>少即是多的规则：处于可运行状态的线程越少，调度开销就越小，每个线程的时间也就越多。处于可运行状态的线程越多，意味着每个线程超时的时间就越少。这意味着随着时间的推移，完成的工作也会越来越少。</p>
+<h2 id="平衡"><a href="#平衡" class="headerlink" title="平衡"></a>平衡</h2><p>开发者需要在拥有的内核数量和获得应用程序最佳吞吐量所需的线程数量之间找到一个平衡。当涉及到管理这种平衡时，线程池是一个很好的答案，但在Go中不再需要这样做。<br>作为一名工程师，需要计算出需要多少线程池，以及给定线程池的最大线程数，以便最大限度地提高给定内核数量的吞吐量。<br>如果每个内核使用线程数低了，那么完成所有的工作将花费更长的时间。如果每个内核使用线程数高了，也会花费更长的时间，因为在上下文切换中有更多的延迟。对于所有不同的工作负载，可能不可能找到一个始终有效的神奇数字。当涉及到使用线程池来调优服务的性能时，要找到正确的一致配置可能会变得非常复杂。</p>
+<h2 id="缓存行"><a href="#缓存行" class="headerlink" title="缓存行"></a>缓存行</h2><p>从主存访问数据的延迟成本非常高（大约100到300个时钟周期），以至于处理器和核都有本地缓存，以便将数据保存在需要数据的硬件线程附近。根据访问的缓存，从缓存访问数据的成本要低得多（大约3到40个时钟周期）。如今，性能的一个方面是如何有效地将数据输入处理器以减少这些数据访问延迟。编写改变状态的多线程应用程序需要考虑缓存系统的机制。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/1.PNG" title="Corei7-9xx缓存体系"><br>数据通过高速缓存行在处理器和主存之间交换。高速缓存行是主存和高速缓存系统之间交换的64字节内存块。每个核心都有它自己需要的高速缓存行的副本，这意味着硬件使用了值语义。这就是多线程应用程序中内存的变化会导致性能噩梦的原因。<br>当多个并行运行的线程正在访问相同的数据值，甚至是相邻的数据值时，它们将访问同一高速缓存行上的数据。在任何核心上运行的任何线程都将从相同的高速缓存行进行拷贝。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/2.PNG" title="错误共享"><br>如果给定核上的一个线程对其高速缓存行的副本进行更改，必须将同一高速缓存行的所有其他副本标记为dirty。当线程尝试对脏缓存行进行读写访问时，需要主内存访问来获得缓存行的新副本。<br>如果32核处理器同时运行32个线程，并且在同一高速缓存行上访问和修改数据，因为处理器到处理器通信增加了延迟。应用程序将在内存中反复运行，性能将非常糟糕，而且很可能开发者无法理解其中的原因。<br>这被称为缓存一致性问题，同时也引入了错误共享等问题。在编写将改变共享状态的多线程应用程序时，需要考虑缓存系统。</p>
+<h2 id="调度决策场景"><a href="#调度决策场景" class="headerlink" title="调度决策场景"></a>调度决策场景</h2><p>编写OS调度程序时，考虑这个场景：启动应用程序，创建主线程并在core 1上执行。当线程开始执行指令时，由于需要数据，将检索高速缓存行。线程现在决定为一些并发处理创建一个新线程。一旦线程创建并准备好运行，调度程序应该:</p>
+<ul>
+<li>上下文切换掉core 1的主线程？这样做可以提高性能，因为这个新线程很可能需要相同数据，且已被缓存。但是主线程没有得到它的全时间片。</li>
+<li>线程是否在主线程的时间片完成之前等待core 1可用？线程没有被运行，但当它启动时，获取数据需要的延迟将被消除。</li>
+<li>线程是否等待下一个可用核？如果是，所选核的高速缓存行将被刷新、检索和拷贝，从而导致延迟。然而，线程会启动得更快，主线程可以完成它的时间片。</li>
+</ul>
+<p>在制定调度决策时，OS调度程序需要考虑这些问题。幸运的是，开发者不需要做。如果有一个空闲内核，它将被使用。因为我们希望线程在可以运行的时候运行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这部分提供了关于在编写多线程应用程序时必须考虑的线程和OS调度程序的一些见解。这些也是Go调度程序要考虑的事情。</p>
+<h1 id="Scheduling-In-Go-Part-II-Go-Scheduler"><a href="#Scheduling-In-Go-Part-II-Go-Scheduler" class="headerlink" title="Scheduling In Go : Part II - Go Scheduler"></a>Scheduling In Go : Part II - Go Scheduler</h1><p><a href="https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part2.html" target="_blank" rel="noopener">Scheduling In Go : Part II - Go Scheduler</a><br>这部分将从语义层面解释Go调度程序的工作原理，并重点介绍高级行为。通过好的模型来描述Go调度器的工作和行为，方便开发者做出更好的工程决策。</p>
+<h2 id="程序启动"><a href="#程序启动" class="headerlink" title="程序启动"></a>程序启动</h2><p>Go程序启动时，会为主机上标识的每个虚拟内核提供一个逻辑处理器P。如果有一个处理器，处理器的每个物理内核都有多个硬件线程（超线程），那么每个硬件线程将作为一个虚拟内核呈现给Go程序。虚拟内核个数通过<code>runtime.NumCPU()</code>获取。<br>每个P分配一个OS线程M。M代表机器。这个线程M仍然由OS管理，OS仍然负责将线程放在核上执行。如果机器上有8个虚拟内核，这意味着在机器上运行一个Go程序时，有8个线程可用来执行工作，每个线程独立地附加到一个P。<br>每个Go程序都有一个初始goroutine G，这是Go程序的执行路径。goroutine本质上是一个协程Coroutine，用G替换字母C，就得到了goroutine。可以将goroutine视为应用程序级线程，区别在于操作系统线程是在核切换上下文，goroutine是在M切换上下文。<br>Go调度程序中有两个不同的运行队列：全局运行队列GRQ和本地运行队列LRQ。每个P给定一个LRQ，用于在P的上下文中管理被分配执行的goroutine。这些goroutine轮流在M中切换上下文。GRQ用于尚未尚未分配给P的goroutines。专门有一个process负责将goroutines从GRQ移动到LRQ。<br><img src="/2019/08/24/gotraining之concurrency-goroutines/3.PNG" title="GMP模型"></p>
+<h2 id="协作式调度器"><a href="#协作式调度器" class="headerlink" title="协作式调度器"></a>协作式调度器</h2><p>OS调度程序是一种抢占式调度程序。本质上，这意味着不能预测调度程序在任何给定的时间将要做什么。运行在操作系统之上的应用程序无法控制内核内部的调度，除非它们利用原子指令和互斥调用等同步原语。<br>Go调度程序是Go运行时的一部分，Go运行时构建到应用程序中。这意味着Go调度程序在内核之上的用户空间中运行。Go调度器的当前实现不是抢占式调度器，而是协作式调度器。作为协作调度程序意味着调度程序需要定义良好的用户空间事件，这些事件发生在代码中的安全点，以便做出调度决策。<br>Go协作调度程序的绝妙之处在于它看起来是抢占式的。开发者无法预测Go调度程序将要做什么，因为这个协作调度程序的决策取决于Go运行时。将Go调度程序视为抢占式调度程序是很重要的。</p>
+<h2 id="协程状态"><a href="#协程状态" class="headerlink" title="协程状态"></a>协程状态</h2><p>goroutine具有Waiting、Runnable、Executing三个高级状态。这些状态指示了Go调度程序在任何给定goroutine中所扮演的角色。<br>Waiting：这意味着goroutine停止了，等待调度。可能是由于等待操作系统（系统调用）或同步调用（原子和互斥操作）等原因。这些类型的延迟是性能差的根本原因。<br>Runnable：这意味着goroutine需要一个M上的时间以执行指定的指令。如果有很多goroutine需要时间，那么goroutine就需要等待更长的时间才能得到时间。随着更多的goroutine争夺时间，任何给定goroutine获得的时间量都会缩短。这种类型的调度延迟也可能导致性能下降。<br>Executing：这意味着goroutine已被放置在M上，并正在执行它的指令。</p>
+<h2 id="上下文切换-1"><a href="#上下文切换-1" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>Go调度程序要求定义良好的用户空间事件，这些事件发生在代码中的安全点，以便上下文切换。这些事件和安全点在函数调用中表现出来。函数调用对Go调度程序的健康状况至关重要。在Go 1.11或更低版本中，如果运行任何不执行函数调用的紧密循环，就会在调度程序和垃圾收集中造成延迟。在合理的时间范围内发生函数调用是非常重要的。<br>NOTE：有一个1.12的提议被接受，即在Go调度程序中应用非协作抢占技术，以允许抢占紧密循环。<br>Go程序中四类事件允许调度程序做出调度决策。这并不意味着这些事件总是发生，而是意味着调度程序得到了机会。</p>
+<ul>
+<li>关键词go的使用</li>
+<li>垃圾回收</li>
+<li>系统调用</li>
+<li>同步和编排</li>
+</ul>
+<h3 id="关键词go的使用"><a href="#关键词go的使用" class="headerlink" title="关键词go的使用"></a>关键词go的使用</h3><p>关键字go用于创建goroutine。一旦创建了一个新的goroutine，它就为调度程序提供了一个做出调度决策的机会。</p>
+<h3 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h3><p>由于GC使用自己的goroutine集运行，所以这些goroutine需要在M上的运行时间。这将导致GC创建大量的调度混乱。然而，调度程序能智能感知goroutine正在做什么并做出明智的决策。例如，GC期间上下文切换，将接触堆的goroutine切换为不接触堆的goroutine。当GC运行时，会做出许多调度决策。</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>当goroutine调用系统调用时，将阻塞M，有时候调度器能够把该goroutine从M切换下来，并且切换新的goroutine到相同的M。但是，有时候需要一个新的M来继续执行在P中排队的goroutine。</p>
+<h3 id="同步和编排"><a href="#同步和编排" class="headerlink" title="同步和编排"></a>同步和编排</h3><p>如果原子、互斥或通道操作调用会导致goroutine阻塞，则调度程序可以上下文切换一个新的goroutine来运行。一旦goroutine可以再次运行，它就可以重新排队，并最终切换回M。</p>
+<h2 id="异步系统调用"><a href="#异步系统调用" class="headerlink" title="异步系统调用"></a>异步系统调用</h2><p>当运行的操作系统具有处理异步系统调用的能力时，可以使用<a href="https://golang.org/src/runtime/netpoll.go" target="_blank" rel="noopener">网络轮询器</a>来更有效地处理系统调用，这是通过在这些操作系统中使用kqueue（MacOS）、epoll（Linux）或iocp（Windows）来实现的<br>基于网络的系统调用可以由今天使用的许多操作系统进行异步处理。这就是网络轮询器的名称由来，因为它的主要用途是处理网络操作。通过使用网络轮询器进行网络系统调用，调度程序可以防止goroutine在进行这些系统调用时阻塞M。这有助于保持M可用，从而执行P的LRQ中的其他goroutine，而不需要创建新的M，有助于减少操作系统上的调度负载。<br>假设只调度LRQ，当goroutine-1希望进行网络系统调用时，将移动到网络轮询器，并处理异步网络系统调用。M可用，切换LRQ的goroutine-2到M。当网络轮询器完成异步网络系统调用，goroutine-1被移回LRQ。这里的好处是要执行网络系统调用，不需要额外的M。网络轮询器有一个OS线程用于处理有效的事件循环。</p>
+<h2 id="同步系统调用"><a href="#同步系统调用" class="headerlink" title="同步系统调用"></a>同步系统调用</h2><p>当goroutine发出一个不能异步执行的系统调用时，无法使用网络轮询器，发出系统调用的goroutine将阻塞M。一个例子是基于文件的系统调用。如果使用CGO，可能在其他情况下调用C函数也会阻塞M。<br>NOTE：Windows OS具有异步执行基于文件的系统调用的功能。从技术上讲，当运行在Windows上时，可以使用网络轮询器。<br>假设只调度LRQ，调度程序识别出goroutine-1已导致M1阻塞后，将M1从P中分离出来，M1仍旧依附着阻塞的goroutine-1。然后，调度程序引入一个新的M2来为P服务。此时，可以从LRQ中选择goroutine-2并切换到M2。如果由于之前的切换而已经存在一个M，那么这种切换比创建一个新的M要快。goroutine-1完成了阻塞系统调用后，可以回到LRQ中，再次由P提供服务。M1将放在一边以便将来面对相同的情况下可以使用。</p>
+<h2 id="工作窃取"><a href="#工作窃取" class="headerlink" title="工作窃取"></a>工作窃取</h2><p>调度程序能够窃取工作，这在一些方面有助于保证调度效率。一旦M进入等待状态，操作系统将从核上切走M。这意味着即使有goroutine处于可运行状态，P也不能完成任何工作，直到M被上下文切换回核。工作窃取还有助于平衡所有P的goroutine，保证工作更好地分配，更有效地完成。<br>当P1的LRQ中所有goroutine都执行完，且P2的LRQ和全局GRQ都存在可运行的goroutine时，工作窃取规则如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">runtime.schedule() &#123;</span><br><span class="line">    // only 1/61 of the time, check the global runnable queue for a G.</span><br><span class="line">    // if not found, check the local queue.</span><br><span class="line">    // if not found,</span><br><span class="line">    //     try to steal from other Ps.</span><br><span class="line">    //     if not, check the global runnable queue.</span><br><span class="line">    //     if not found, poll network.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当P1从P2窃取goroutine时，会窃取一半的数量。工作窃取可以参考<a href="https://rakyll.org/scheduler/" target="_blank" rel="noopener">Go’s work-stealing scheduler</a>。</p>
+<h2 id="实际例子"><a href="#实际例子" class="headerlink" title="实际例子"></a>实际例子</h2><p>设想一个用C语言编写的多线程应用程序，其中程序管理两个OS线程，这两个线程相互传递消息，线程传递完消息后进入Waiting状态，而接受到消息的线程则由Waiting状态转入Runnable状态。在C语言的实现中，所有上下文切换和状态更改都需要执行时间，这限制了完成工作的速度。由于每个上下文切换潜在的延迟约为1000纳秒，而硬件每纳秒约执行12条指令，所以约12k条指令没能在上下文切换期间执行。由于这些线程也在不同的核之间跳跃，所以很可能由于缓存行丢失而导致额外延迟。<br>而当使用goroutine实现时，同样会发生上下文切换和状态更改。然而，使用线程和goroutine之间有一个主要的区别，在使用goroutine的情况下，所有的处理都使用相同的OS线程和内核。这意味着，从OS的角度来看，OS线程永远不会进入等待状态。因此，在使用线程时由于上下文切换而没能执行12k条指令的情况，在使用goroutine时不会出现。<br>本质上，Go已经将IO/阻塞工作转换为操作系统级别的CPU绑定工作，所有的上下文切换都发生在应用程序级。在Go中，同样的上下文切换将花费约200纳秒或约2.4k的指令。调度程序还有助于提高缓存行效率和NUMA。这就是为什么不需要拥有比虚拟内核更多的线程。在Go中，随着时间的推移可以完成更多的工作，因为Go调度程序尝试使用更少的线程，在每个线程上做更多的工作，这有助于减少操作系统和硬件上的负载。</p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>Go调度器在设计中考虑了操作系统和硬件工作的复杂性，将IO/阻塞工作转换为操作系统级别的CPU绑定工作，是在利用更多CPU容量方面取得的重大胜利，也是不需要比虚拟内核更多的操作系统线程的原因。可以合理地期望通过一个OS线程/每个虚拟内核来完成所有工作（CPU和IO/阻塞绑定）。这种做法对于网络应用程序和其他不需要系统调用（阻塞OS线程）的应用程序是可能的。<br>开发人员仍然需要了解应用程序在处理哪些类型的工作，不可能在创建无限数量的goroutine的同时还期望获得惊人的性能。少即是多，通过理解这些Go-scheduler语义，可以做出更好的工程决策。</p>
+<h1 id="Scheduling-In-Go-Part-III-Concurrency"><a href="#Scheduling-In-Go-Part-III-Concurrency" class="headerlink" title="Scheduling In Go : Part III - Concurrency"></a>Scheduling In Go : Part III - Concurrency</h1><p><a href="https://www.ardanlabs.com/blog/2018/12/scheduling-in-go-part3.html" target="_blank" rel="noopener">Scheduling In Go : Part III - Concurrency</a></p>
+<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><p>并发与并行的区别参考文章开头。注意，在没有并行的情况下利用并发有时会降低吞吐量。同样有趣的是，有时候在有并行的情况下利用并发并不能带来更大的性能收益。</p>
+<h2 id="工作负载"><a href="#工作负载" class="headerlink" title="工作负载"></a>工作负载</h2><p>了解工作负载类型，有助于理清“无序”执行是否是有意义的。在考虑并发性时，需要了解CPU-Bound和IO-Bound这两种类型的工作负载。<br>对于CPU-Bound工作负载，需要在有并行的情况下利用并发。一个OS/硬件线程处理多个goroutine的话效率不高，因为作为工作负载的一部分，goroutine不会切换出/入等待状态。若goroutine数目比OS/硬件线程数多，会降低执行速度，因为OS/硬件线程切换goroutine需要一定的延迟成本。上下文切换为当前工作负载创建一个Stop The World事件：切换期间，工作负载不被执行。<br>对于IO-Bound工作负载，不需要并行的情况下可以利用并发。作为工作负载的一部分，goroutine会自然切换出/入等待状态，OS/硬件线程可以高效处理多个goroutine。若goroutine数目比OS/硬件线程数多，可以加快工作负载执行速度，因为在OS/硬件线程切换goroutine的延迟成本不会创建Stop the World事件。工作负载会自然停止，允许另一个goroutine有效地利用相同的OS/硬件线程，而不是让OS/硬件线程处于空闲状态。<br>对于每个OS/硬件线程，需要考虑多少goroutine能提供最佳吞吐量。goroutine太少，会有更多空闲时间。goroutine太多，会有更多的上下文切换延迟时间。本文不作研究。需要强调的是，检查代码以确定工作负载何时可以利用并发性、何时不能利用并发性以及是否需要并行性，是非常重要的。</p>
+<h2 id="案例：求和"><a href="#案例：求和" class="headerlink" title="案例：求和"></a>案例：求和</h2><p><a href="https://play.golang.org/p/r9LdqUsEzEz" target="_blank" rel="noopener">https://play.golang.org/p/r9LdqUsEzEz</a><br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func add(numbers []int) int &#123;</span><br><span class="line">  var v int</span><br><span class="line">  for _, n := range numbers &#123;</span><br><span class="line">    v += n</span><br><span class="line">  &#125;</span><br><span class="line">  return v</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：add函数是一个适合无序执行的工作负载吗？是的。整数集合可以分解为较小的列表，并且可以同时处理这些列表。 一旦将所有较小的列表相加，就可以将这组和加在一起以产生与顺序版本相同的答案。<br>问题：应该独立创建和处理多少个较小的列表以获得最佳吞吐量？要回答这个问题，需要知道工作负载类型。add函数正在执行CPU-BOUND工作负载，因为算法正在执行纯数学运算，并且它不会导致goroutine进入等待状态。 这意味着每个OS/硬件线程使用一个goroutine就可以获得良好的吞吐量。<br>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">func addConcurrent(goroutines int, numbers []int) int &#123;</span><br><span class="line">  var v int64</span><br><span class="line">  totalNumbers := len(numbers)</span><br><span class="line">  lastGoroutine := goroutines - 1</span><br><span class="line">  stride := totalNumbers / goroutines</span><br><span class="line"></span><br><span class="line">  var wg sync.WaitGroup</span><br><span class="line">  wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">  for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">    go func(g int) &#123;</span><br><span class="line">      start := g * stride</span><br><span class="line">      end := start + stride</span><br><span class="line">      if g == lastGoroutine &#123;</span><br><span class="line">        end = totalNumbers</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      var lv int</span><br><span class="line">      for _, n := range numbers[start:end] &#123;</span><br><span class="line">        lv += n</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      atomic.AddInt64(&amp;v, int64(lv))</span><br><span class="line">      wg.Done()</span><br><span class="line">    &#125;(g)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  wg.Wait()</span><br><span class="line"></span><br><span class="line">  return int(v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：并发版本比顺序版本更复杂，带来的性能如何？要回答这个问题，最好创建一个基准。以下基准测试使用了1000万个数字的集合，关闭了垃圾收集器。<br>测试程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func BenchmarkSequential(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        add(numbers)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func BenchmarkConcurrent(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        addConcurrent(runtime.NumCPU(), numbers)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有并行情况下使用并发，cpu指定为1，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。顺序版本优于并发版本，因为并发版本具有单个OS线程上的上下文切换和goroutine管理的开销。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Million Numbers using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITHOUT Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 1 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/cpu-bound</span><br><span class="line">BenchmarkSequential           1000     5720764 ns/op : ~10% Faster</span><br><span class="line">BenchmarkConcurrent           1000     6387344 ns/op</span><br><span class="line">BenchmarkSequentialAgain      1000     5614666 ns/op : ~13% Faster</span><br><span class="line">BenchmarkConcurrentAgain      1000     6482612 ns/op</span><br></pre></td></tr></table></figure></p>
+<p>并行情况下使用并发，cpu指定为8，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。并发版本优于顺序版本，因为所有goroutine并行运行，八个goroutine同时执行工作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Million Numbers using 8 goroutines with 8 cores</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITH Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 8 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/cpu-bound</span><br><span class="line">BenchmarkSequential-8             1000     5910799 ns/op</span><br><span class="line">BenchmarkConcurrent-8             2000     3362643 ns/op : ~43% Faster</span><br><span class="line">BenchmarkSequentialAgain-8        1000     5933444 ns/op</span><br><span class="line">BenchmarkConcurrentAgain-8        2000     3477253 ns/op : ~41% Faster</span><br></pre></td></tr></table></figure></p>
+<h2 id="案例：排序"><a href="#案例：排序" class="headerlink" title="案例：排序"></a>案例：排序</h2><p>并非所有CPU-BOUND工作负载都适合并发。基本上，当分解工作或将所有结果组合起来的代价很高时，就不适合并发，如冒泡排序。<a href="https://play.golang.org/p/S0Us1wYBqG6" target="_blank" rel="noopener">https://play.golang.org/p/S0Us1wYBqG6</a><br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">func bubbleSort(numbers []int) &#123;</span><br><span class="line">  n := len(numbers)</span><br><span class="line">  for i := 0; i &lt; n; i++ &#123;</span><br><span class="line">    if !sweep(numbers, i) &#123;</span><br><span class="line">      return</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func sweep(numbers []int, currentPass int) bool &#123;</span><br><span class="line">  var idx int</span><br><span class="line">  idxNext := idx + 1</span><br><span class="line">  n := len(numbers)</span><br><span class="line">  var swap bool</span><br><span class="line"></span><br><span class="line">  for idxNext &lt; (n - currentPass) &#123;</span><br><span class="line">    a := numbers[idx]</span><br><span class="line">    b := numbers[idxNext]</span><br><span class="line">    if a &gt; b &#123;</span><br><span class="line">      numbers[idx] = b</span><br><span class="line">      numbers[idxNext] = a</span><br><span class="line">      swap = true</span><br><span class="line">    &#125;</span><br><span class="line">    idx++</span><br><span class="line">    idxNext = idx + 1</span><br><span class="line">  &#125;</span><br><span class="line">  return swap</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>问题：bubbleSort函数是适合于无序执行的工作负载吗？不是。整数的集合可以分解成更小的列表，这些列表可以同时排序。然而，在完成所有并发工作之后，没有有效的方法将较小的列表排序在一起。<br>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">func bubbleSortConcurrent(goroutines int, numbers []int) &#123;</span><br><span class="line">    totalNumbers := len(numbers)</span><br><span class="line">    lastGoroutine := goroutines - 1</span><br><span class="line">    stride := totalNumbers / goroutines</span><br><span class="line"></span><br><span class="line">    var wg sync.WaitGroup</span><br><span class="line">    wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">    for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">        go func(g int) &#123;</span><br><span class="line">            start := g * stride</span><br><span class="line">            end := start + stride</span><br><span class="line">            if g == lastGoroutine &#123;</span><br><span class="line">                end = totalNumbers</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            bubbleSort(numbers[start:end])</span><br><span class="line">            wg.Done()</span><br><span class="line">        &#125;(g)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    wg.Wait()</span><br><span class="line"></span><br><span class="line">    // Ugh, we have to sort the entire list again.</span><br><span class="line">    bubbleSort(numbers)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>由于冒泡排序的本质是遍历列表，因此最后对bubbleSort的调用将抵消使用并发带来的任何潜在收益。对于冒泡排序，使用并发性不会提高性能。</p>
+<h2 id="案例：读取文件"><a href="#案例：读取文件" class="headerlink" title="案例：读取文件"></a>案例：读取文件</h2><p>文件读取是IO-BOUND工作负载。<br>串行程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func read(doc string) ([]item, error) &#123;</span><br><span class="line">  time.Sleep(time.Millisecond) // Simulate blocking disk read.</span><br><span class="line">  var d document</span><br><span class="line">  if err := xml.Unmarshal([]byte(file), &amp;d); err != nil &#123;</span><br><span class="line">    return nil, err</span><br><span class="line">  &#125;</span><br><span class="line">  return d.Channel.Items, nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func find(topic string, docs []string) int &#123;</span><br><span class="line">  var found int</span><br><span class="line">  for _, doc := range docs &#123;</span><br><span class="line">    items, err := read(doc)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      continue</span><br><span class="line">    &#125;</span><br><span class="line">    for _, item := range items &#123;</span><br><span class="line">      if strings.Contains(item.Description, topic) &#123;</span><br><span class="line">        found++</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return found</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>并发程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">func findConcurrent(goroutines int, topic string, docs []string) int &#123;</span><br><span class="line">  var found int64</span><br><span class="line"></span><br><span class="line">  ch := make(chan string, len(docs))</span><br><span class="line">  for _, doc := range docs &#123;</span><br><span class="line">    ch &lt;- doc</span><br><span class="line">  &#125;</span><br><span class="line">  close(ch)</span><br><span class="line"></span><br><span class="line">  var wg sync.WaitGroup</span><br><span class="line">  wg.Add(goroutines)</span><br><span class="line"></span><br><span class="line">  for g := 0; g &lt; goroutines; g++ &#123;</span><br><span class="line">    go func() &#123;</span><br><span class="line">      var lFound int64</span><br><span class="line">      for doc := range ch &#123;</span><br><span class="line">        items, err := read(doc)</span><br><span class="line">        if err != nil &#123;</span><br><span class="line">          continue</span><br><span class="line">        &#125;</span><br><span class="line">        for _, item := range items &#123;</span><br><span class="line">          if strings.Contains(item.Description, topic) &#123;</span><br><span class="line">            lFound++</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      atomic.AddInt64(&amp;found, lFound)</span><br><span class="line">      wg.Done()</span><br><span class="line">    &#125;()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  wg.Wait()</span><br><span class="line"></span><br><span class="line">  return int(found)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>实现该并发版本的目的是控制用于处理未知数量文档的goroutine的数量，选择了一种池模式，其中通道用于为goroutine池提供数据。<br>问题：并发版本比顺序版本更复杂，带来的性能如何？要回答这个问题，最好创建一个基准。以下基准测试使用了1000个文档集合，关闭了垃圾收集器。<br>测试程序：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func BenchmarkSequential(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        find(&quot;test&quot;, docs)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func BenchmarkConcurrent(b *testing.B) &#123;</span><br><span class="line">    for i := 0; i &lt; b.N; i++ &#123;</span><br><span class="line">        findConcurrent(runtime.NumCPU(), &quot;test&quot;, docs)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有并行情况下使用并发，cpu指定为1，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。并发版本优于顺序版本，因为所有goroutine都有效地共享一个OS/硬件线程。对于read调用上的每个goroutine，上下文切换允许在单个OS/硬件线程上执行更多的工作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Thousand Documents using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITHOUT Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -cpu 1 -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/io-bound</span><br><span class="line">BenchmarkSequential              3  1483458120 ns/op</span><br><span class="line">BenchmarkConcurrent             20   188941855 ns/op : ~87% Faster</span><br><span class="line">BenchmarkSequentialAgain         2  1502682536 ns/op</span><br><span class="line">BenchmarkConcurrentAgain        20   184037843 ns/op : ~88% Faster</span><br></pre></td></tr></table></figure></p>
+<p>并行情况下使用并发，cpu指定为8，goroutines参数指定为8，即runtime.NumCPU。顺序版本使用1个goroutine。引入额外的OS/硬件线程并不能提供更好的性能。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">10 Thousand Documents using 8 goroutines with 1 core</span><br><span class="line">2.9 GHz Intel 4 Core i7</span><br><span class="line">Concurrency WITH Parallelism</span><br><span class="line">-----------------------------------------------------------------------------</span><br><span class="line">$ GOGC=off go test -run none -bench . -benchtime 3s</span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: github.com/ardanlabs/gotraining/topics/go/testing/benchmarks/io-bound</span><br><span class="line">BenchmarkSequential-8                3  1490947198 ns/op</span><br><span class="line">BenchmarkConcurrent-8               20   187382200 ns/op : ~88% Faster</span><br><span class="line">BenchmarkSequentialAgain-8           3  1416126029 ns/op</span><br><span class="line">BenchmarkConcurrentAgain-8          20   185965460 ns/op : ~87% Faster</span><br></pre></td></tr></table></figure></p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>本文的目标是提供语义方面的指导，以确定工作负载是否适合使用并发性。通过不同类型的算法和工作负载的示例，以便察觉语义上的差异以及不同的工程决策。<br>可以看到，在使用IO-BOUND的工作负载时，并不需要并行性来获得性能的大幅提升。这与CPU-BOUND的工作是相反的。当涉及到像冒泡排序这样的算法时，使用并发会增加复杂性，而不会带来真正的性能优势。我们需要先确定工作负载是否适合并发，然后根据工作负载类型使用正确的语义。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2019/06/16/探讨下kubernetes的证书体系/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -693,8 +953,8 @@
 <td>kubelet.crt</td>
 <td>Digital Signature, Key Encipherment</td>
 <td>CA:FALSE</td>
-<td>TLS Web Server Authentication</td>
-<td>-</td>
+<td>TLS Web Client Authentication, TLS Web Server Authentication</td>
+<td>DNS:localhost, IP Address:127.0.0.1, IP Address:&lt;Host_IP&gt;</td>
 <td>xx:xx</td>
 <td>xx:xx</td>
 </tr>
@@ -718,6 +978,7 @@
 </tr>
 </tbody>
 </table>
+<p>注意：kubelet的Key Usage需要同时包含TLS Web Client Authentication和TLS Web Server Authentication。具体原因后面介绍。</p>
 <h1 id="自制证书"><a href="#自制证书" class="headerlink" title="自制证书"></a>自制证书</h1><p>参考<a href="https://kubernetes.io/docs/setup/best-practices/certificates/" target="_blank" rel="noopener">PKI certificates and requirements</a>、<a href="https://gist.github.com/detiber/81b515df272f5911959e81e39137a8bb" target="_blank" rel="noopener">CFSSL as an external CA for non-ha kubeadm intialized clusters</a>。</p>
 <h2 id="ectd"><a href="#ectd" class="headerlink" title="ectd"></a>ectd</h2><ul>
 <li>ca-config.json<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;signing&quot;: &#123;</span><br><span class="line">        &quot;profiles&quot;: &#123;</span><br><span class="line">            &quot;server&quot;: &#123;</span><br><span class="line">                &quot;expiry&quot;: &quot;876000h&quot;,</span><br><span class="line">                &quot;usages&quot;: [</span><br><span class="line">		    &quot;digital signature&quot;,</span><br><span class="line">                    &quot;key encipherment&quot;,</span><br><span class="line">                    &quot;server auth&quot;,</span><br><span class="line">                    &quot;client auth&quot;</span><br><span class="line">                ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &quot;client&quot;: &#123;</span><br><span class="line">                &quot;expiry&quot;: &quot;876000h&quot;,</span><br><span class="line">                &quot;usages&quot;: [</span><br><span class="line">		    &quot;digital signature&quot;,</span><br><span class="line">                    &quot;key encipherment&quot;,</span><br><span class="line">                    &quot;client auth&quot;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -756,7 +1017,7 @@
 </li>
 </ul>
 <h2 id="kubernetes"><a href="#kubernetes" class="headerlink" title="kubernetes"></a>kubernetes</h2><ul>
-<li>ca-config.json<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;signing&quot;: &#123;</span><br><span class="line">    &quot;default&quot;: &#123;</span><br><span class="line">      &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;profiles&quot;: &#123;</span><br><span class="line">      &quot;server&quot;: &#123;</span><br><span class="line">        &quot;usages&quot;: [</span><br><span class="line">	    &quot;digital signature&quot;,</span><br><span class="line">            &quot;key encipherment&quot;,</span><br><span class="line">            &quot;server auth&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;client&quot;: &#123;</span><br><span class="line">        &quot;usages&quot;: [</span><br><span class="line">	    &quot;digital signature&quot;,</span><br><span class="line">            &quot;key encipherment&quot;,</span><br><span class="line">            &quot;client auth&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li>ca-config.json<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;signing&quot;: &#123;</span><br><span class="line">    &quot;default&quot;: &#123;</span><br><span class="line">      &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;profiles&quot;: &#123;</span><br><span class="line">      &quot;server&quot;: &#123;</span><br><span class="line">        &quot;usages&quot;: [</span><br><span class="line">	    &quot;digital signature&quot;,</span><br><span class="line">            &quot;key encipherment&quot;,</span><br><span class="line">            &quot;server auth&quot;,</span><br><span class="line">            &quot;client auth&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;client&quot;: &#123;</span><br><span class="line">        &quot;usages&quot;: [</span><br><span class="line">	    &quot;digital signature&quot;,</span><br><span class="line">            &quot;key encipherment&quot;,</span><br><span class="line">            &quot;client auth&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;expiry&quot;: &quot;876000h&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <h3 id="ca-1"><a href="#ca-1" class="headerlink" title="ca"></a>ca</h3><ul>
@@ -775,6 +1036,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server apiserver-csr.json | cfssljson -bare apiserver</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
+<p>apiserver指定了-profile=server，但其应该不需要client auth，因为由apiserver主动向etcd、kubelet等发送请求时，会使用额外的证书（apiserver作为客户端），如apiserver-etcd-client.crt、apiserver-kubelet-client.crt。profile server包含client auth，是为了提供给kubelet用的。</p>
 <h3 id="apiserver-kubelet-client"><a href="#apiserver-kubelet-client" class="headerlink" title="apiserver-kubelet-client"></a>apiserver-kubelet-client</h3><ul>
 <li><p>apiserver-kubelet-client-csr.json</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;kube-apiserver-kubelet-client&quot;,</span><br><span class="line">  &quot;hosts&quot;: [],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;names&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;O&quot;: &quot;system:masters&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -805,7 +1067,7 @@
 </ul>
 <h3 id="front-proxy-client"><a href="#front-proxy-client" class="headerlink" title="front-proxy-client"></a>front-proxy-client</h3><ul>
 <li><p>front-proxy-client-csr.json</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;kube-front-client&quot;,</span><br><span class="line">  &quot;hosts&quot;: [],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;front-proxy-client&quot;,</span><br><span class="line">  &quot;hosts&quot;: [],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>命令</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cfssl gencert -ca=front-proxy-ca.pem -ca-key=front-proxy-ca-key.pem -config=front-proxy-ca-config.json -profile=client front-proxy-client-csr.json | cfssljson -bare front-proxy-client</span><br></pre></td></tr></table></figure>
@@ -824,14 +1086,15 @@
 </li>
 </ul>
 <h3 id="kubelet"><a href="#kubelet" class="headerlink" title="kubelet"></a>kubelet</h3><ul>
-<li>kubelet-csr.json.json<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;system:node:&lt;nodeName&gt;&quot;,</span><br><span class="line">  &quot;hosts&quot;: [],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;names&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;O&quot;: &quot;system:nodes&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li>kubelet-csr.json.json<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;system:node:&lt;nodeName&gt;&quot;,</span><br><span class="line">  &quot;hosts&quot;: [</span><br><span class="line">    &quot;127.0.0.1&quot;,</span><br><span class="line">    &quot;localhost&quot;,</span><br><span class="line">    &quot;HOST_IP&quot;</span><br><span class="line">  ],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;names&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;O&quot;: &quot;system:nodes&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<p><code>&lt;nodeName&gt;</code>必须精确匹配由kubelet向apiserver注册时提供的节点名的值。</p>
+<p><code>&lt;nodeName&gt;</code>必须精确匹配由kubelet向apiserver注册时提供的节点名的值。<br>hosts字段不能为空，否则apiserver向kubelet发请求时kubelet无法验证ip的有效性。</p>
 <ul>
 <li>命令<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server kubelet-csr.json | cfssljson -bare kubelet</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
+<p>注意：kubelet指定的profile需要包含client auth和server auth。具体原因后面介绍。</p>
 <h3 id="scheduler"><a href="#scheduler" class="headerlink" title="scheduler"></a>scheduler</h3><ul>
 <li><p>scheduler-csr.json</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;CN&quot;: &quot;system:kube-scheduler&quot;,</span><br><span class="line">  &quot;hosts&quot;: [],</span><br><span class="line">  &quot;key&quot;: &#123;</span><br><span class="line">    &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">    &quot;size&quot;: 2048</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -849,6 +1112,14 @@
 </li>
 </ul>
 <h2 id="格式转换"><a href="#格式转换" class="headerlink" title="格式转换"></a>格式转换</h2><p>.pem和-key.pem直接转为.crt和.key文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for f in *-key.pem; do mv -v &quot;$f&quot; &quot;$&#123;f%-key.pem&#125;.key&quot;; done</span><br><span class="line">for f in *.pem; do mv -v &quot;$f&quot; &quot;$&#123;f%.pem&#125;.crt&quot;; done</span><br><span class="line">cd etcd </span><br><span class="line">for f in *-key.pem; do mv -v &quot;$f&quot; &quot;$&#123;f%-key.pem&#125;.key&quot;; done</span><br><span class="line">for f in *.pem; do mv -v &quot;$f&quot; &quot;$&#123;f%.pem&#125;.crt&quot;; done</span><br></pre></td></tr></table></figure></p>
+<h2 id="配置user-accounts证书"><a href="#配置user-accounts证书" class="headerlink" title="配置user accounts证书"></a>配置user accounts证书</h2><p>为user accounts配置上述自定义证书，参考<a href="https://kubernetes.io/docs/setup/best-practices/certificates/#configure-certificates-for-user-accounts" target="_blank" rel="noopener">Configure certificates for user accounts</a>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">KUBECONFIG=&lt;filename&gt; kubectl config set-cluster default-cluster --server=https://&lt;host ip&gt;:6443 --certificate-authority &lt;path-to-kubernetes-ca&gt; --embed-certs</span><br><span class="line">KUBECONFIG=&lt;filename&gt; kubectl config set-credentials &lt;credential-name&gt; --client-key &lt;path-to-key&gt;.pem --client-certificate &lt;path-to-cert&gt;.pem --embed-certs</span><br><span class="line">KUBECONFIG=&lt;filename&gt; kubectl config set-context default-system --cluster default-cluster --user &lt;credential-name&gt;</span><br><span class="line">KUBECONFIG=&lt;filename&gt; kubectl config use-context default-system</span><br></pre></td></tr></table></figure></p>
+<p><code>&lt;filename&gt;</code>分别为</p>
+<ul>
+<li>/etc/kubernetes/admin.conf</li>
+<li>/etc/kubernetes/kubelet.conf</li>
+<li>/etc/kubernetes/controller-manager.conf</li>
+<li>/etc/kubernetes/scheduler.conf</li>
+</ul>
 <h1 id="kubernetes认证场景"><a href="#kubernetes认证场景" class="headerlink" title="kubernetes认证场景"></a>kubernetes认证场景</h1><p>通过上述证书内容和csr.json，可知kubernetes内部常用的加解密算法为非对称加密算法RSA。接下来具体分析一些场景下的认证过程。首先介绍一下https双向认证过程。</p>
 <h2 id="https双向认证"><a href="#https双向认证" class="headerlink" title="https双向认证"></a>https双向认证</h2><p>参考<a href="https://blog.csdn.net/u012175637/article/details/84138925" target="_blank" rel="noopener">图解SSL/TLS认证流程</a>。<br><img src="/2019/06/16/探讨下kubernetes的证书体系/3.PNG" title="SSL/TLS认证流程"></p>
 <h2 id="kubectl"><a href="#kubectl" class="headerlink" title="kubectl"></a>kubectl</h2><p>kubectl与apiserver通信，以控制和获取集群资源。这是一个双向认证过程。kubectl要验证apiserver的证书有效性，apiserver也要验证kubectl证书有效性。</p>
@@ -858,12 +1129,233 @@
 <li>client-certificate-data<br>kubectl发送的证书，apiserver会对其进行验证。</li>
 <li>client-key-data<br>kubectl使用的密钥。</li>
 </ul>
-<p>将内容进行<code>base64 -d</code>和<code>openssl x509 -in xxx.crt -text -noout</code>即可查看证书内容。可以发现，默认情况下的证书和密钥是kubeadm生成的，有效期只有一年。后面对其进行自定义。</p>
+<p>将内容进行<code>base64 -d</code>和<code>openssl x509 -in xxx.crt -text -noout</code>即可查看证书内容。可以发现，默认情况下的证书和密钥是kubeadm生成的，有效期只有一年。参考配置user accounts证书对其进行自定义。</p>
 <h3 id="通信过程"><a href="#通信过程" class="headerlink" title="通信过程"></a>通信过程</h3><p>抓包研究下kubectl和apiserver的通信握手过程。apiserver监听端口为6443。((tcp[12] &amp; 0xf0) &gt;&gt; 2)表示TCP头的大小。TLS包的第一个字节定义内容类型，值22(十六进制中的0x16)被定义为“握手”内容。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -ni any &quot;tcp port 6443 and (tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w test.sap</span><br></pre></td></tr></table></figure></p>
 <p>执行<code>kubectl get svc</code>，从而捕抓到kubectl和apiserver之间的握手包。<br>用wireshark查看test.sap。<br><img src="/2019/06/16/探讨下kubernetes的证书体系/4.PNG" title="kubectl和apiserver的握手包"><br>可以发现，kubectl首先向apiserver发送了client hello报文，apiserver响应hello报文之后，发送自己的证书，并发送客户端证书请求。kubectl收到证书请求后，发送自己的证书，并验证apiserver证书的有效性。<br>具体的证书内容可以通过wireshark查看。</p>
 <p>apiserver使用了<code>--client-ca-file</code>字段指定了用于认证客户端证书的根证书。kubectl则是通过<code>--certificate-authority-data</code>验证apiserver的证书。简单修改下certificate-authority-data的内容，测试一下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># kubectl get pods</span><br><span class="line">Unable to connect to the server: x509: certificate signed by unknown authority</span><br></pre></td></tr></table></figure></p>
 <p>查看抓包情况：<br><img src="/2019/06/16/探讨下kubernetes的证书体系/5.PNG" title="kubectl和apiserver的握手包/失败场景"><br>可以发现，apiserver的证书并没有通过kubectl的验证。</p>
-<h3 id="自定义证书"><a href="#自定义证书" class="headerlink" title="自定义证书"></a>自定义证书</h3><h3 id="RBAC"><a href="#RBAC" class="headerlink" title="RBAC"></a>RBAC</h3>
+<h3 id="tls-rbac"><a href="#tls-rbac" class="headerlink" title="tls+rbac"></a>tls+rbac</h3><p>参考<a href="https://tonybai.com/2018/06/14/the-authentication-and-authorization-of-kubectl-when-accessing-k8s-cluster/" target="_blank" rel="noopener">使用kubectl访问Kubernetes集群时的身份验证和授权</a>，apiserver负责集群访问权限控制，访问权限控制由身份验证(authentication)、授权(authorization)和准入控制（admission control）三步骤按序进行。身份验证支持的方法包括：client证书验证（https双向验证）、basic auth、普通token以及jwt token(用于serviceaccount)。授权支持的方式包括Node、RBAC、Webhook。</p>
+<h4 id="身份信息"><a href="#身份信息" class="headerlink" title="身份信息"></a>身份信息</h4><p>kubectl的身份信息在client-certificate的数据中。从~/.kube/config中获取证书的持有者信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Subject: O=system:masters, CN=kubernetes-admin</span><br></pre></td></tr></table></figure></p>
+<p>证书的O、CN字段用于提供RBAC所需的用户组和用户。起作用的主要是<code>group = system:masters</code>。<br>参考<a href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles" target="_blank" rel="noopener">User-facing Roles</a>，可知kubernetes默认创建了cluster-admin的ClusterRole，并且绑定了<code>group = system:masters</code>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl get clusterrolebinding/cluster-admin -o yaml</span><br><span class="line">kubectl get clusterrole/cluster-admin -o yaml</span><br></pre></td></tr></table></figure></p>
+<p>可以发现，apiGroups、resources、verbs等都被授予了全部权限。</p>
+<p>注：经过试验，修改了该场景下的CN后（即重新自定义证书），kubectl可以正常工作，因此在该场景下，CN应该没有发挥什么作用。</p>
+<h2 id="kubelet-1"><a href="#kubelet-1" class="headerlink" title="kubelet"></a>kubelet</h2><h3 id="kubelet-conf"><a href="#kubelet-conf" class="headerlink" title="kubelet.conf"></a>kubelet.conf</h3><p>kubelet.conf用于指明如何与apiserver进行通信。<br>需要关注的字段主要是：</p>
+<ul>
+<li>certificate-authority-data<br>用于验证apiserver发过来的证书。</li>
+<li>client-certificate-data<br>kubelet发送的证书，apiserver会对其进行验证。</li>
+<li>client-key-data<br>kubelet使用的密钥。</li>
+</ul>
+<p>默认情况下，通过<code>kubeadm init phase kubeconfig kubelet --config=kubeadm.yaml</code>生成的kubelet.conf将会包含有效期为一年的证书，默认使用了/etc/kubernetes/pki/ca.crt。在<code>配置user accounts证书</code>一节，通过参数指定可以修改证书。<br>如果kubelet.conf的certificate-authority-data根证书内容有误，kubelet将会启动失败，出现类似以下错误日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Unable to register node &quot;xxx.xxx.xxx.xxx&quot; with API server: Post https://xxx.xxx.xxx.xxx:6443/api/v1/nodes: x509: certificate signed by unknown authority</span><br></pre></td></tr></table></figure></p>
+<p>apiserver则将出现类似以下错误日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http: TLS handshake error from xxx.xxx.xxx.xxx:48718: remote error: tls: bad certificate</span><br></pre></td></tr></table></figure></p>
+<p>如果kubelet.conf的client-certificate-data证书或client-key-data密钥内容有误，kubelet将会启动失败，出现类似以下错误日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Unable to load TLS configuration from existing bootstrap client config: tls: failed to find any PEM data in certificate input</span><br><span class="line">Unable to load TLS configuration from existing bootstrap client config: tls: failed to find any PEM data in key input</span><br></pre></td></tr></table></figure></p>
+<p>这种场景下是无法使用<code>kubectl log</code>命令的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server: Get https://xxx.xxx.xxx.xxx:10250/containerLogs/kube-system/kube-apiserver-xxx.xxx.xxx.xxx/kube-apiserver?follow=true: dial tcp xxx.xxx.xxx.xxx:10250: connect: connection refused</span><br></pre></td></tr></table></figure></p>
+<p>参考<a href="https://kubernetes.io/zh/docs/concepts/architecture/master-node-communication/#apiserver-kubelet" target="_blank" rel="noopener">apiserver-kubelet</a>，可知通过kubectl查看log需要由apiserver连接到kubelet。</p>
+<p>client-certificate-data和client-key-data也可以直接指向文件路径：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">users:</span><br><span class="line">- name: default-auth</span><br><span class="line">  user:</span><br><span class="line">    client-certificate: /var/lib/kubelet/pki/kubelet-client-current.pem</span><br><span class="line">    client-key: /var/lib/kubelet/pki/kubelet-client-current.pem</span><br></pre></td></tr></table></figure></p>
+<p>参考<a href="https://mritd.me/2018/01/07/kubernetes-tls-bootstrapping-note/#52%E8%AF%81%E4%B9%A6%E5%8F%8A%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%BD%9C%E7%94%A8" target="_blank" rel="noopener">Kubernetes TLS bootstrapping那点事</a>，可知kubelet-client-current.pem是一个软连接文件，当kubelet配置了<code>--feature-gates=RotateKubeletClientCertificate=true</code>选项后，会在证书总有效期的70%~90%的时间内发起续期请求，请求被批准后会生成一个<code>/var/lib/kubelet/pki/kubelet-client-时间戳.pem</code>。kubelet-client-current.pem文件则始终软连接到最新的真实证书文件，除首次启动外，kubelet一直会使用这个证书同apiserver通讯。参考<a href="https://v1-13.docs.kubernetes.io/docs/reference/command-line-tools-reference/kubelet/" target="_blank" rel="noopener">kubelet</a>，可知<code>RotateKubeletClientCertificate</code>参数默认为true。<br>查看kubelet-client-current.pem文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-----BEGIN CERTIFICATE-----</span><br><span class="line">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">-----END CERTIFICATE-----</span><br><span class="line">-----BEGIN EC PRIVATE KEY-----</span><br><span class="line">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br><span class="line">-----END EC PRIVATE KEY-----</span><br></pre></td></tr></table></figure></p>
+<p>使用<code>openssl x509 -in ./cert -text -noout</code>查看证书内容，可以发现公钥加密算法为id-ecPublicKey，而不是rsaEncryption。</p>
+<h3 id="kubelet-conf-vs-kubelet-client-current-pem"><a href="#kubelet-conf-vs-kubelet-client-current-pem" class="headerlink" title="kubelet.conf vs kubelet-client-current.pem"></a>kubelet.conf vs kubelet-client-current.pem</h3><p>既然kubelet.conf和kubelet-client-current.pem都用作kubelet和apiserver通信的证书，那两者之间的关系是什么？<br>基于kubelet启动的过程中需要向apiserver进行节点注册，以该场景为例进行抓握手包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -ni any &quot;tcp port 6443 and (tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w test.sap</span><br></pre></td></tr></table></figure></p>
+<p>然后重启kubelet：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart kubelet</span><br></pre></td></tr></table></figure></p>
+<p>查看握手包的Certificate的serialNumber，对比kubelet.conf和kubelet-client-current.pem证书中的serialNumber，发现默认情况下，kubelet是以kubelet-client-current.pem的内容与apiserver通信的。<br>由此，猜测kubelet.conf类似于备胎的作用，当不进行client证书轮转更新时，使用kubelet使用kubelet.conf与apiserver进行通信。以下进行实验证实：</p>
+<ul>
+<li>修改/var/lib/kubelet/kubeadm-flags.env，添加<code>--feature-gates=RotateKubeletClientCertificate=false --rotate-certificates=false</code></li>
+<li><code>systemctl restart kubelet</code></li>
+</ul>
+<p>再次抓包，可以发现握手包的Certificate的serialNumber等于kubelet.conf证书中的serialNumber，猜测成立。</p>
+<h3 id="证书问题"><a href="#证书问题" class="headerlink" title="证书问题"></a>证书问题</h3><p>实验过程中，实际上是出现了一些奇怪的问题。如果开启RotateKubeletClientCertificate的话，每次重启kubelet，若kubelet-client-current.pem不存在，则会自动创建新的证书文件（通过certificatesigningrequests请求），并将kubelet-client-current.pem指向它。</p>
+<h4 id="kubelet-client-current-pem内容错误"><a href="#kubelet-client-current-pem内容错误" class="headerlink" title="kubelet-client-current.pem内容错误"></a>kubelet-client-current.pem内容错误</h4><p>实验过程：</p>
+<ul>
+<li><code>systemctl stop kubelet</code></li>
+<li><code>rm /var/lib/kubelet/pki/kubelet-client-current.pem</code></li>
+<li><code>systemctl restart kubelet</code></li>
+<li><code>journalctl -xeu kubelet</code></li>
+</ul>
+<p>发现kubelet无法注册节点，apiserver出现以下错误日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Unable to authenticate the request due to an error: [x509: certificate signed by unknown authority, x509: certificate specifies an incompatible key usage]</span><br></pre></td></tr></table></figure></p>
+<p>查看kubelet-client-current.pem的证书内容，发现kubelet-client-current.pem的证书内容为kubelet.conf的证书内容。比对之前的证书内容，发现两者的差异是：</p>
+<ul>
+<li>kubelet-client-current.pem：X509v3 Extended Key Usage为TLS Web Server Authentication</li>
+<li>之前的有效证书：X509v3 Extended Key Usage为TLS Web Client Authentication</li>
+</ul>
+<p>猜测kubernetes在生成kubelet-client-current.pem的时候，若kubelet.conf的证书Key Usage包含Client Authentication，则轮转生成全新的证书内容（采用公钥加密算法为id-ecPublicKey）；否则kubelet-client-current.pem直接引用kubelet.conf的证书内容。该猜测经过实验已证实。<br>在这个场景中，我们生成kubelet.crt的时候，指定了<code>-profile=server</code>，且该profile不包含<code>client auth</code>的usages；由该证书所生成的kubelet.conf、由该kubelet.conf所生成的kubelet-client-current.pem，并不满足认证要求。</p>
+<h4 id="查看log时apiserver和kubelet的验证"><a href="#查看log时apiserver和kubelet的验证" class="headerlink" title="查看log时apiserver和kubelet的验证"></a>查看log时apiserver和kubelet的验证</h4><p>借助kubelet-client-current.pem证书出错（即只包含server auth）这个场景，验证下<code>kubectl log</code>的执行过程：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl log kube-apiserver-xxx.xxx.xxx.xxx -n kube-system -f</span><br></pre></td></tr></table></figure></p>
+<p>输出以下日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server (InternalError): Internal error occurred: Authorization error (user=kube-apiserver-kubelet-client, verb=get, resource=nodes, subresource=proxy)</span><br></pre></td></tr></table></figure></p>
+<p>抓取kubectl<->apiserver和apiserver<->kubelet的握手包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -ni any &quot;tcp port 6443 and (tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w 6443.sap</span><br><span class="line">tcpdump -ni any &quot;tcp port 10250 and (tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w 10250.sap</span><br></pre></td></tr></table></figure></-></-></p>
+<p>继续执行<code>kubectl log</code>，查看握手包，发现：</p>
+<ul>
+<li>kubectl使用~/.kube/config（O=system:masters, CN=kubernetes-admin）的证书与apiserver通信，apiserver使用/etc/kubernetes/pki/apiserver.crt与kubectl通信（CN=kube-apiserver）。</li>
+<li>apiserver使用/etc/kubernetes/pki/apiserver-kubelet-client.crt与kubelet通信，kubelet使用/etc/kubernetes/pki/kubelet.crt与apiserver通信。</li>
+</ul>
+<p>考虑到引用kubelet.crt的地方，是/var/lib/kubelet/config.yaml中的tlsCertFile和tlsPrivateKeyFile，这两个字段是由kubeadm.yaml指定的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: kubelet.config.k8s.io/v1beta1</span><br><span class="line">kind: KubeletConfiguration</span><br><span class="line">address: &quot;HOST_IP&quot;</span><br><span class="line">tlsCertFile: KUBELET_CERT </span><br><span class="line">tlsPrivateKeyFile: KUBELET_KEY</span><br></pre></td></tr></table></figure></p>
+<p>若不指定，将生成自签名证书/var/lib/kubelet/pki/kubelet.crt和私钥/var/lib/kubelet/pki/kubelet.key。此处我们指定为自制证书路径/etc/kubernetes/pki/kubelet.crt和/etc/kubernetes/pki/kubelet.key。将其修改为临时生成的证书路径，然后执行<code>kubectl log</code>，抓取10250端口的握手包，可以发现kubelet使用临时证书与apiserver通信。</p>
+<p>在上一节中，kubelet向apiserver发请求注册节点，kubelet作为客户端，因此其证书需要包含client auth。在本节中，apiserver向kubelet发请求查看日志，kubelet作为服务端，其证书不但需要包含server auth，还需要包含host字段，用于验证apiserver所访问的ip。<br>若kubelet.crt不包含hosts字段，则apiserver可能报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server: Get https://xxx.xxx.xxx.xxx:10250/containerLogs/kube-system/kube-apiserver-xxx.xxx.xxx.xxx/kube-apiserver?follow=true: x509: cannot validate certificate for xxx.xxx.xxx.xxx because it doesn&apos;t contain any IP SANs</span><br></pre></td></tr></table></figure></p>
+<p>若kubelet.crt不包含server auth，则apiserver可能报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server: Get https://xxx.xxx.xxx.xxx:10250/containerLogs/kube-system/kube-apiserver-xxx.xxx.xxx.xxx/kube-apiserver?follow=true: x509: certificate specifies an incompatible key usage</span><br></pre></td></tr></table></figure></p>
+<p>因此，需要更新kubelet.crt，保证其同时包含client auth（确保正确生成kubelet-client-current.pem）和server auth（用于tlsCertFile），同时证书hosts字段包含节点ip。</p>
+<h3 id="身份信息-1"><a href="#身份信息-1" class="headerlink" title="身份信息"></a>身份信息</h3><p>假设kubelet.crt同时包含client auth和server auth。获取kubelet证书的持有者信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Subject: O=system:nodes, CN=system:node:&lt;nodeName&gt;</span><br></pre></td></tr></table></figure></p>
+<p>修改CN=test，生成证书，并修改kubelet.conf，可以发现以下现象：<br>kubelet发出的证书请求被拒绝，无法向apiserver查阅资源：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Failed while requesting a signed certificate from the master: cannot create certificate signing request: certificatesigningrequests.certificates.k8s.io is forbidden: User &quot;test&quot; cannot create resource &quot;certificatesigningrequests&quot; in API group &quot;certificates.k8s.io&quot; at the cluster scope</span><br><span class="line"></span><br><span class="line">Failed to list *v1.Node: nodes &quot;xxx.xxx.xxx.xxx&quot; is forbidden: User &quot;test&quot; cannot list resource &quot;nodes&quot; in API group &quot;&quot; at the cluster scope</span><br></pre></td></tr></table></figure></p>
+<p>kubectl log出现认证错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server (InternalError): Internal error occurred: Authorization error (user=kube-apiserver-kubelet-client, verb=get, resource=nodes, subresource=proxy)</span><br></pre></td></tr></table></figure></p>
+<p>此时，kubelet-client-current.pem没有自动轮转，而是采用了kubelet.conf的内容。</p>
+<p>修改O=test，生成证书，并修改kubelet.conf，可以发现以下现象：<br>kubelet发出的证书请求被拒绝，无法向apiserver查阅资源：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Failed while requesting a signed certificate from the master: cannot create certificate signing request: certificatesigningrequests.certificates.k8s.io is forbidden: User &quot;system:nodes:xxx.xxx.xxx.xxx&quot; cannot create resource &quot;certificatesigningrequests&quot; in API group &quot;certificates.k8s.io&quot; at the cluster scope</span><br><span class="line"></span><br><span class="line">Failed to list *v1.Node: nodes &quot;xxx.xxx.xxx.xxx&quot; is forbidden: User &quot;system:nodes:xxx.xxx.xxx.xxx&quot; cannot list resource &quot;nodes&quot; in API group &quot;&quot; at the cluster scope</span><br></pre></td></tr></table></figure></p>
+<p>kubectl log出现认证错误：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Error from server (InternalError): Internal error occurred: Authorization error (user=kube-apiserver-kubelet-client, verb=get, resource=nodes, subresource=proxy)</span><br></pre></td></tr></table></figure></p>
+<p>此时，kubelet-client-current.pem没有自动轮转，而是采用了kubelet.conf的内容。</p>
+<p>由此可以发现，kubelet的证书需要同时满足CN和O的定义形式。具体可以参考<a href="https://v1-13.docs.kubernetes.io/docs/reference/access-authn-authz/node/" target="_blank" rel="noopener">Using Node Authorization</a>和<a href="https://v1-13.docs.kubernetes.io/docs/reference/access-authn-authz/rbac/#core-component-roles" target="_blank" rel="noopener">Using RBAC Authorization</a>的说明。</p>
+<h2 id="kube-controller-manager"><a href="#kube-controller-manager" class="headerlink" title="kube-controller-manager"></a>kube-controller-manager</h2><p>相关的启动参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">--authentication-kubeconfig=/etc/kubernetes/controller-manager.conf,</span><br><span class="line">--authorization-kubeconfig=/etc/kubernetes/controller-manager.conf,</span><br><span class="line">--client-ca-file=/etc/kubernetes/pki/ca.crt, </span><br><span class="line">--cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt,</span><br><span class="line">--cluster-signing-key-file=/etc/kubernetes/pki/ca.key, </span><br><span class="line">--kubeconfig=/etc/kubernetes/controller-manager.conf, </span><br><span class="line">--requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt,</span><br><span class="line">--root-ca-file=/etc/kubernetes/pki/ca.crt,</span><br><span class="line">--service-account-private-key-file=/etc/kubernetes/pki/sa.key,</span><br><span class="line">--use-service-account-credentials=true</span><br></pre></td></tr></table></figure></p>
+<p>controller-manager.conf用于与apiserver通信，其中根证书部分用于验证apiserver证书，证书密钥部分用于发送给apiserver。可以修改controller-manager.conf并通过重启docker进行验证。<br>若根证书无效，则kube-controller-manager日志会出现以下日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error retrieving resource lock kube-system/kube-controller-manager: Get https://xxx.xxx.xxx.xxx:6443/api/v1/namespaces/kube-system/endpoints/kube-controller-manager?timeout=10s: x509: certificate signed by unknown authority</span><br></pre></td></tr></table></figure></p>
+<p>至于controller-manager与apiserver的通信，可以通过抓包查看，并重启docker：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -ni any &quot;src host xxx.xxx.xxx.xxx and dst host xxx.xxx.xxx.xxx and tcp port 6443 and (tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w 6443.sap</span><br></pre></td></tr></table></figure></p>
+<p>关于service-account，参考<a href="https://kubernetes.io/zh/docs/reference/access-authn-authz/service-accounts-admin/" target="_blank" rel="noopener">管理Service Accounts</a>，通过<code>--service-account-private-key-file</code>参数项传入一个服务账户私钥文件至Token管理器，私钥用于为生成的服务账户token签名。同样地，通过<code>--service-account-key-file</code>参数将对应的公钥传入kube-apiserver，公钥用于认证过程中的token校验。<br>我们可以通过创建serviceaccount的方式，并查看对应生成的secret，然后在jwt.io上查看token内容，以及进行签名验证。</p>
+<h3 id="access-token-vs-cert"><a href="#access-token-vs-cert" class="headerlink" title="access-token vs cert"></a>access-token vs cert</h3><p>实验场景，获取controller-manager metrics：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://xxx.xxx.xxx.xxx:10257/metrics --cert /etc/kubernetes/pki/controller-manager.crt --key /etc/kubernetes/pki/controller-manager.key -k</span><br><span class="line">curl https://xxx.xxx.xxx.xxx:10257/metrics --header &quot;Authorization: Bearer $TOKEN&quot; -k</span><br></pre></td></tr></table></figure></p>
+<p>得出以下结论：</p>
+<ul>
+<li>服务端下发的是自签名的根证书和证书</li>
+<li>客户端证书需要包含client auth</li>
+<li>以controller-manager.crt为证书，User system:kube-controller-manager需要与已存在的system:auth-delegator ClusterRole进行绑定，不然会报以下错误：<code>Internal Server Error: &quot;/metrics&quot;: subjectaccessreviews.authorization.k8s.io is forbidden: User &quot;system:kube-controller-manager&quot; cannot create resource &quot;subjectaccessreviews&quot; in API group &quot;authorization.k8s.io&quot; at the cluster scope</code></li>
+<li>以controller-manager.crt为证书，还需要为User system:kube-controller-manager赋予metrics的访问权限</li>
+<li>以apiserver-kubelet-client.crt为证书，不需要绑定system:auth-delegator ClusterRole，因为证书指定了O=system:masters，具备admin权限</li>
+<li>以apiserver-etcd-client.crt为证书，Unauthorized，因为签发的根证书是etcd根证书</li>
+<li>以secret admin-user为token的话，User system:kube-controller-manager需要与已存在的system:auth-delegator ClusterRole进行绑定</li>
+<li>以secret default为token的话，User system:kube-controller-manager需要与已存在的system:auth-delegator ClusterRole进行绑定，同时需要为ServiceAccount default赋予metrics的访问权限</li>
+</ul>
+<p>以上实验参考<a href="https://octetz.com/posts/secure-port-k8s-cm-sched" target="_blank" rel="noopener">Securing Controller Manager and Scheduler Metrics</a>，主要的配置内容如下：<br>User system:kube-controller-manager与已存在的system:auth-delegator ClusterRole进行绑定<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">kind: ClusterRoleBinding</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">metadata:</span><br><span class="line">  name: system:kube-controller-manager:auth-delegate</span><br><span class="line">subjects:</span><br><span class="line">- kind: User</span><br><span class="line">  name: system:kube-controller-manager</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">roleRef:</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: system:auth-delegator</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br></pre></td></tr></table></figure></p>
+<p>secret default:default(<code>&lt;namespace&gt;:&lt;service-account&gt;</code>)授权/metrics nonResourceURLs<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">kind: ClusterRole</span><br><span class="line">metadata:</span><br><span class="line">  name: secure-metrics-scrape</span><br><span class="line">rules:</span><br><span class="line">- apiGroups:</span><br><span class="line">  - &quot;&quot;</span><br><span class="line">  resources:</span><br><span class="line">  - nodes/metrics</span><br><span class="line">  verbs:</span><br><span class="line">  - get</span><br><span class="line">- nonResourceURLs:</span><br><span class="line">  - /metrics</span><br><span class="line">  verbs:</span><br><span class="line">  - get</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: metrics-endpoint</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: secure-metrics-scrape</span><br><span class="line">subjects:</span><br><span class="line">- kind: ServiceAccount</span><br><span class="line">  name: default</span><br><span class="line">  namespace: default</span><br></pre></td></tr></table></figure></p>
+<p>获取default:default token<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TOKEN=$(kubectl describe secret $(kubectl get secrets -n default | grep ^default | cut -f1 -d &apos; &apos;) | grep -E &apos;^token&apos; | cut -f2 -d&apos;:&apos; | tr -d &quot; &quot;)</span><br></pre></td></tr></table></figure></p>
+<p>为User system:kube-controller-manager赋予metrics的访问权限<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">kind: ClusterRole</span><br><span class="line">metadata:</span><br><span class="line">  name: secure-metrics-scrape</span><br><span class="line">rules:</span><br><span class="line">- apiGroups:</span><br><span class="line">  - &quot;&quot;</span><br><span class="line">  resources:</span><br><span class="line">  - nodes/metrics</span><br><span class="line">  verbs:</span><br><span class="line">  - get</span><br><span class="line">- nonResourceURLs:</span><br><span class="line">  - /metrics</span><br><span class="line">  verbs:</span><br><span class="line">  - get</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">metadata:</span><br><span class="line">  name: metrics-endpoint</span><br><span class="line">subjects:</span><br><span class="line">- kind: User</span><br><span class="line">  name: system:kube-controller-manager</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: secure-metrics-scrape</span><br></pre></td></tr></table></figure></p>
+<h2 id="front-proxy-client-1"><a href="#front-proxy-client-1" class="headerlink" title="front-proxy-client"></a>front-proxy-client</h2><p>front-proxy-client的相关配置主要是用于aggregated apiserver的。<br>apiserver关于front-proxy-client的相关参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">--proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt</span><br><span class="line">--proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key</span><br><span class="line">--requestheader-allowed-names=front-proxy-client</span><br><span class="line">--requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt</span><br><span class="line">--requestheader-extra-headers-prefix=X-Remote-Extra-</span><br><span class="line">--requestheader-group-headers=X-Remote-Group</span><br><span class="line">--requestheader-username-headers=X-Remote-User</span><br></pre></td></tr></table></figure></p>
+<h3 id="aggregated-apiserver"><a href="#aggregated-apiserver" class="headerlink" title="aggregated apiserver"></a>aggregated apiserver</h3><p>aggregated apiserver即聚合apiserver，用于解耦apiserver，集成用户自定义apiserver。这些apiserver可以跟core apiserver无缝衔接，使用kubectl也可以管理它们。可参考<a href="https://medium.com/@vanSadhu/kubernetes-api-aggregation-setup-nuts-bolts-733fef22a504" target="_blank" rel="noopener">Kubernetes API Aggregation Setup</a>。</p>
+<h4 id="使用kubectl访问kubernetes-API"><a href="#使用kubectl访问kubernetes-API" class="headerlink" title="使用kubectl访问kubernetes API"></a>使用kubectl访问kubernetes API</h4><p>参考<a href="https://godoc.org/k8s.io/kube-aggregator/pkg/apis/apiregistration/v1#APIServiceSpec" target="_blank" rel="noopener">APIServiceSpec</a>，apiservice的service字段表明：service是对该api server的服务引用，必须在端口443上通信。如果服务为空，这意味着api groupversion的处理将在此服务器上本地处理。调用将简单地委托给要执行的常规处理程序链。<br>查询所有api：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get apiservice</span><br></pre></td></tr></table></figure></p>
+<p>查询指定api：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get apiservice v1beta1.events.k8s.io -o yaml</span><br></pre></td></tr></table></figure></p>
+<p>访问api：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get --raw=/apis/events.k8s.io/v1beta1</span><br></pre></td></tr></table></figure></p>
+<p>apiservice的注册参考<a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#register-apiservice-objects" target="_blank" rel="noopener">Register APIService objects</a>。</p>
+<h3 id="client-ca-file-vs-requestheader-client-ca-file"><a href="#client-ca-file-vs-requestheader-client-ca-file" class="headerlink" title="client-ca-file vs requestheader-client-ca-file"></a>client-ca-file vs requestheader-client-ca-file</h3><p>参考<a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#ca-reusage-and-conflicts" target="_blank" rel="noopener">CA Reusage and Conflicts</a>。</p>
+<ul>
+<li>client-ca-file<br>当请求到达apiserver时，如果开启client-ca-file选项，apiserver将检查请求的证书。如果证书是由client-ca-file所指定的ca证书签发的，请求将被视为合法的。user将取自<code>CN=</code>字段，group将取自<code>O=</code>字段。</li>
+<li>requestheader-client-ca-file<br>当请求到达apiserver时，如果开启requestheader-client-ca-file选项，apiserver将检查请求的证书。如果证书是由requestheader-client-ca-file所指定的ca证书签发的，请求将被视为潜在的合法请求。apiserver将检查证书的<code>CN=</code>是否在requestheader-allowed-names列表中，如果在，允许该请求，否则拒绝。</li>
+</ul>
+<p>如果同时指定两个选项，apiserver先检查requestheader-client-ca-file根证书，再检查client-ca-file根证书。常规的客户端请求匹配client-ca-file，聚合请求匹配requestheader-client-ca-file。若两者指定了相同的根证书，则可能会引发问题：通常情况下，client request证书能通过client-ca-file验证，在client-ca-file和requestheader-client-ca-file指定了相同的根证书的情况下，client request证书将匹配requestheader-client-ca-file，但<code>CN=</code>通常不匹配requestheader-allowed-names，导致无法通过apiserver进行身份验证。（常规的客户端请求证书由于不匹配requestheader-client-ca-file，所以会尝试匹配client-ca-file）</p>
+<h3 id="认证流程"><a href="#认证流程" class="headerlink" title="认证流程"></a>认证流程</h3><p>参考<a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#authentication-flow" target="_blank" rel="noopener">Authentication Flow</a>，大致流程如下：</p>
+<ul>
+<li>Kubernetes apiserver：对请求用户进行身份验证，并授权他们对请求的API路径的权限。</li>
+<li>Kubernetes apiserver：将请求代理到扩展apiserver</li>
+<li>扩展apiserver：验证来自Kubernetes apiserver的请求<br>当我们配置了apiserver关于front-proxy-client的相关参数，kubernetes将会在kube-system命名空间下创建<code>extension-apiserver-authentication</code>configmap，扩展apiservers可以通过该configmap来验证请求。<br>这需要为扩展apiservers绑定适当的角色，默认的角色是kube-system命名空间下的<code>extension-apiserver-authentication-reader</code>。</li>
+<li>扩展apiserver：授权来自原始用户的请求<br>扩展apiserver通过向Kubernetes apiserver发送一个标准的SubjectAccessReview请求来验证用户/组是否被授权执行给定的请求。<br>这需要为扩展apiservers绑定适当的角色，Kubernetes包含一个默认的ClusterRole<code>system:authdelegate-delegate</code>，它可以被授予扩展apiserver的服务帐户。</li>
+<li>扩展apiserver：执行</li>
+</ul>
+<img src="/2019/06/16/探讨下kubernetes的证书体系/6.PNG" title="认证流程">
+<h3 id="apiserver认证源码实现"><a href="#apiserver认证源码实现" class="headerlink" title="apiserver认证源码实现"></a>apiserver认证源码实现</h3><p>在以实际例子验证上述认证流程之前，这里讲解一下apiserver，已解答实际验证过程中的一些问题。</p>
+<h4 id="指定http处理链"><a href="#指定http处理链" class="headerlink" title="指定http处理链"></a>指定http处理链</h4><p>创建apiserver配置信息，配置信息中指定默认的http处理链。<br>代码片段：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">//func buildGenericConfig(s *options.ServerRunOptions, proxyTransport *http.Transport)</span><br><span class="line">  genericConfig = genericapiserver.NewConfig(legacyscheme.Codecs)</span><br><span class="line"></span><br><span class="line">//func NewConfig(codecs serializer.CodecFactory)</span><br><span class="line">  return &amp;Config&#123;</span><br><span class="line">    BuildHandlerChainFunc:       DefaultBuildHandlerChain,</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">//func DefaultBuildHandlerChain(apiHandler http.Handler, c *Config)</span><br><span class="line">  handler = genericapifilters.WithAuthentication(handler, c.Authentication.Authenticator, failedHandler, c.Authentication.APIAudiences)</span><br></pre></td></tr></table></figure></p>
+<p>参考：<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kube-apiserver/app/server.go#L382" target="_blank" rel="noopener">genericapiserver.NewConfig</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/server/config.go#L257" target="_blank" rel="noopener">DefaultBuildHandlerChain</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/server/config.go#L579" target="_blank" rel="noopener">genericapifilters.WithAuthentication</a></p>
+<h4 id="构建身份验证器"><a href="#构建身份验证器" class="headerlink" title="构建身份验证器"></a>构建身份验证器</h4><p>上述请求处理链绑定genericapifilters.WithAuthentication，然后传递c.Authentication.Authenticator身份验证器。这个身份验证器是一个union authenticator，包含了不同的认证场景下的不同的处理方法。<br>代码片段：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">//func buildGenericConfig(s *options.ServerRunOptions, proxyTransport *http.Transport)</span><br><span class="line">  genericConfig.Authentication.Authenticator, genericConfig.OpenAPIConfig.SecurityDefinitions, err = BuildAuthenticator(s, clientgoExternalClient, versionedInformers)</span><br><span class="line"></span><br><span class="line">//func BuildAuthenticator(s *options.ServerRunOptions, extclient clientgoclientset.Interface, versionedInformer clientgoinformers.SharedInformerFactory)</span><br><span class="line">  authenticatorConfig := s.Authentication.ToAuthenticationConfig()</span><br><span class="line">  ...</span><br><span class="line">  return authenticatorConfig.New()</span><br><span class="line"></span><br><span class="line">//func (config Config) New()</span><br><span class="line">  if config.RequestHeaderConfig != nil &#123;</span><br><span class="line">    requestHeaderAuthenticator, err := headerrequest.NewSecure(</span><br><span class="line">      config.RequestHeaderConfig.ClientCA,</span><br><span class="line">      config.RequestHeaderConfig.AllowedClientNames,</span><br><span class="line">      config.RequestHeaderConfig.UsernameHeaders,</span><br><span class="line">      config.RequestHeaderConfig.GroupHeaders,</span><br><span class="line">      config.RequestHeaderConfig.ExtraHeaderPrefixes,</span><br><span class="line">    )</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      return nil, nil, err</span><br><span class="line">    &#125;</span><br><span class="line">    authenticators = append(authenticators, authenticator.WrapAudienceAgnosticRequest(config.APIAudiences, requestHeaderAuthenticator))</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  if len(config.ClientCAFile) &gt; 0 &#123;</span><br><span class="line">    certAuth, err := newAuthenticatorFromClientCAFile(config.ClientCAFile)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      return nil, nil, err</span><br><span class="line">    &#125;</span><br><span class="line">    authenticators = append(authenticators, certAuth)</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  authenticator := union.New(authenticators...)</span><br></pre></td></tr></table></figure></p>
+<p>参考：<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kube-apiserver/app/server.go#L446" target="_blank" rel="noopener">genericConfig.Authentication.Authenticator</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/cmd/kube-apiserver/app/server.go#L504" target="_blank" rel="noopener">BuildAuthenticator</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/pkg/kubeapiserver/authenticator/config.go#L83" target="_blank" rel="noopener">authenticatorConfig.New</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/pkg/kubeapiserver/authenticator/config.go#L91" target="_blank" rel="noopener">headerrequest.NewSecure</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/authentication/request/headerrequest/requestheader.go#L80" target="_blank" rel="noopener">NewSecure</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/pkg/kubeapiserver/authenticator/config.go#L214" target="_blank" rel="noopener">union.New</a></p>
+<h4 id="验证过程"><a href="#验证过程" class="headerlink" title="验证过程"></a>验证过程</h4><p>请求处理链绑定genericapifilters.WithAuthentication，然后传递c.Authentication.Authenticator身份验证器。实际调用Authenticator的AuthenticateRequest方法，而Authenticator是我们的union。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">//func DefaultBuildHandlerChain(apiHandler http.Handler, c *Config) http.Handler</span><br><span class="line">  handler = genericapifilters.WithAuthentication(handler, c.Authentication.Authenticator, failedHandler, c.Authentication.APIAudiences)</span><br><span class="line"></span><br><span class="line">//func WithAuthentication(handler http.Handler, auth authenticator.Request, failed http.Handler, apiAuds authenticator.Audiences) http.Handler </span><br><span class="line">  resp, ok, err := auth.AuthenticateRequest(req)</span><br><span class="line">  if err != nil || !ok &#123;</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      klog.Errorf(&quot;Unable to authenticate the request due to an error: %v&quot;, err)</span><br><span class="line">    &#125;</span><br><span class="line">    failed.ServeHTTP(w, req)</span><br><span class="line">    return</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">//func (authHandler *unionAuthRequestHandler) AuthenticateRequest(req *http.Request) (*authenticator.Response, bool, error)</span><br><span class="line">  for _, currAuthRequestHandler := range authHandler.Handlers &#123;</span><br><span class="line">    resp, ok, err := currAuthRequestHandler.AuthenticateRequest(req)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">      if authHandler.FailOnError &#123;</span><br><span class="line">        return resp, ok, err</span><br><span class="line">      &#125;</span><br><span class="line">      errlist = append(errlist, err)</span><br><span class="line">      continue</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if ok &#123;</span><br><span class="line">      return resp, ok, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return nil, false, utilerrors.NewAggregate(errlist)</span><br></pre></td></tr></table></figure></p>
+<p>每接收一个请求时，则遍历union authenticator的处理方法，一旦通过验证就跳出循环。union.AuthenticateRequest调用每个handler的AuthenticateRequest，按照<code>func (config Config) New()</code>的指定顺序，分别是Front proxy、Basic auth、Cert、Token auth、Service account token、Bootstrap token、OIDC、Webhook…<br>这里我们关注一下Front proxy的处理流程，首先验证证书的合法性，然后判断CN是否在allowedCommonNames里面，最后返回到上层验证：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">//func (a *Verifier) AuthenticateRequest(req *http.Request) (*authenticator.Response, bool, error)</span><br><span class="line">  if _, err := req.TLS.PeerCertificates[0].Verify(optsCopy); err != nil &#123;</span><br><span class="line">    return nil, false, err</span><br><span class="line">  &#125;</span><br><span class="line">  if err := a.verifySubject(req.TLS.PeerCertificates[0].Subject); err != nil &#123;</span><br><span class="line">    return nil, false, err</span><br><span class="line">  &#125;</span><br><span class="line">  return a.auth.AuthenticateRequest(req)</span><br><span class="line"></span><br><span class="line">//func (a *Verifier) verifySubject(subject pkix.Name) error</span><br><span class="line">  if len(a.allowedCommonNames) == 0 &#123;</span><br><span class="line">    return nil</span><br><span class="line">  &#125;</span><br><span class="line">  if a.allowedCommonNames.Has(subject.CommonName) &#123;</span><br><span class="line">    return nil</span><br><span class="line">  &#125;</span><br><span class="line">  return fmt.Errorf(&quot;x509: subject with cn=%s is not in the allowed list&quot;, subject.CommonName)</span><br></pre></td></tr></table></figure></p>
+<p>上层验证实际上是尝试从头部信息中获取name、group、extra信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//func (a *requestHeaderAuthRequestHandler) AuthenticateRequest(req *http.Request) (*authenticator.Response, bool, error)</span><br><span class="line">  name := headerValue(req.Header, a.nameHeaders)</span><br><span class="line">  if len(name) == 0 &#123;</span><br><span class="line">    return nil, false, nil</span><br><span class="line">  &#125;</span><br><span class="line">  groups := allHeaderValues(req.Header, a.groupHeaders)</span><br><span class="line">  extra := newExtra(req.Header, a.extraHeaderPrefixes)</span><br></pre></td></tr></table></figure></p>
+<p>可以发现，如果CN不在allowedCommonNames里，则会报错<code>not in the allowed list</code>，返回<code>nil, false, err</code>，由于err不为空，union.AuthenticateRequest将继续使用下一个handler进行验证，并将错误信息登记输出。<br>如果通过了front-proxy的证书认证，但是头部信息中没有包含name的话，验证也是失败的，返回<code>nil, false, nil</code>，由于err为空，union.AuthenticateRequest将继续使用下一个handler进行验证，但没有将错误信息登记输出。<br>参考：<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/server/config.go#L579" target="_blank" rel="noopener">genericapifilters.WithAuthentication</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/endpoints/filters/authentication.go#L53" target="_blank" rel="noopener">WithAuthentication</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/authentication/request/union/union.go#L53" target="_blank" rel="noopener">union.AuthenticateRequest</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/authentication/request/x509/x509.go#L138" target="_blank" rel="noopener">Verifier.AuthenticateRequest</a>、<a href="https://github.com/kubernetes/kubernetes/blob/release-1.13/staging/src/k8s.io/apiserver/pkg/authentication/request/headerrequest/requestheader.go#L108" target="_blank" rel="noopener">requestHeaderAuthRequestHandler.AuthenticateRequest</a></p>
+<h3 id="验证认证流程"><a href="#验证认证流程" class="headerlink" title="验证认证流程"></a>验证认证流程</h3><h4 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h4><p>这里采取的案例是prometheus-operator，它将会创建一个apiservice。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kubectl get apiservice</span><br><span class="line"></span><br><span class="line">===output</span><br><span class="line">v1beta1.metrics.k8s.io                 monitoring/prometheus-adapter   True        18d</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">kubectl get apiservice v1beta1.metrics.k8s.io -o yaml</span><br><span class="line"></span><br><span class="line">===output</span><br><span class="line">apiVersion: apiregistration.k8s.io/v1</span><br><span class="line">kind: APIService</span><br><span class="line">spec:</span><br><span class="line">  group: metrics.k8s.io</span><br><span class="line">  groupPriorityMinimum: 100</span><br><span class="line">  insecureSkipTLSVerify: true</span><br><span class="line">  service:</span><br><span class="line">    name: prometheus-adapter</span><br><span class="line">    namespace: monitoring</span><br><span class="line">  version: v1beta1</span><br><span class="line">  versionPriority: 100</span><br></pre></td></tr></table></figure>
+<h4 id="开启aggregator路由请求"><a href="#开启aggregator路由请求" class="headerlink" title="开启aggregator路由请求"></a>开启aggregator路由请求</h4><p>尝试以下操作，默认出错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">kubectl api-resources</span><br><span class="line">error: unable to retrieve the complete list of server APIs: metrics.k8s.io/v1beta1: Unauthorized</span><br><span class="line"></span><br><span class="line">kubectl get --raw &quot;/apis/metrics.k8s.io/v1beta1&quot;</span><br><span class="line">error: You must be logged in to the server (Unauthorized)</span><br><span class="line"></span><br><span class="line">kubectl get &lt;API_RESOURCE_NAME&gt;.&lt;API_VERSION&gt;.&lt;API_GROUP&gt;</span><br><span class="line">kubectl get pods.v1beta1.metrics.k8s.io</span><br><span class="line">error: the server doesn&apos;t have a resource type &quot;pods</span><br></pre></td></tr></table></figure></p>
+<p>参考<a href="https://v1-13.docs.kubernetes.io/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#ca-reusage-and-conflicts" target="_blank" rel="noopener">CA Reusage and Conflicts</a>，这是因为apiserver默认没有开启<code>--enable-aggregator-routing=true</code>，该参数的作用是打开到endpoints IP的aggregator路由请求，替换cluster IP。将其添加到/etc/kubernetes/manifests/kube-apiserver.yaml（kubeadm安装的集群），重启kubelet，apiserver可能就地重启，所以可以通过docker stop/rm apiserver容器强制创建新服务。</p>
+<h4 id="通过curl方式验证"><a href="#通过curl方式验证" class="headerlink" title="通过curl方式验证"></a>通过curl方式验证</h4><p>上述<code>kubectl get pods.v1beta1.metrics.k8s.io</code>方式实际上是发送了以下请求：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//kubectl get pods.v1beta1.metrics.k8s.io --v=9</span><br><span class="line">curl -k -v -XGET  -H &quot;Accept: application/json;as=Table;v=v1beta1;g=meta.k8s.io, application/json&quot; -H &quot;User-Agent: kubectl/v1.13.0 (linux/amd64) kubernetes/ddf47ac&quot; &apos;https://xxx.xxx.xxx.xxx:6443/apis/metrics.k8s.io/v1beta1/namespaces/default/pods?limit=500&apos;</span><br></pre></td></tr></table></figure></p>
+<p>这个请求实际上是使用了~/.kube/config（admin.conf）的证书，过的是client-ca-file验证，而不是requestheader-client-ca-file。<br>以下验证requestheader-client-ca-file的方式：<br><strong>问题1：证书签发错误</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">curl -k -XGET &apos;https://xxx.xxx.xxx.xxx:6443/apis/metrics.k8s.io/v1beta1/namespaces/default/pods?limit=500&apos; --cert /etc/kubernetes/pki/front-proxy-client.crt --key /etc/kubernetes/pki/front-proxy-client.key</span><br><span class="line"></span><br><span class="line">===output</span><br><span class="line">&#123;</span><br><span class="line">  &quot;kind&quot;: &quot;Status&quot;,</span><br><span class="line">  &quot;apiVersion&quot;: &quot;v1&quot;,</span><br><span class="line">  &quot;metadata&quot;: &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;status&quot;: &quot;Failure&quot;,</span><br><span class="line">  &quot;message&quot;: &quot;Unauthorized&quot;,</span><br><span class="line">  &quot;reason&quot;: &quot;Unauthorized&quot;,</span><br><span class="line">  &quot;code&quot;: 401</span><br><span class="line">&#125;</span><br><span class="line">===apiserver log</span><br><span class="line">Unable to authenticate the request due to an error: [x509: subject with cn=kube-front-client is not in the allowed list, x509: certificate signed by unknown authority]</span><br></pre></td></tr></table></figure></p>
+<p>/etc/kubernetes/pki/front-proxy-client.crt签发时使用了错误的CN。需要重新签发证书或将kube-front-client设置到<code>--requestheader-allowed-names</code>。</p>
+<p><strong>问题2：没有指定username</strong><br>重新签发证书后继续上述步骤，依然是Unauthorized，但是apiserver日志只输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Unable to authenticate the request due to an error: x509: certificate signed by unknown authority</span><br></pre></td></tr></table></figure></p>
+<p>根据上一节的内容，我们知道这是由于请求头部没有带上username，front proxy认证失败，继续检查认证时由于front-proxy-client.crt不是由apiserver指定的client-ca-file所签发，因此报错。<br>执行以下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -k -XGET -H &quot;X-Remote-User:front-proxy-client&quot; &apos;https://xxx.xxx.xxx.xxx:6443/apis/metrics.k8s.io/v1beta1/namespaces/default/pods?limit=500&apos; --cert /etc/kubernetes/pki/front-proxy-client.crt --key /etc/kubernetes/pki/front-proxy-client.key</span><br></pre></td></tr></table></figure></p>
+<p><strong>问题3：没有权限</strong><br>上述步骤将产生权限不足的问题：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;kind&quot;: &quot;Status&quot;,</span><br><span class="line">  &quot;apiVersion&quot;: &quot;v1&quot;,</span><br><span class="line">  &quot;metadata&quot;: &#123;</span><br><span class="line">    </span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;status&quot;: &quot;Failure&quot;,</span><br><span class="line">  &quot;message&quot;: &quot;pods.metrics.k8s.io is forbidden: User \&quot;front-proxy-client\&quot; cannot list resource \&quot;pods\&quot; in API group \&quot;metrics.k8s.io\&quot; in the namespace \&quot;default\&quot;&quot;,</span><br><span class="line">  &quot;reason&quot;: &quot;Forbidden&quot;,</span><br><span class="line">  &quot;details&quot;: &#123;</span><br><span class="line">    &quot;group&quot;: &quot;metrics.k8s.io&quot;,</span><br><span class="line">    &quot;kind&quot;: &quot;pods&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;code&quot;: 403</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>使用以下文件进行授权：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">kind: ClusterRole</span><br><span class="line">metadata:</span><br><span class="line">  name: secure-metrics-scrape</span><br><span class="line">rules:</span><br><span class="line">- apiGroups:</span><br><span class="line">  - metrics.k8s.io</span><br><span class="line">  resources:</span><br><span class="line">  - pods</span><br><span class="line">  verbs:</span><br><span class="line">  - &quot;*&quot;</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1</span><br><span class="line">metadata:</span><br><span class="line">  name: metrics-endpoint</span><br><span class="line">subjects:</span><br><span class="line">- kind: User</span><br><span class="line">  name: front-proxy-client </span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">roleRef:</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: secure-metrics-scrape</span><br></pre></td></tr></table></figure></p>
+<p>再次执行上述命令，将成功获得输出。</p>
+<p><strong>抓包验证：</strong><br>进入prometheus-adapter容器，查看设备，设备号为33：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /sys/class/net/eth0/iflink</span><br></pre></td></tr></table></figure></p>
+<p>进入容器所在宿主机，查看设备对，假设为calixxxxx：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip link |grep ^33</span><br><span class="line">或</span><br><span class="line">for i in /sys/class/net/*/ifindex; do grep -l 33 $i; done</span><br></pre></td></tr></table></figure></p>
+<p>docker stop/rm强制删除apiserver，然后重新curl（避免apiserver使用已有连接，从而捕捉不到握手包），抓握手包：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i calixxxxx &quot;(tcp[((tcp[12] &amp; 0xf0) &gt;&gt; 2)] = 0x16)&quot; -w 6443.sap</span><br></pre></td></tr></table></figure></p>
+<p>由于启用了calico和ipvs，查看握手包，可以发现实际是tunnel向prometheus-adapter pod通信。通信双方client是发送了front-proxy-client证书，而server端则是发送临时签发的证书。</p>
+<p><strong>开启caBundle：</strong><br>若apiservice开启caBundle，添加caBundle之后发送curl指令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl：Error: &apos;x509: certificate is valid for localhost, localhost, not prometheus-adapter.monitoring.svc&apos;</span><br><span class="line"></span><br><span class="line">prometheus-adapter的pod日志，其中xxx.xxx.xxx.xxx是IPIP Tunnel的ip：</span><br><span class="line">http: TLS handshake error from xxx.xxx.xxx.xxx:40812: remote error: tls: bad certificate</span><br></pre></td></tr></table></figure></p>
+<h2 id="证书或配置及其作用"><a href="#证书或配置及其作用" class="headerlink" title="证书或配置及其作用"></a>证书或配置及其作用</h2><table>
+<thead>
+<tr>
+<th>证书或配置</th>
+<th>目前已知作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*.conf相关</td>
+<td></td>
+</tr>
+<tr>
+<td>~/.kube/config（admin.conf）</td>
+<td>与apiserver通信时kubectl使用的证书（apiserver使用apiserver.crt）</td>
+</tr>
+<tr>
+<td>kubelet.conf</td>
+<td>key usage不包含client auth、O或CN不符合规定时，会导致kubelet-client-current.pem直接采用其证书内容（在kubelet-client-current.pem不存在的情况下）</td>
+</tr>
+<tr>
+<td>controller-manager.conf</td>
+<td>与apiserver通信时kube-controller-manager使用的证书（apiserver使用apiserver.crt）</td>
+</tr>
+<tr>
+<td>scheduler.conf</td>
+<td>-</td>
+</tr>
+<tr>
+<td>kubelet相关</td>
+<td></td>
+</tr>
+<tr>
+<td>/var/lib/kubelet/pki/kubelet-client-current.pem</td>
+<td>kubelet向apiserver注册节点、获取资源信息等操作时kubelet使用的证书（apiserver使用apiserver.crt）</td>
+</tr>
+<tr>
+<td>kubelet.crt</td>
+<td>由kubectl log触发的apiserver与kubelet通信时，kubelet使用的证书（tlsCertFile字段指定）</td>
+</tr>
+<tr>
+<td>apiserver-kubelet-client.crt</td>
+<td>由kubectl log触发的apiserver与kubelet通信时，apiserver使用的证书</td>
+</tr>
+<tr>
+<td>apiserver相关</td>
+<td></td>
+</tr>
+<tr>
+<td>apiserver.crt</td>
+<td>kubectl与apiserver通信时apiserver使用的证书；kubelet向apiserver注册节点、获取资源信息等操作时apiserver使用的证书；kube-controller-manager与apiserver通信时apiserver使用的证书</td>
+</tr>
+<tr>
+<td>apiserver-etcd-client.crt</td>
+<td>-</td>
+</tr>
+<tr>
+<td>front-proxy相关</td>
+<td></td>
+</tr>
+<tr>
+<td>front-proxy-client.crt</td>
+<td>用于扩展apiserver的认证</td>
+</tr>
+<tr>
+<td>service account相关</td>
+<td></td>
+</tr>
+<tr>
+<td>sa.pub</td>
+<td>apiserver用于认证过程中的token校验</td>
+</tr>
+<tr>
+<td>etcd相关</td>
+<td></td>
+</tr>
+<tr>
+<td>healthcheck-client.crt</td>
+<td>-</td>
+</tr>
+<tr>
+<td>peer.crt</td>
+<td>-</td>
+</tr>
+<tr>
+<td>server.crt</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h1 id="access-token"><a href="#access-token" class="headerlink" title="access token"></a>access token</h1><p>通过上文可知，kube-controller-manager通过<code>--service-account-private-key-file</code>参数项传入一个服务账户私钥文件至Token管理器，私钥用于为生成的服务账户token签名。同样地，通过<code>--service-account-key-file</code>参数将对应的公钥传入kube-apiserver，公钥用于认证过程中的token校验。<br>参考<a href="https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod" target="_blank" rel="noopener">Accessing the API from a Pod</a>，可知每个pod里面都放置了token文件夹和ca证书，用于在需要时与apiserver安全通信。<br>从Pod中定位和验证apiserver的推荐方式是通过kubernetes.default.svc这个DNS名称，该名称将会解析为服务IP，然后服务 IP将会路由到apiserver。<br>向apiserver进行身份验证的推荐方法是使用ServiceAccount凭证。ServiceAccount凭证放置在pod中每个容器的文件系统中，位于/var/run/secrets/kubernetes.io/serviceaccount/token，该凭证即为对应命名空间下默认创建的default-token。/var/run/secrets/kubernetes.io/serviceaccount/ca.crt，用于验证apiserver的服务证书。默认命名空间将被放置在/var/run/secrets/kubernetes.io/serviceaccount/namespace文件中。</p>
+
           
         
       
@@ -2201,154 +2693,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/26/Cmake/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="zoro">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/zoro.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="蓝色步行者">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/08/26/Cmake/" itemprop="url">Cmake</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-26T12:34:25+08:00">
-                2017-08-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/工具/" itemprop="url" rel="index">
-                    <span itemprop="name">工具</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="PROJECT"><a href="#PROJECT" class="headerlink" title="PROJECT"></a>PROJECT</h1><p>格式：<code>PROJECT(projectname [CXX] [C] [Java])</code><br>定义工程名称，指定工程支持的语言，支持的语言列表可以忽略，默认情况表示支持所有语言。这个指令隐式的定义了两个 cmake 变量:<code>&lt;projectname&gt;_BINARY_DIR</code>以及<code>&lt;projectname&gt;_SOURCE_DIR</code>。内部编译的话两个变量都是指向工程所在路径。工程名一般大写。</p>
-<h1 id="预定义变量"><a href="#预定义变量" class="headerlink" title="预定义变量"></a>预定义变量</h1><p><code>PROJECT_BINARY_DIR</code>和<code>PROJECT_SOURCE_DIR</code>是cmake系统预定义变量，值分别跟<code>&lt;projectname&gt;_BINARY_DIR</code>以及<code>&lt;projectname&gt;_SOURCE_DIR</code>一致。</p>
-<h1 id="SET"><a href="#SET" class="headerlink" title="SET"></a>SET</h1><p>格式：<code>SET(VAR [VALUE] [CACHE TYPE DOCSTRING [FORCE]])</code><br>显式定义变量。引用变量的方式为<code>${...}</code>，但有一些例外，比如在 IF 控制语句，变量是直接使用变量名引用，而不需要${}。</p>
-<h1 id="MESSAGE"><a href="#MESSAGE" class="headerlink" title="MESSAGE"></a>MESSAGE</h1><p>格式：<code>MESSAGE([SEND_ERROR | STATUS | FATAL_ERROR] &quot;message to display&quot; ...)</code><br>向终端输出用户定义的信息，包含了三种类型:<br><code>SEND_ERROR</code>：产生错误，生成过程被跳过。<br><code>SATUS</code>：输出前缀为—的信息。<br><code>FATAL_ERROR</code>：立即终止所有 cmake 过程。</p>
-<h1 id="ADD-EXECUTABLE"><a href="#ADD-EXECUTABLE" class="headerlink" title="ADD_EXECUTABLE"></a>ADD_EXECUTABLE</h1><p>格式：<code>ADD_EXECUTABLE(&lt;name&gt; [WIN32] [MACOSX_BUNDLE] [EXCLUDE_FROM_ALL] source1 [source2 ...])</code><br>生成可执行文件，注意：工程名与可执行文件名没有任何关系。</p>
-<h1 id="基本语法规则"><a href="#基本语法规则" class="headerlink" title="基本语法规则"></a>基本语法规则</h1><p>1、变量使用${}方式取值，但是在 IF 控制语句中是直接使用变量名。<br>2、指令(参数1 参数2…)<br>参数使用括弧括起，参数之间使用空格或分号分开。<br>3、指令是大小写无关的，参数和变量是大小写相关的。推荐全部使用大写指令。<br>4、参数可使用双引号。</p>
-<h1 id="内部编译-内部构建"><a href="#内部编译-内部构建" class="headerlink" title="内部编译/内部构建"></a>内部编译/内部构建</h1><p>编译方式：在工程目录中执行<code>cmake .</code>。<br>源文件、CMakeLists.txt都在工程目录中，生成的中间文件、Makefile等都在本目录中。生成一些无法通过使用make distclean自动删除的中间文件（因为无法跟踪）。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2397,7 +2741,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">64</span>
+                <span class="site-state-item-count">65</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -2408,7 +2752,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2419,7 +2763,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">18</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -2461,7 +2805,7 @@
         <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
