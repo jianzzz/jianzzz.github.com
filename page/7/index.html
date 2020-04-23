@@ -299,6 +299,171 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/20/笔记01-x86-v6-book-Chapter-0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zoro">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/zoro.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="蓝色步行者">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/08/20/笔记01-x86-v6-book-Chapter-0/" itemprop="url">笔记01 - x86 v6 book | Chapter 0</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-20T21:00:13+08:00">
+                2017-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MIT6-828-Operating-System-Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">MIT6.828 Operating System Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="什么是xv6"><a href="#什么是xv6" class="headerlink" title="什么是xv6?"></a>什么是xv6?</h1><p>xv6是Dennis Ritchie 和 Ken Thompson的Unix Version 6再实现版本。xv6大致延续v6的结构和风格，但使用ANSI C，并基于x86−多处理器被重新设计。</p>
+<h1 id="什么是OS"><a href="#什么是OS" class="headerlink" title="什么是OS?"></a>什么是OS?</h1><p>An operating system is a program that manages a computer’s hardware. 一个操作系统是用来管理计算机硬件的一种程序。 The job of an operating system is to share a computer among multiple programs and to provide a more useful set of services than the hardware alone supports. 操作系统的工作是保证在多个程序间共享一台计算机并提供一个比单独硬件支持更有用的服务。It also multiplexes the hardware, allowing many programs to share the computer and run (or appear to run) at the same time. 它还多路传输硬件资源,允许许多程序在同一时间共享电脑和运行(或出现运行)。Finally, operating systems provide controlled ways for programs to interact, so that they can share data or work together. 最后,操作系统提供程序交互的控制方法,确保程序可以共享数据或一起工作。<br>看待OS的两种视图：<br>The small view: a h/w management library. 小视图：OS是一个硬件管理库。<br>The big view: physical machine -&gt; abstract one w/ better properties. 大视图：对物理机的抽象，使其具备更好写性能。</p>
+<h1 id="system-call-系统调用是什么？"><a href="#system-call-系统调用是什么？" class="headerlink" title="system call 系统调用是什么？"></a>system call 系统调用是什么？</h1><p>When a process needs to invoke a kernel service, it invokes a procedure call in the operating system interface. Such a procedure is called a system call. The system call enters the kernel; the kernel performs the service and returns. Thus a process alternates between executing in user space and kernel space. 当一个进程需要调用内核服务时，它会在操作系统接口调用一个过程调用。这样的过程称为系统调用。该系统调用进入内核，内核执行服务和返回。这样一个过程在用户空间和内核空间之间的交替执行。The kernel uses the CPU’s hardware protection mechanisms to ensure that each process executing in user space can access only its own memory. The kernel executes with the hardware privileges required to implement these protections; user programs execute without those privileges. When a user program invokes a system call, the hardware raises the privilege level and starts executing a pre-arranged function in the kernel. 内核使用CPU的硬件保护机制，确保每个在用户空间执行的过程只能访问自己的内存。内核执行有硬件特权，以实现这些保护；用户程序执行没有这些特权。当一个用户程序调用系统调用，硬件提高特权水平并开始在内核中执行一个预先安排的函数。</p>
+<h1 id="xv6-process-进程"><a href="#xv6-process-进程" class="headerlink" title="xv6 process 进程"></a>xv6 process 进程</h1><p>An xv6 process consists of user-space memory (instructions, data, and stack) and per-process state private to the kernel. 一个xv6进程由用户空间内存(指令、数据和堆栈)和进程状态组成，进程状态相对于内核来说是私有的。The instructions implement the program’s computation. The data are the variables on which the computation acts. The stack organizes the program’s procedure calls.指令实现了程序计算。数据是计算行为过程中的变量。堆栈组织了程序的过程调用。 Xv6 can time-share processes: it transparently switches the available CPUs among the set of processes waiting to execute. xv6进程是分时共享的，可以在等待执行的进程集合中透明地转变可用的CPU资源。When a process is not executing, xv6 saves its CPU registers, restoring them when it next runs the process. 当一个进程没被执行，xv6保存它的CPU寄存器并在下次执行的时候进行重建。The kernel associates a process identifier, or pid, with each process. 内核通过进程标识符或pid来关联一个进程。A process may create a new process using the fork system call.一个进程可通过fork系统调用来创建一个新进程。  </p>
+<h1 id="fork-函数做了什么？"><a href="#fork-函数做了什么？" class="headerlink" title="fork()函数做了什么？"></a>fork()函数做了什么？</h1><p>复制用户内存<br>&#160; &#160; &#160; &#160;复制进程内核状态（e.g. user id）<br>子进程得到不同的PID<br>子进程状态包含父进程PID<br>以不同的值返回两次（在父进程中，fork返回新创建子进程的进程ID；在子进程中，fork返回0；如果出现错误，fork返回一个负值）</p>
+<h1 id="exec-函数做了什么？"><a href="#exec-函数做了什么？" class="headerlink" title="exec()函数做了什么？"></a>exec()函数做了什么？</h1><p>用新内存镜像（从特定格式文件加载而来）替代当前正执行的进程内存<br>&#160; &#160; &#160; &#160;xv6使用ELF格式的文件<br>执行成功后不返回到调用程序，相反，由文件加载而来的指令开始在ELF头声明的入口点处开始执行<br>包含两个参数:可执行文件的名称和字符串数组参数</p>
+<p>fork allocates the memory required for the child’s copy of the parent’s memory, and exec allocates enough memory to hold the executable file. fork从父进程内存中复制，分配了子进程需要的内存。exec分配了足够的内存以控制可执行文件。</p>
+<h1 id="file-descriptor-文件描述符是什么？"><a href="#file-descriptor-文件描述符是什么？" class="headerlink" title="file descriptor 文件描述符是什么？"></a>file descriptor 文件描述符是什么？</h1><p>A file descriptor is a small integer representing a kernel-managed object that a process may read from or write to.一个文件描述符是一个非负小整数，代表了一个内核管理对象。进程可通过文件描述符进行读写。Internally, the xv6 kernel uses the file descriptor as an index into a per-process table, so that every process has a private space of file descriptors starting at zero. xv6内核内部使用文件描述符作为每个进程表的索引，每个进程都拥有文件描述符的私有空间（由0开始），（实际上，它是一个索引值，指向内核为每一个进程所维护的该进程打开文件的记录表。）。By convention, a process reads from file descriptor 0 (standard input), writes output to file descriptor 1 (standard output), and writes error messages to file descriptor 2 (standard error). 习惯上，标准输入的文件描述符是 0，标准输出是 1，标准错误是 2。The shell ensures that it always has three ﬁle descriptors open, which are by default ﬁle descriptors for the console. Shell确保总是有三个文件描述符打开，这也是控制台的默认文件描述符。The close system call releases a ﬁle descriptor, making it free for reuse by a future open, pipe, or dup system call. close系统调用会释放文件描述符，使其可被<strong>open， pipe或者dup</strong>系统调用所重用。 A newly allocated ﬁle descriptor is always the lowest-numbered unused descriptor of the current process. <strong>一个新分配的文件描述符总是当前进程序号最小的未使用的描述符。</strong></p>
+<p><a href="https://en.wikipedia.org/wiki/File_descriptor" target="_blank" rel="noopener">以下内容来自wiki</a><br><img src="/2017/08/20/笔记01-x86-v6-book-Chapter-0/1.png" title="文件描述符"><br>上图是一个进程的文件描述符表、file表和inode表。注意到不同的文件描述符可以指向相同的file表项(比如dup系统调用的结果)，以及多个不同的file表项可以指向相同的inode(比如文件被多次打开，inode表仍然保持精简，因为inode表通过文件名来标识inodes–即使inode可以有多个名字)。File descriptor 3不指向任何file，表明它被关闭了。</p>
+<p>对于virtual file system (VFS)，以上结构则有所变化。VFS是具体文件系统之上的一个抽象层，其目的是允许客户机应用程序以统一的方式访问不同类型的具体文件系统。参考<a href="http://www.makelinux.net/books/lkd2/ch12lev1sec7" target="_blank" rel="noopener">Linux kernel map in printable PDF</a>，可知VFS将目录当作files。在路径/bin/vi下，bin和vi都是files。bin是特殊的directory file，vi是regular file，存在一个inode同时代表这两个components。尽管存在这种统一，VFS经常需要执行一些目录操作，比如路径名查询。路径名查询涉及转换每个component的路径，确保它是有效的，然后继续查询下一个component。因此，VFS提出了目录条目(dentry)的概念，一个dentry是一个路径下的一个特定组件。比如说，/、bin、vi都是dentry对象。/和bin是directory，vi是regular file。这存在一个很重要的观点：<strong>dentry objects are all components in a path，including files。</strong>解析一个路径并遍历它的组件耗时且充斥着字符串比较，dentry对象使得整个过程变得更加容易。dentry还可能包括挂载点。路径/mnt/cdrom/foo下，组件/、mnt、cdrom\foo都是dentry对象。当执行目录操作时，VFS根据需要构造出dentry对象。</p>
+<p><a href="http://www.cnblogs.com/zhaoyl/archive/2012/05/15/2502010.html" target="_blank" rel="noopener">以下是某篇博客对上述内容的简介</a><br>&#160; &#160; &#160; &#160;内核中，对应于每个进程都有一个文件描述符表，表示这个进程打开的所有文件。文件描述表中每一项都是一个指针，指向一个用于描述打开的文件的数据块———file对象，file对象中描述了文件的打开模式，读写位置等重要信息，当进程打开一个文件时，内核就会创建一个新的file对象。需要注意的是，file对象不是专属于某个进程的，不同进程的文件描述符表中的指针可以指向相同的file对象，从而共享这个打开的文件。file对象有引用计数，记录了引用这个对象的文件描述符个数，只有当引用计数为0时，内核才销毁file对象，因此某个进程关闭文件，不影响与之共享同一个file对象的进程.<br>&#160; &#160; &#160; &#160;file对象中包含一个指针，指向dentry对象。dentry对象代表一个独立的文件路径，如果一个文件路径被打开多次，那么会建立多个file对象，但它们都指向同一个dentry对象。<br>&#160; &#160; &#160; &#160;dentry对象中又包含一个指向inode对象的指针。inode对象代表一个独立文件。因为存在硬链接与符号链接，因此不同的dentry对象可以指向相同的inode对象。inode 对象包含了最终对文件进行操作所需的所有信息，如文件系统类型、文件的操作方法、文件的权限、访问日期等。<br>&#160; &#160; &#160; &#160;打开文件后，进程得到的文件描述符实质上就是文件描述符表的下标，内核根据这个下标值去访问相应的文件对象，从而实现对文件的操作。<br><img src="/2017/08/20/笔记01-x86-v6-book-Chapter-0/2.jpg" title="文件描述符表"><br>&#160; &#160; &#160; &#160;注意，同一个进程多次打开同一个文件时，内核会创建多个file对象。<br>&#160; &#160; &#160; &#160;当进程使用fork系统调用创建一个子进程后，子进程将继承父进程的文件描述符表，因此在父进程中打开的文件可以在子进程中用同一个描述符访问。<br><img src="/2017/08/20/笔记01-x86-v6-book-Chapter-0/3.jpg" title="文件描述符表"></p>
+<h1 id="Why-there-are-actually-one-page-table-per-process-为什么通常一个进程一个页表，而不是整个系统一张页表？"><a href="#Why-there-are-actually-one-page-table-per-process-为什么通常一个进程一个页表，而不是整个系统一张页表？" class="headerlink" title="Why there are actually one page table per process?为什么通常一个进程一个页表，而不是整个系统一张页表？"></a>Why there are actually one page table per process?为什么通常一个进程一个页表，而不是整个系统一张页表？</h1><p>Page tables are used to translate the virtual addresses seen by the application into physical addresses used by the hardware to process instructions; 页表被用来将应用程序看到的线性地址转换为硬件处理指令所用的物理地址。such hardware that handles this specific translation is often known as the memory management unit. 负责这种特定转换的硬件是内存管理单元。Each entry in the page table holds a flag indicating whether the corresponding page is in real memory or not. If it is in real memory, the page table entry will contain the real memory address at which the page is stored.页表中的每个条目使用标志指示是否对应于实际内存中的页面。如果是，页表条目将包含页面存储的真正的内存地址。If the page table entry for the page indicates that it is not currently in real memory, the hardware raises a page fault exception, invoking the paging supervisor component of the operating system. 如果页表条目表明页面目前不在实际内存中，硬件产生一个页错误异常，请求操作系统的分页管理组件。<br>Systems can have one page table for the whole system, separate page tables for each application and segment, a tree of page tables for large segments or some combination of these. 系统可以为整个系统设计一个页表，或每个应用程序和段拥有单独的页表，或为大段或它们的一些组合设计页表树。If there is only one page table, different applications running at the same time use different parts of a single range of virtual addresses. 如果只有一个页表，同时运行的不同应用程序使用一个范围内的线性地址的不同部分。If there are multiple page or segment tables, there are multiple virtual address spaces and concurrent applications with separate page tables redirect to different real addresses. 如果有多个页面或分段表，将存在多个线性地址空间，拥有单独页表的并发的应用程序将被重定向到不同的真实地址。<br>A page table usually has a fixed number of entries and therefore describes only a portion of the entire virtual address space. This is why you need multiple of them to cover the entire address space. 页表通常有固定数量的条目，因此只描述了整个线性地址空间的一部分。这就是为什么需要多个页表来覆盖整个地址空间。Now, in many OSes processes have individual (in other words, not shared with others) virtual address spaces, which helps to protect processes from one another. This is another reason for having multiple page tables.在许多操作系统过程中存在个人线性地址空间(换句话说，不与他人分享)，这有助于保护进程，这是拥有多个页表的另一个原因。</p>
+<h1 id="Why-fork-and-exec-are-not-combined-in-a-single-call-separate-calls-for-creating-a-process-and-loading-a-program-为什么fork和exec不整合为一个简单的系统调用（为什么对创建进程和加载程序分别操作）？"><a href="#Why-fork-and-exec-are-not-combined-in-a-single-call-separate-calls-for-creating-a-process-and-loading-a-program-为什么fork和exec不整合为一个简单的系统调用（为什么对创建进程和加载程序分别操作）？" class="headerlink" title="Why fork and exec are not combined in a single call (separate calls for creating a process and loading a program) ? 为什么fork和exec不整合为一个简单的系统调用（为什么对创建进程和加载程序分别操作）？"></a>Why fork and exec are not combined in a single call (separate calls for creating a process and loading a program) ? 为什么fork和exec不整合为一个简单的系统调用（为什么对创建进程和加载程序分别操作）？</h1><p>File descriptors and fork interact to make I/O redirection easy to implement. 文件描述符和fork相互作用，容易实现I/O重定向。Fork copies the parent’s ﬁle descriptor table along with its memory, so that the child starts with exactly the same open ﬁles as the parent.fork复制了父进程的文件描述符表和内存，子进程开始执行时拥有相同的被打开的文件。 The system call exec replaces the calling process’s memory but preserves its ﬁle table. exec替代了当前调用进程的内存，但保留了文件描述符表。 This behavior allows the shell to implement I/O redirection by forking, reopening chosen ﬁle descriptors, and then execing the new program.     这个行为允许了Shell实现I/O重定向：fork创建子进程，重打开被关闭的文件描述符，最后exec执行新程序。<br>e.g.  cat &lt; input.txt 实现cat重定向<br>子进程关闭了文件描述符0后，由于0是当前最小的可用文件描述符，确保了open可以使用它。cat开始执行，并以文件描述符0（标准输入）为索引指向了input.txt。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">char *argv[2];</span><br><span class="line">argv[0] = &quot;cat&quot;; </span><br><span class="line">argv[1] = 0; </span><br><span class="line">if(fork() == 0) &#123; //创建子进程</span><br><span class="line">    close(0); //子进程释放文件描述符0（标准输入）</span><br><span class="line">    open(&quot;input.txt&quot;, O_RDONLY); //文件描述符0（标准输入）指向了input.txt</span><br><span class="line">    exec(&quot;cat&quot;, argv);//执行cat</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>The code for I/O redirection in the xv6 shell works in exactly this way. xv6 shell也是以这种方式进行I/O重定向的。Recall that at this point in the code the shell has already forked the child shell and that runcmd will call exec to load the new program. 回想一下，此时在代码中shell已经通过fork创建子进程shell，runcmd将调用exec加载新程序。Now it should be clear why it is a good idea that fork and exec are separate calls. 现在应该清楚为什么fork和exec单独调用是一个好主意。This separation allows the shell to ﬁx up the child process before the child runs the intended program.这种分离允许shell在子进程运行目标程序前对子线程进程修正。 </p>
+<h1 id="How-two-ﬁle-descriptors-share-the-same-file-offset-两个文件描述符如何共享相同的文件偏移"><a href="#How-two-ﬁle-descriptors-share-the-same-file-offset-两个文件描述符如何共享相同的文件偏移" class="headerlink" title="How two ﬁle descriptors share the same file offset? 两个文件描述符如何共享相同的文件偏移?"></a>How two ﬁle descriptors share the same file offset? 两个文件描述符如何共享相同的文件偏移?</h1><p>文件描述符会伴随着文件偏移地址，read和write系统调用会更新文件读写指针的偏移地址，共享了文件描述符则表示可以分别操作不同的文件描述符，使其作用于同一个文件。<br>Two ﬁle descriptors share an oﬀset if they were derived from the same original ﬁle descriptor by a sequence of fork and dup calls. 如果两个文件描述符来自于同一个原始的文件描述符（通过fork和dup系统调用），则它们使用相同的文件偏移。Otherwise ﬁle descriptors do not share oﬀsets, even if they resulted from open calls for the same ﬁle. 否则文件描述符不会共享文件偏移，即使是由open系统调用打开相同文件所产生的文件描述符。<br>e.g. write hello world into a ﬁle by fork<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">if(fork() == 0) &#123; </span><br><span class="line">    write(1, &quot;hello &quot;, 6); </span><br><span class="line">    exit(); </span><br><span class="line">&#125; else &#123;</span><br><span class="line">    wait(); </span><br><span class="line">    write(1, &quot;world\n&quot;, 6); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>e.g. write hello world into a ﬁle by dup<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">fd = dup(1); </span><br><span class="line">write(1, &quot;hello &quot;, 6); </span><br><span class="line">write(fd, &quot;world\n&quot;, 6);</span><br></pre></td></tr></table></figure></p>
+<p>The dup system call duplicates an existing ﬁle descriptor, returning a new one that refers to the same underlying I/O object.  dup复制现有的文件描述符，返回一个指向相同底层I/O对象的新的文件描述符。Dup allows shells to implement commands like this: ls existing-file non-existing-file &gt; tmp1 2&gt;&amp;1. The 2&gt;&amp;1 tells the shell to give the command a ﬁle descriptor 2 that is a duplicate of descriptor 1. dup告诉shell文件描述符2复制于文件描述符1。 Both the name of the existing ﬁle and the error message for the non-existing ﬁle will show up in the ﬁle tmp1. 结果是现有的文件名称和不存在的文件错误消息将出现在tmp1文件。 The xv6 shell doesn’t support I/O redirection for the error ﬁle descriptor, but now you know how to implement it. xv6 shell不支持错误文件描述符的I/O重定向，我们可以通过上述方式进行实现。</p>
+<h1 id="What-is-pipe-什么是管道"><a href="#What-is-pipe-什么是管道" class="headerlink" title="What is pipe? 什么是管道?"></a>What is pipe? 什么是管道?</h1><p>A pipe is a small kernel buﬀer exposed to processes as a pair of ﬁle descriptors, one for reading and one for writing. 管道是一个小的内核缓冲区，以一对文件描述符的形式暴露给进程，一个用于读，一个用于写。Writing data to one end of the pipe makes that data available for reading from the other end of the pipe. 向管道的一端写入数据，使数据可用于管道另一端读取。Pipes provide a way for processes to communicate.管道提供了一种进程交互的方式。<br>e.g. wc 标准输入连向管道的读端<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">int p[2]; </span><br><span class="line">char *argv[2];</span><br><span class="line">argv[0] = &quot;wc&quot;; </span><br><span class="line">argv[1] = 0;</span><br><span class="line">pipe(p); //创建管道，记录读、写文件描述符到数组p中</span><br><span class="line">//fork之后，父进程和子进程都有指向管道的文件描述符</span><br><span class="line">if(fork() == 0) &#123; </span><br><span class="line">    close(0); //释放标准输入文件描述符0</span><br><span class="line">    dup(p[0]); //复制管道读端到标准输入文件描述符0</span><br><span class="line">    close(p[0]); //关闭管道读端</span><br><span class="line">    close(p[1]); //关闭管道写端</span><br><span class="line">    exec(&quot;/bin/wc&quot;, argv); //执行wc，wc会从标准输入中读取，即从管道读端读取</span><br><span class="line">&#125; else &#123; </span><br><span class="line">    write(p[1], &quot;hello world\n&quot;, 12); //向管道写端写入</span><br><span class="line">    close(p[0]); //关闭管道读端</span><br><span class="line">    close(p[1]); //关闭管道写端</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>If no data is available, a read on a pipe waits for either data to be written or all ﬁle descriptors referring to the write end to be closed; 如果没有可用的数据，管道读端会阻塞等待，直到数据写入或者所有指向写端的文件描述符被关闭。in the latter case, read will return 0, just as if the end of a data ﬁle had been reached. 在后一种情况下，read会返回0，如同达到了文件末尾。The fact that read blocks until it is impossible for new data to arrive is one reason that it’s important for the child to close the write end of the pipe before executing wc above: if one of wc’s ﬁle descriptors referred to the write end of the pipe, wc would never see end-of-ﬁle. 子进程执行wc之前将写端关闭的一个重要原因是：读端会一直阻塞直到不可能出现新数据（关闭了所有写端）。如果存在指向写端的文件描述符没被关闭（如子线程未关闭），wc将不会看到文件的末尾，因为读端一直阻塞。<br>The xv6 shell implements pipelines such as grep fork sh.c | wc -l in a manner similar to the above code (8450).xv6 shell以类似的方式实现管道，例如grep fork sh.c | wc -l。 The child process creates a pipe to connect the left end of the pipeline with the right end. 子进程创建管道来连接管道的左端和右端。Then it calls runcmd for the left end of the pipeline and runcmd for the right end, and waits for the left and the right ends to ﬁnish, by calling wait twice. 然后子进程在左端和右端调用runcmd，并且两次调用wait等待左端和右端结束。The right end of the pipeline may be a command that itself includes a pipe (e.g., a | b | c), which itself forks two new child processes (one for b and one for c). Thus, the shell may create a tree of processes.管道的右端可能是包含管道的命令（可以察觉到，管道右端的命令将在子线程中实现）。因此，shell可能创建一棵进程树。 The leaves of this tree are commands and the interior nodes are processes that wait until the left and right children complete. 进程树的叶子节点是命令，内部节点是进程，进程将wait直至左右孩子节点完成工作。</p>
+<h1 id="What’s-the-diﬀerences-between-pipes-and-temporary-ﬁles-管道和临时文件之间的差别是什么"><a href="#What’s-the-diﬀerences-between-pipes-and-temporary-ﬁles-管道和临时文件之间的差别是什么" class="headerlink" title="What’s the diﬀerences between pipes and temporary ﬁles? 管道和临时文件之间的差别是什么?"></a>What’s the diﬀerences between pipes and temporary ﬁles? 管道和临时文件之间的差别是什么?</h1><p>Pipes may seem no more powerful than temporary ﬁles: the pipeline<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo hello world | wc</span><br></pre></td></tr></table></figure></p>
+<p>could be implemented without pipes as<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo hello world &gt;/tmp/xyz;   </span><br><span class="line">wc &lt; /tmp/xyz</span><br></pre></td></tr></table></figure></p>
+<p>There are at least three key diﬀerences between pipes and temporary ﬁles. First, pipes automatically clean themselves up; with the ﬁle redirection, a shell would have to be careful to remove /tmp/xyz when done. 差别1，管道自动清理（缓冲区），文件重定向时shell必须在工作结束后小心移除临时文件。Second, pipes can pass arbitrarily long streams of data, while ﬁle redirection requires enough free space on disk to store all the data. 差别2，管道能传递任意长度的数据流，文件重定向要求足够大的硬盘空间来存储所有数据。Third, pipes allow for synchronization: two processes can use a pair of pipes to send messages back and forth to each other, with each read blocking its calling process until the other process has sent data with write.差别3：管道允许同步：两个进程可以使用一对管道来回发送消息，每个read阻塞调用进程直到其他线程使用write发送数据。</p>
+<h1 id="xv6-ﬁle-system-文件系统"><a href="#xv6-ﬁle-system-文件系统" class="headerlink" title="xv6 ﬁle system 文件系统"></a>xv6 ﬁle system 文件系统</h1><p>The xv6 ﬁle system provides data ﬁles, which are uninterpreted byte arrays, and directories, which contain named references to data ﬁles and other directories.xv6文件系统提供数据文件，包括未解释字节数组和目录，目录包含了被命名的数据文件的引用和其他目录。 Xv6 implements directories as a special kind of ﬁle. xv6将目录实现为一种特殊的文件。The directories form a tree, starting at a special directory called the root.目录形成了一棵树，从一个特殊的目录root开始。<br><strong>create a new device ﬁle: mknod(“/console”, 1, 1);</strong><br>Mknod creates a ﬁle in the ﬁle system, but the ﬁle has no contents. Mknod创建文件系统中的一个文件，但这个文件没有内容。Instead, the ﬁle’s metadata marks it as a device ﬁle and records the major and minor device numbers (the two arguments to mknod), which uniquely identify a kernel device. 相反，文件的元数据将其标记为一个设备文件，并且记录了主次设备号，设备号唯一标识了一个内核设备。（主设备号用来区分不同种类的设备，而次设备号用来区分同一类型的多个设备。对于常用设备，Linux有约定俗成的编号，如硬盘的主设备号是3。）When a process later opens the ﬁle, the kernel diverts read and write system calls to the kernel device implementation instead of passing them to the ﬁle system. 当进程后面打开文件时，内核将read和write系统调用转移到内核设备实现，而不是将他们传递到文件系统。<br>The ﬁle’s inode and the disk space holding its content are only freed when the ﬁle’s link count is zero and no ﬁle descriptors refer to it. 只有当文件链接数为0而且没有文件描述符指向它时，文件的inode和磁盘空间时才释放其内容文件。<br>Furthermore, an idiomatic way to create a temporary inode that will be cleaned up when the process closes fd or exits is: 此外，可按照以下惯用方式创建一个临时inode，当进程关闭fd或者离开的时候，该inode将被清理：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">fd = open(&quot;/tmp/xyz&quot;, O_CREATE|O_RDWR); </span><br><span class="line">unlink(&quot;/tmp/xyz&quot;);</span><br></pre></td></tr></table></figure></p>
+<p>Xv6 commands for ﬁle system operations are implemented as user-level programs such as mkdir, ln, rm, etc. This design allows anyone to extend the shell with new user commands. xv6文件系统操作命令实现为用户级程序。这种设计运行任何人以新用户命令扩展shell（其他系统一般内置到shell里）。 One exception is cd, which is built into the shell (8516).cd命令除外，它是内置到shell的。 cd must change the current working directory of the shell itself. If cd were run as a regular command, then the shell would fork a child process, the child process would run cd, and cd would change the child’s working directory. The parent’s (i.e., the shell’s) working directory would not change. cd必须改变shell本身的当前工作目录。如果cd作为常规命令执行，shell会创建子进程，由子进程执行cd，cd将改变子进程的工作目录，父目录（shell的目录）不会被改变。<br><strong>注：用户在命令行输入命令后，一般情况下shell会fork并exec该命令，但是shell的内建命令例外，执行内建命令相当于调用shell进程中的一个函数，并不创建新的进程.</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.jianzzz.com/2017/08/16/笔记03-Lab-3-Fault-tolerant-Key-Value-Service/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -881,7 +1046,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">63</span>
+                <span class="site-state-item-count">64</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -892,7 +1057,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -903,7 +1068,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
